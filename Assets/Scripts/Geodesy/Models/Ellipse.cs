@@ -35,7 +35,10 @@ namespace Geodesy.Models
 			double y = origin.Y;
 			double z = Math.Sin (rad) * semiminorAxis + origin.Z;
 
-			return new GeoVector3 (Math.Cos (orientationY) * x, (Math.Sin (orientationY) * x) + y, z);
+			GeoVector3 v = new GeoVector3 (Math.Cos (orientationY) * x, (Math.Sin (orientationY) * x) + y, z);
+			v = new GeoVector3 (Math.Sin(orientationZ) * v.Z + v.X, v.Y, Math.Cos(orientationZ) * v.Z);
+
+			return v;
 		}
 
 		public override string ToString ()

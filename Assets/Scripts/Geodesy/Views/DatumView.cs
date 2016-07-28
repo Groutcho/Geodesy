@@ -63,7 +63,10 @@ namespace Geodesy.Views
 				DrawEllipse (parallel, 0, 360, resolution, Colors.LightGrey);		
 			}
 
-			for (int longitude = 0; longitude < 360; longitude += subdivisions) {				
+			Ellipse referenceMeridian = source.GetMeridian (0);
+			DrawEllipse (referenceMeridian, 0, 360, resolution, Color.red);	
+
+			for (int longitude = subdivisions; longitude < 360; longitude += subdivisions) {				
 				Ellipse meridian = source.GetMeridian (longitude);
 				DrawEllipse (meridian, 0, 360, resolution, Colors.LightGrey);		
 			}
