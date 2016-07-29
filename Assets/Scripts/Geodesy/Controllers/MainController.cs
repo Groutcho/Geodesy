@@ -11,6 +11,7 @@ namespace Geodesy.Controllers
 	{
 		public Camera cameraNode;
 		private Viewpoint viewpoint;
+		public Material DefaultMaterial;
 
 		StringBuilder logger;
 		Datum datum;
@@ -28,8 +29,11 @@ namespace Geodesy.Controllers
 			logger = new StringBuilder ();
 			Log ("Starting...");
 
+			Utils.DefaultMaterial = DefaultMaterial;
+
 			CreateView ();
 			CreateDatum ();
+			CreatePatchManager ();
 		}
 
 		void CreateDatum ()
@@ -52,6 +56,12 @@ namespace Geodesy.Controllers
 			viewpoint = new Viewpoint (cameraNode);	
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
+		}
+
+		void CreatePatchManager()
+		{
+			PatchManager mgr = new PatchManager ();
+			mgr.AddPatch (8);
 		}
 
 		// Update is called once per frame

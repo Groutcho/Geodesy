@@ -141,7 +141,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 3000
+  near clip plane: 2000
   far clip plane: 30000
   field of view: 60
   orthographic: 0
@@ -212,7 +212,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 152f5dd16f5728941bcddb67b939eed5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  camera: {fileID: 967111964}
+  cameraNode: {fileID: 967111964}
+  DefaultMaterial: {fileID: 2100000, guid: 195cf40782f344144844998cc343bbc6, type: 2}
 --- !u!1 &1388966890
 GameObject:
   m_ObjectHideFlags: 0

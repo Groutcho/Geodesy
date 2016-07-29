@@ -13,6 +13,7 @@ namespace Geodesy.Views
 		private float reductionFactor;
 		private int sampleResolution_deg;
 		private Viewpoint viewpoint;
+		Mesh patchMesh;
 
 		/// <summary>
 		/// Initialize the DatumView with the specified source and reduction factor.
