@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 namespace Geodesy.Models
 {
@@ -29,13 +30,29 @@ namespace Geodesy.Models
 		/// </summary>
 		/// <returns>The meridian.</returns>
 		/// <param name="longitude">The longitude of the meridian in degrees.</param>
-		public abstract Ellipse GetMeridian (double longitude);
+		public virtual Ellipse GetMeridian (double longitude)
+		{
+			GeoMatrix m = GeoMatrix.Identity;
+			m.Position = origin;
+			m.Rotate (longitude, 0, 0);
+
+			return new Circle (semiminorAxis, m);
+		}
 
 		/// <summary>
 		/// Return an ellipse representing the parallel of specified latitude.
 		/// </summary>
 		/// <returns>The parallel.</returns>
 		/// <param name="longitude">The latitude of the parallel in degrees.</param>
-		public abstract Ellipse GetParallel(double latitude);
+		public virtual Ellipse GetParallel (double latitude)
+		{
+			latitude = Utils.DegToRad (latitude);
+
+			GeoMatrix m = GeoMatrix.Identity;
+
+			double radius = Math.Cos(latitude) * semimajorAxis;
+			m.Position = origin + (GeoVector3.Up * (Math.Sin (latitude) * semiminorAxis));
+			return new Circle (radius, m);
+		}
 	}
 }

@@ -31,7 +31,7 @@ namespace Geodesy.Views
 
 		private void DrawEllipse (Ellipse ellipse, float from, float to, float resolution, Color color)
 		{
-			for (int longitude = (int)from; longitude < (int)to - 1; longitude += (int)resolution) {
+			for (int longitude = (int)from; longitude < (int)to; longitude += (int)resolution) {
 				Vector3 vfrom = ellipse.Sample (longitude).ToVector3 () * reductionFactor;
 				Vector3 vto = ellipse.Sample (longitude + resolution).ToVector3 () * reductionFactor;
 
@@ -51,7 +51,8 @@ namespace Geodesy.Views
 			int subdivisions = (int)Mathf.Pow (2, 1 / ratio);
 
 			Ellipse equator = source.GetParallel (0);
-			DrawEllipse (equator, 0, 360, resolution, Color.green);		
+			DrawEllipse (equator, 0, 360, resolution, Color.green);
+			return;
 
 			for (int latitude = subdivisions; latitude < 89; latitude += subdivisions) {
 				Ellipse parallel = source.GetParallel (latitude);
@@ -63,13 +64,13 @@ namespace Geodesy.Views
 				DrawEllipse (parallel, 0, 360, resolution, Colors.LightGrey);		
 			}
 
-			Ellipse referenceMeridian = source.GetMeridian (0);
-			DrawEllipse (referenceMeridian, 0, 360, resolution, Color.red);	
-
-			for (int longitude = subdivisions; longitude < 360; longitude += subdivisions) {				
-				Ellipse meridian = source.GetMeridian (longitude);
-				DrawEllipse (meridian, 0, 360, resolution, Colors.LightGrey);		
-			}
+//			Ellipse referenceMeridian = source.GetMeridian (0);
+//			DrawEllipse (referenceMeridian, 0, 360, resolution, Color.red);	
+//
+//			for (int longitude = subdivisions; longitude < 360; longitude += subdivisions) {				
+//				Ellipse meridian = source.GetMeridian (longitude);
+//				DrawEllipse (meridian, 0, 360, resolution, Colors.LightGrey);		
+//			}
 		}
 
 		private void DrawAxes ()

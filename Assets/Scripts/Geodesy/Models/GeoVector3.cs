@@ -21,27 +21,67 @@ namespace Geodesy.Models
 			this.z = z;
 		}
 
+		/// <summary>
+		/// Gets the normalized vector.
+		/// </summary>
+		/// <value>The normalized vector.</value>
+		public GeoVector3 Normalized {
+			get { return this * (1 / Magnitude); }
+		}
+
+		/// <summary>
+		/// Equivalent of [0, 0, 0]
+		/// </summary>
 		public static GeoVector3 Zero {
 			get { return new GeoVector3 (0, 0, 0); }
 		}
 
+		/// <summary>
+		/// Equivalent of [0, 1, 0]
+		/// </summary>
 		public static GeoVector3 Up {
 			get { return new GeoVector3 (0, 1, 0); }
 		}
 
-		public static GeoVector3 operator *(GeoVector3 a, double b)
-		{
-			return new GeoVector3(a.X * b, a.Y * b, a.Z * b);
+		/// <summary>
+		/// Equivalent of [1, 0, 0]
+		/// </summary>
+		public static GeoVector3 Right {
+			get { return new GeoVector3 (1, 0, 0); }
 		}
 
-		public static GeoVector3 operator +(GeoVector3 a, GeoVector3 b)
+		/// <summary>
+		/// Equivalent of [0, 0, 1]
+		/// </summary>
+		public static GeoVector3 Forward {
+			get { return new GeoVector3 (0, 0, 1); }
+		}
+
+		/// <summary>
+		/// Equivalent of [1, 1, 1]
+		/// </summary>
+		public static GeoVector3 One {
+			get { return new GeoVector3 (1, 1, 1); }
+		}
+
+		public static GeoVector3 operator * (GeoVector3 a, double b)
 		{
-			return new GeoVector3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+			return new GeoVector3 (a.X * b, a.Y * b, a.Z * b);
+		}
+
+		public static GeoVector3 operator + (GeoVector3 a, GeoVector3 b)
+		{
+			return new GeoVector3 (a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 		}
 
 		public override string ToString ()
 		{
 			return string.Format ("[GeoVector3: X={0}, Y={1}, Z={2}]", X, Y, Z);
+		}
+
+		public double Magnitude
+		{
+			get { return Math.Sqrt (X * X + Y * Y + Z * Z); }
 		}
 	}
 }
