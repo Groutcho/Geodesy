@@ -59,22 +59,5 @@ namespace Geodesy.Controllers
 		{
 	
 		}
-
-		/// <summary>
-		/// Shows the console.
-		/// </summary>
-		void ShowConsole ()
-		{
-			GUI.BeginGroup (new Rect (0, 0, 200, Screen.height));
-			{
-				GUI.TextArea (new Rect (0, 0, 200, Screen.height), logger.ToString ());
-			}
-			GUI.EndGroup ();
-		}
-
-		void OnGUI ()
-		{
-			ShowConsole ();
-		}
 	}
 }
