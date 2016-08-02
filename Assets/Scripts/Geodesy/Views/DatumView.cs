@@ -47,20 +47,27 @@ namespace Geodesy.Views
 			int resolution = 1;
 			float ratio = (viewpoint.MaxDistance - viewpoint.MinDistance) / Mathf.Clamp (distance, viewpoint.MinDistance, viewpoint.MaxDistance);
 			int subdivisions = (int)Mathf.Pow (2, 1 / ratio);
+			subdivisions = 30;
 
 			Ellipse equator = source.GetParallel (0);
 			DrawEllipse (equator, 0, 360, resolution, Color.green);
 
+			Ellipse northernTropic = source.GetParallel (23.43713);
+			DrawEllipse (northernTropic, 0, 360, resolution, Color.cyan);
+
+			Ellipse southernTropic = source.GetParallel (-23.43713);
+			DrawEllipse (southernTropic, 0, 360, resolution, Color.cyan);
+
 			for (int latitude = subdivisions; latitude < 89; latitude += subdivisions)
 			{
 				Ellipse parallel = source.GetParallel (latitude);
-				DrawEllipse (parallel, 0, 360, resolution, Color.white);
+				DrawEllipse (parallel, 0, 360, resolution, Colors.LightGrey);
 			}
 
 			for (int latitude = subdivisions; latitude < 89; latitude += subdivisions)
 			{
 				Ellipse parallel = source.GetParallel (-latitude);
-				DrawEllipse (parallel, 0, 360, resolution, Color.white);
+				DrawEllipse (parallel, 0, 360, resolution, Colors.LightGrey);
 			}
 
 			Ellipse referenceMeridian = source.GetMeridian (0);
@@ -69,7 +76,7 @@ namespace Geodesy.Views
 			for (int longitude = subdivisions; longitude < 360; longitude += subdivisions)
 			{
 				Ellipse meridian = source.GetMeridian (longitude);
-				DrawEllipse (meridian, 0, 360, resolution, Color.white);
+				DrawEllipse (meridian, 0, 360, resolution, Colors.LightGrey);
 			}
 		}
 
