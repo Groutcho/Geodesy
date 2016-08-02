@@ -9,9 +9,12 @@ namespace Geodesy.Views
 
 		public Camera Camera { get { return camera; } }
 
-		public Viewpoint (Camera camera)
+		public DatumView View { get; set; }
+
+		public Viewpoint (Camera camera, DatumView view)
 		{
 			this.camera = camera;
+			this.View = view;
 		}
 
 		public float DistanceFromView (Vector3 position)
@@ -19,11 +22,13 @@ namespace Geodesy.Views
 			return Vector3.Distance (camera.transform.position, position);
 		}
 
-		public float MaxDistance {
+		public float MaxDistance
+		{
 			get { return 15000f; }
 		}
 
-		public float MinDistance {
+		public float MinDistance
+		{
 			get { return 9000f; }
 		}
 	}

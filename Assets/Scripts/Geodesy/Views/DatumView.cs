@@ -11,7 +11,8 @@ namespace Geodesy.Views
 		private float reductionFactor;
 		private int sampleResolution_deg;
 		private Viewpoint viewpoint;
-		Mesh patchMesh;
+
+		public Vector3 Position { get { return source.Transform.Position.ToVector3 (); } }
 
 		/// <summary>
 		/// Initialize the DatumView with the specified source and reduction factor.

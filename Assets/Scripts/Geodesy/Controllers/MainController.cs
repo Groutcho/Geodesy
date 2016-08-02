@@ -12,6 +12,7 @@ namespace Geodesy.Controllers
 		public Camera cameraNode;
 		private Viewpoint viewpoint;
 		public Material DefaultMaterial;
+		public Material LineMaterial;
 
 		StringBuilder logger;
 		Datum datum;
@@ -29,10 +30,8 @@ namespace Geodesy.Controllers
 			logger = new StringBuilder ();
 			Log ("Starting...");
 
-			Utils.DefaultMaterial = DefaultMaterial;
-
-			CreateView ();
 			CreateDatum ();
+			CreateView ();
 			CreatePatchManager ();
 		}
 
@@ -44,16 +43,18 @@ namespace Geodesy.Controllers
 			datumView.Initialize (datum, 
 				reductionFactor: 0.001f,
 				sampleResolution_deg: 1, 
-				viewpoint: viewpoint);
+				viewpoint: viewpoint,
+				lineMaterial: LineMaterial);
 		}
 
 		void CreateView ()
 		{
-			if (cameraNode == null) {
+			if (cameraNode == null)
+			{
 				Log ("No viewpoint selected. Aborting.");
 				throw new NullReferenceException ("No viewpoint selected.");
 			}
-			viewpoint = new Viewpoint (cameraNode);	
+			viewpoint = new Viewpoint (cameraNode, datumView);
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
 		}
