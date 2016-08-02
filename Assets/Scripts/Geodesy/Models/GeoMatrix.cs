@@ -56,14 +56,17 @@ namespace Geodesy.Models
 		/// Gets or sets the scale.
 		/// </summary>
 		/// <value>The scale.</value>
-		public GeoVector3 Scale {
-			get {
+		public GeoVector3 Scale
+		{
+			get
+			{
 				return new GeoVector3 (
 					GetRow (0).Magnitude,
 					GetRow (1).Magnitude,
 					GetRow (2).Magnitude);
 			}
-			set {
+			set
+			{
 				var row0 = GetRow (0);
 				var row1 = GetRow (1);
 				var row2 = GetRow (2);
@@ -82,12 +85,17 @@ namespace Geodesy.Models
 			}
 		}
 
-		public GeoVector3 Position {
-			get {
-				return GetRow (3);
+		public GeoVector3 Position
+		{
+			get
+			{
+				return new GeoVector3 (R03, R13, R23);
 			}
-			set {
-				SetRow (3, value);
+			set
+			{
+				R03 = value.X;
+				R13 = value.Y;
+				R23 = value.Z;
 			}
 		}
 
@@ -95,8 +103,10 @@ namespace Geodesy.Models
 		/// Gets the rotation in degrees.
 		/// </summary>
 		/// <value>The rotation.</value>
-		public GeoVector3 Rotation {
-			get {
+		public GeoVector3 Rotation
+		{
+			get
+			{
 				var row0 = GetRow (0);
 				var row1 = GetRow (1);
 				var row2 = GetRow (2);
@@ -110,45 +120,40 @@ namespace Geodesy.Models
 
 		public void SetRow (int row, GeoVector3 vector)
 		{
-			switch (row) {
-			case 0:
-				R00 = vector.X;
-				R01 = vector.Y;
-				R02 = vector.Z;
-				break;
-			case 1:
-				R10 = vector.X;
-				R11 = vector.Y;
-				R12 = vector.Z;
-				break;
-			case 2:
-				R20 = vector.X;
-				R21 = vector.Y;
-				R22 = vector.Z;
-				break;
-			case 3:
-				R30 = vector.X;
-				R31 = vector.Y;
-				R32 = vector.Z;
-				break;
-			default:
-				throw new ArgumentOutOfRangeException ("row");
+			switch (row)
+			{
+				case 0:
+					R00 = vector.X;
+					R01 = vector.Y;
+					R02 = vector.Z;
+					break;
+				case 1:
+					R10 = vector.X;
+					R11 = vector.Y;
+					R12 = vector.Z;
+					break;
+				case 2:
+					R20 = vector.X;
+					R21 = vector.Y;
+					R22 = vector.Z;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException ("row");
 			}
 		}
 
 		public GeoVector3 GetRow (int row)
 		{
-			switch (row) {
-			case 0:
-				return new GeoVector3 (R00, R01, R02);
-			case 1:
-				return new GeoVector3 (R10, R11, R12);
-			case 2:
-				return new GeoVector3 (R20, R21, R22);
-			case 3:
-				return new GeoVector3 (R30, R31, R32);
-			default:
-				throw new ArgumentOutOfRangeException ("row");
+			switch (row)
+			{
+				case 0:
+					return new GeoVector3 (R00, R01, R02);
+				case 1:
+					return new GeoVector3 (R10, R11, R12);
+				case 2:
+					return new GeoVector3 (R20, R21, R22);
+				default:
+					throw new ArgumentOutOfRangeException ("row");
 			}
 		}
 
@@ -200,9 +205,9 @@ namespace Geodesy.Models
 		/// <param name="z">The z coordinate.</param>
 		public void Translate (double x, double y, double z)
 		{
-			R30 += x;
-			R31 += y;
-			R32 += z;
+			R03 += x;
+			R13 += y;
+			R23 += z;
 		}
 
 		/// <summary>
@@ -211,9 +216,9 @@ namespace Geodesy.Models
 		/// <param name="v">The translation vector.</param>
 		public void Translate (GeoVector3 v)
 		{
-			R30 += v.X;
-			R31 += v.Y;
-			R32 += v.Z;
+			R03 += v.X;
+			R13 += v.Y;
+			R23 += v.Z;
 		}
 
 		/// <summary>
@@ -290,43 +295,51 @@ namespace Geodesy.Models
 		public static GeoMatrix operator * (GeoMatrix A, GeoMatrix B)
 		{
 			return new GeoMatrix (
-				A.R00 * B.R00 + A.R01 * B.R10 + A.R02 * B.R20,
-				A.R00 * B.R01 + A.R01 * B.R11 + A.R02 * B.R21,
-				A.R00 * B.R02 + A.R01 * B.R12 + A.R02 * B.R22,
-				A.R00 * B.R03 + A.R01 * B.R13 + A.R02 * B.R23,
+				A.R00 * B.R00 + A.R01 * B.R10 + A.R02 * B.R20 + A.R03 * B.R30,
+				A.R00 * B.R01 + A.R01 * B.R11 + A.R02 * B.R21 + A.R03 * B.R31,
+				A.R00 * B.R02 + A.R01 * B.R12 + A.R02 * B.R22 + A.R03 * B.R32,
+				A.R00 * B.R03 + A.R01 * B.R13 + A.R02 * B.R23 + A.R03 * B.R33,
 
-				A.R10 * B.R00 + A.R11 * B.R10 + A.R12 * B.R20,
-				A.R10 * B.R01 + A.R11 * B.R11 + A.R12 * B.R21,
-				A.R10 * B.R02 + A.R11 * B.R12 + A.R12 * B.R22,
-				A.R10 * B.R03 + A.R11 * B.R13 + A.R12 * B.R23,
+				A.R10 * B.R00 + A.R11 * B.R10 + A.R12 * B.R20 + A.R13 * B.R30,
+				A.R10 * B.R01 + A.R11 * B.R11 + A.R12 * B.R21 + A.R13 * B.R31,
+				A.R10 * B.R02 + A.R11 * B.R12 + A.R12 * B.R22 + A.R13 * B.R32,
+				A.R10 * B.R03 + A.R11 * B.R13 + A.R12 * B.R23 + A.R13 * B.R33,
 
-				A.R20 * B.R00 + A.R21 * B.R10 + A.R22 * B.R20,
-				A.R20 * B.R01 + A.R21 * B.R11 + A.R22 * B.R21,
-				A.R20 * B.R02 + A.R21 * B.R12 + A.R22 * B.R22,
-				A.R20 * B.R03 + A.R21 * B.R13 + A.R22 * B.R23,
+				A.R20 * B.R00 + A.R21 * B.R10 + A.R22 * B.R20 + A.R23 * B.R30,
+				A.R20 * B.R01 + A.R21 * B.R11 + A.R22 * B.R21 + A.R23 * B.R31,
+				A.R20 * B.R02 + A.R21 * B.R12 + A.R22 * B.R22 + A.R23 * B.R32,
+				A.R20 * B.R03 + A.R21 * B.R13 + A.R22 * B.R23 + A.R23 * B.R33,
 
-				A.R30 * B.R00 + A.R31 * B.R10 + A.R32 * B.R20,
-				A.R30 * B.R01 + A.R31 * B.R11 + A.R32 * B.R21,
-				A.R30 * B.R02 + A.R31 * B.R12 + A.R32 * B.R22,
-				A.R30 * B.R03 + A.R31 * B.R13 + A.R32 * B.R23
+				A.R30 * B.R00 + A.R31 * B.R10 + A.R32 * B.R20 + A.R33 * B.R30,
+				A.R30 * B.R01 + A.R31 * B.R11 + A.R32 * B.R21 + A.R33 * B.R31,
+				A.R30 * B.R02 + A.R31 * B.R12 + A.R32 * B.R22 + A.R33 * B.R32,
+				A.R30 * B.R03 + A.R31 * B.R13 + A.R32 * B.R23 + A.R33 * B.R33
 			);
 		}
 
 		public static GeoVector3 operator * (GeoMatrix m, GeoVector3 v)
 		{
-			return new GeoVector3 (
-				v.X * m.R00 + v.Y * m.R01 + v.Z * m.R02 + v.X,
-				v.X * m.R10 + v.Y * m.R11 + v.Z * m.R12 + v.Y,
-				v.X * m.R20 + v.Y * m.R21 + v.Z * m.R22 + v.Z);
+			double x = v.X;
+			double y = v.Y;
+			double z = v.Z;
+
+			var u = new GeoVector3 (
+				        m.R00 * x + m.R01 * y + m.R02 * z + m.R03,
+				        m.R10 * x + m.R11 * y + m.R12 * z + m.R13,
+				        m.R20 * x + m.R21 * y + m.R22 * z + m.R23);
+
+			return u;
 		}
 
 		public static GeoVector3 operator * (GeoVector3 v, GeoMatrix m)
 		{
-			return m * v;		
+			return m * v;
 		}
 
-		public static GeoMatrix Identity {
-			get {
+		public static GeoMatrix Identity
+		{
+			get
+			{
 				return new GeoMatrix (
 					1, 0, 0, 0,
 					0, 1, 0, 0,

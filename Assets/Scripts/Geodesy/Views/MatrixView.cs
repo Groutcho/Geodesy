@@ -24,14 +24,14 @@ namespace Geodesy.Views
 		{
 			Vector3 rotation = Rotation * Time.deltaTime;
 
-			matrix.Scale = new GeoVector3(Scale.x, Scale.y, Scale.z);
+			matrix.Scale = new GeoVector3 (Scale.x, Scale.y, Scale.z);
 			matrix.Position = new GeoVector3 (Position.x, Position.y, Position.z);
-			matrix.Rotate(rotation.x, rotation.y, rotation.z);
+			matrix.Rotate (rotation.x, rotation.y, rotation.z);
 		}
 
 		void OnDrawGizmos ()
 		{
-			Vector3 origin = matrix.GetRow (3).ToVector3 ();
+			Vector3 origin = matrix.Position.ToVector3 ();
 
 			Gizmos.color = Color.red;
 			Gizmos.DrawLine (origin, origin + matrix.GetRow (0).ToVector3 ());

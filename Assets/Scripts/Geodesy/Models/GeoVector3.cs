@@ -25,48 +25,59 @@ namespace Geodesy.Models
 		/// Gets the normalized vector.
 		/// </summary>
 		/// <value>The normalized vector.</value>
-		public GeoVector3 Normalized {
+		public GeoVector3 Normalized
+		{
 			get { return this * (1 / Magnitude); }
 		}
 
 		/// <summary>
 		/// Equivalent of [0, 0, 0]
 		/// </summary>
-		public static GeoVector3 Zero {
+		public static GeoVector3 Zero
+		{
 			get { return new GeoVector3 (0, 0, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [0, 1, 0]
 		/// </summary>
-		public static GeoVector3 Up {
+		public static GeoVector3 Up
+		{
 			get { return new GeoVector3 (0, 1, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [1, 0, 0]
 		/// </summary>
-		public static GeoVector3 Right {
+		public static GeoVector3 Right
+		{
 			get { return new GeoVector3 (1, 0, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [0, 0, 1]
 		/// </summary>
-		public static GeoVector3 Forward {
+		public static GeoVector3 Forward
+		{
 			get { return new GeoVector3 (0, 0, 1); }
 		}
 
 		/// <summary>
 		/// Equivalent of [1, 1, 1]
 		/// </summary>
-		public static GeoVector3 One {
+		public static GeoVector3 One
+		{
 			get { return new GeoVector3 (1, 1, 1); }
 		}
 
 		public static GeoVector3 operator * (GeoVector3 a, double b)
 		{
 			return new GeoVector3 (a.X * b, a.Y * b, a.Z * b);
+		}
+
+		public static GeoVector3 operator * (double b, GeoVector3 a)
+		{
+			return a * b;
 		}
 
 		public static GeoVector3 operator + (GeoVector3 a, GeoVector3 b)

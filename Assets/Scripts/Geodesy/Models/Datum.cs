@@ -11,18 +11,18 @@ namespace Geodesy.Models
 	{
 		protected double semimajorAxis;
 		protected double semiminorAxis;
-		protected GeoVector3 origin;
-		protected Ellipse equator;
 
 		public double SemimajorAxis { get { return semimajorAxis; } }
-		public double SemiminorAxis { get { return semiminorAxis; } }
-		public GeoVector3 Origin { get { return origin; } }
 
-		public Datum (double semimajorAxis, double semiminorAxis, GeoVector3 origin)
+		public double SemiminorAxis { get { return semiminorAxis; } }
+
+		public GeoMatrix Transform { get ; set; }
+
+		public Datum (double semimajorAxis, double semiminorAxis, GeoMatrix transform)
 		{
 			this.semimajorAxis = semimajorAxis;
 			this.semiminorAxis = semiminorAxis;
-			this.origin = origin;
+			this.Transform = transform;
 		}
 
 		/// <summary>*
@@ -33,10 +33,11 @@ namespace Geodesy.Models
 		public virtual Ellipse GetMeridian (double longitude)
 		{
 			GeoMatrix m = GeoMatrix.Identity;
-			m.Position = origin;
+
+			m.Rotate (90, 90, 0);
 			m.Rotate (longitude, 0, 0);
 
-			return new Circle (semiminorAxis, m);
+			return new Ellipse (semimajorAxis, semiminorAxis, Transform * m);
 		}
 
 		/// <summary>
@@ -50,8 +51,10 @@ namespace Geodesy.Models
 
 			GeoMatrix m = GeoMatrix.Identity;
 
-			double radius = Math.Cos(latitude) * semimajorAxis;
-			m.Position = origin + (GeoVector3.Up * (Math.Sin (latitude) * semiminorAxis));
+			double radius = Math.Cos (latitude) * semimajorAxis;
+			var sinlat = Math.Sin (latitude);
+			m.Position = GeoVector3.Up * semiminorAxis * sinlat;
+			m = Transform * m;
 			return new Circle (radius, m);
 		}
 	}
