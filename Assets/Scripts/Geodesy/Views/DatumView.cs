@@ -19,12 +19,14 @@ namespace Geodesy.Views
 		/// </summary>
 		/// <param name="source">Source.</param>
 		/// <param name="reductionFactor">Reduction factor.</param>
-		public void Initialize (Datum source, float reductionFactor, int sampleResolution_deg, Viewpoint viewpoint)
+		public void Initialize (Datum source, float reductionFactor, int sampleResolution_deg, Viewpoint viewpoint, Material lineMaterial)
 		{
 			this.source = source;
 			this.reductionFactor = reductionFactor;
 			this.sampleResolution_deg = sampleResolution_deg;
 			this.viewpoint = viewpoint;
+
+			AddGraticule (lineMaterial);
 		}
 
 		private void DrawEllipse (Ellipse ellipse, float from, float to, float resolution, Color color)
@@ -39,10 +41,59 @@ namespace Geodesy.Views
 			}	
 		}
 
+		private void AddEllipseRendrer (Ellipse ellipse, Material material, Color color)
+		{
+			GameObject go = new GameObject ("ellipse");
+			go.transform.parent = transform;
+			LineRenderer lr = go.AddComponent<LineRenderer> ();
+			lr.SetWidth (15, 15);
+			lr.material = material;
+			lr.material.color = color;
+			Vector3 from = Vector3.zero;
+
+			lr.SetVertexCount (360);
+			for (int i = 0; i < 360; i++)
+			{
+				from = (ellipse.Sample (i) * reductionFactor).ToVector3 ();
+				lr.SetPosition (i, from);
+			}
+		}
+
+		private void AddGraticule (Material lineMaterial)
+		{
+			Ellipse equator = source.GetParallel (0);
+			Ellipse northernTropic = source.GetParallel (23.43713);
+			Ellipse southernTropic = source.GetParallel (-23.43713);
+
+			AddEllipseRendrer (equator, lineMaterial, Color.red);
+			AddEllipseRendrer (northernTropic, lineMaterial, Color.blue);
+			AddEllipseRendrer (southernTropic, lineMaterial, Color.blue);
+
+			int res = 10;
+
+			for (int latitude = res; latitude < 89; latitude += res)
+			{
+				Ellipse parallel = source.GetParallel (latitude);
+				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
+			}
+
+			for (int latitude = res; latitude < 89; latitude += res)
+			{
+				Ellipse parallel = source.GetParallel (-latitude);
+				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
+			}
+
+			for (int longitude = 0; longitude < 360; longitude += res)
+			{
+				Ellipse meridian = source.GetMeridian (longitude);
+				AddEllipseRendrer (meridian, lineMaterial, Colors.LightGrey);
+			}
+		}
+
 		/// <summary>
 		/// Draws the graticule.
 		/// </summary>
-		private void DrawGraticule ()
+		private void DrawDebugGraticule ()
 		{
 			float distance = viewpoint.DistanceFromView (source.Transform.Position.ToVector3 ());
 			int resolution = 1;
@@ -97,7 +148,7 @@ namespace Geodesy.Views
 		void OnDrawGizmos ()
 		{
 			DrawAxes ();
-			DrawGraticule ();
+			DrawDebugGraticule ();
 		}
 
 		/// <summary>
