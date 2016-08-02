@@ -107,10 +107,6 @@ namespace Geodesy.Models
 		{
 			get
 			{
-				var row0 = GetRow (0);
-				var row1 = GetRow (1);
-				var row2 = GetRow (2);
-
 				var x = Math.Acos (GetRow (0).Normalized.X);
 				var y = Math.Acos (GetRow (1).Normalized.Y);
 				var z = Math.Acos (GetRow (2).Normalized.Z);
