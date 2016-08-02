@@ -52,7 +52,7 @@ namespace Geodesy.Views
 			Vector3 from = Vector3.zero;
 
 			lr.SetVertexCount (360);
-			for (int i = 0; i < 360; i++)
+			for (int i = 0; i < 360; i += sampleResolution_deg)
 			{
 				from = (ellipse.Sample (i) * reductionFactor).ToVector3 ();
 				lr.SetPosition (i, from);
@@ -69,21 +69,21 @@ namespace Geodesy.Views
 			AddEllipseRendrer (northernTropic, lineMaterial, Color.blue);
 			AddEllipseRendrer (southernTropic, lineMaterial, Color.blue);
 
-			int res = 10;
+			int everyNth = 10;
 
-			for (int latitude = res; latitude < 89; latitude += res)
+			for (int latitude = everyNth; latitude < 89; latitude += everyNth)
 			{
 				Ellipse parallel = source.GetParallel (latitude);
 				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
 			}
 
-			for (int latitude = res; latitude < 89; latitude += res)
+			for (int latitude = everyNth; latitude < 89; latitude += everyNth)
 			{
 				Ellipse parallel = source.GetParallel (-latitude);
 				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
 			}
 
-			for (int longitude = 0; longitude < 360; longitude += res)
+			for (int longitude = 0; longitude < 360; longitude += everyNth)
 			{
 				Ellipse meridian = source.GetMeridian (longitude);
 				AddEllipseRendrer (meridian, lineMaterial, Colors.LightGrey);
