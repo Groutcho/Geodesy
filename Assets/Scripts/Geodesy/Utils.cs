@@ -17,6 +17,11 @@ namespace Geodesy
 			return rad * RadiansToDegrees;
 		}
 
+		public static double DegreesToDecimal (double degrees, double min, double seconds)
+		{
+			return degrees + (min / 60) + (seconds / 3600);
+		}
+
 		public static Material DefaultMaterial;
 	}
 }
