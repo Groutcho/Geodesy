@@ -58,10 +58,10 @@ namespace Geodesy.Controllers
 			controller.Initialize (viewpoint);
 		}
 
-		void CreatePatchManager()
+		void CreatePatchManager ()
 		{
-			PatchManager mgr = new PatchManager ();
-			mgr.AddPatch (8);
+			PatchManager mgr = new PatchManager (datumView, DefaultMaterial);
+			mgr.FillDepth (4);
 		}
 
 		// Update is called once per frame

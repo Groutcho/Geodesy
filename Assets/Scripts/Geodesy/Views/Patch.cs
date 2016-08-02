@@ -9,21 +9,49 @@ namespace Geodesy.Views
 	/// </summary>
 	public class Patch
 	{
-		private int subdivisions;
-		Mesh mesh;
+		/// <summary>
+		/// The subdivisions of a patch are constant.
+		/// If a patch is reduced in size, then its resolution will increase.
+		/// </summary>
+		public const int Subdivisions = 8;
 
-		public Mesh Mesh {
-			get {
-				if (mesh == null) {
-					CreateMesh ();
-				}
-				return mesh;
-			}
-		}
+		public Mesh Mesh { get; private set; }
 
-		public Patch (int subdivisions)
+		public int i { get; private set; }
+
+		public int j { get; private set; }
+
+		public int Depth { get; private set; }
+
+		public Patch (DatumView view, int i, int j, int depth)
 		{
-			this.subdivisions = subdivisions;
+			CreateMesh ();
+
+			this.i = i;
+			this.j = j;
+			this.Depth = depth;
+
+			var vertices = Mesh.vertices;
+			float arc = 360 / Mathf.Pow (2, depth);
+			float lat = j * arc;
+			float lon = 0;
+			float sarc = arc / Subdivisions;
+			int subdivs = Subdivisions + 1;
+
+			for (int y = 0; y < subdivs; y++)
+			{
+				lon = i * arc;
+				for (int x = 0; x < subdivs; x++)
+				{
+					vertices [x + y * subdivs] = view.Project (lat, lon);
+					lon += sarc;
+				}
+				lat += sarc;
+			}
+
+			Mesh.vertices = vertices;
+			Mesh.RecalculateBounds ();
+			Mesh.RecalculateNormals ();
 		}
 
 		/// <summary>
@@ -32,45 +60,46 @@ namespace Geodesy.Views
 		/// <returns>The mesh.</returns>
 		private void CreateMesh ()
 		{
-			mesh = new Mesh ();
-			Vector3[] vertices = new Vector3[(subdivisions + 1) * (subdivisions + 1)];
+			Mesh = new Mesh ();
+			Vector3[] vertices = new Vector3[(Subdivisions + 1) * (Subdivisions + 1)];
 			Vector2[] uv = new Vector2[vertices.Length];
-			var triangles = new List<int> (subdivisions * subdivisions * 2 * 3);
-			float stride = 1 / (float)subdivisions;
+			var triangles = new List<int> (Subdivisions * Subdivisions * 2 * 3);
+			float stride = 1 / (float)Subdivisions;
 
 			int v = 0;
-			for (int j = 0; j <= subdivisions; j++) {
-				for (int i = 0; i <= subdivisions; i++) {				
-					vertices [v] = new Vector3 (i * stride * 1000, j * stride * 1000, 0);
+			for (int j = 0; j <= Subdivisions; j++)
+			{
+				for (int i = 0; i <= Subdivisions; i++)
+				{
 					uv [v] = new Vector2 (i * stride, j * stride);
 					v++;
 				}
 			}
 
-			for (int j = 0; j < subdivisions; j++) {
-				for (int i = 0; i < subdivisions; i++) {
-					int k = i + j * (subdivisions + 1);
+			for (int j = 0; j < Subdivisions; j++)
+			{
+				for (int i = 0; i < Subdivisions; i++)
+				{
+					int k = i + j * (Subdivisions + 1);
 
 					int A = k;
 					int B = A + 1;
-					int C = B + subdivisions;
+					int C = B + Subdivisions;
 					int E = C + 1;
 
+					triangles.Add (C);
+					triangles.Add (B);
 					triangles.Add (A);
-					triangles.Add (B);
-					triangles.Add (C);
-					triangles.Add (C);
-					triangles.Add (B);
 					triangles.Add (E);
+					triangles.Add (B);
+					triangles.Add (C);
 				}
 			}
 
-			mesh.vertices = vertices;
-			mesh.uv = uv;
-			mesh.triangles = triangles.ToArray ();
-			mesh.Optimize ();
-			mesh.RecalculateBounds ();
-			mesh.RecalculateNormals ();
+			Mesh.vertices = vertices;
+			Mesh.uv = uv;
+			Mesh.triangles = triangles.ToArray ();
+			Mesh.Optimize ();
 		}
 	}
 }

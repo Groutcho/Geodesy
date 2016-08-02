@@ -21,7 +21,5 @@ namespace Geodesy
 		{
 			return degrees + (min / 60) + (seconds / 3600);
 		}
-
-		public static Material DefaultMaterial;
 	}
 }

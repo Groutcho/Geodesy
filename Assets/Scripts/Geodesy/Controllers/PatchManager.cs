@@ -7,17 +7,35 @@ namespace Geodesy.Controllers
 {
 	public class PatchManager
 	{
-		PatchTree tree;
+		private PatchTree tree;
+		private DatumView view;
 
-		public PatchManager ()
+		public PatchManager (DatumView view, Material material)
 		{
+			this.view = view;
 			GameObject patchRoot = new GameObject ("_patches");
 			tree = patchRoot.AddComponent<PatchTree> ();
+			tree.Initialize (material);
 		}
 
-		public void AddPatch(int size)
+		/// <summary>
+		/// Fill the spheroid with patches at the specified depth.
+		/// </summary>
+		/// <param name="depth">Depth.</param>
+		public void FillDepth (int depth)
 		{
-			Patch p = new Patch (size);
+			for (int i = 0; i < depth * 4; i++)
+			{
+				for (int j = -depth; j < depth; j++)
+				{
+					AddPatch (i, j, depth);
+				}
+			}
+		}
+
+		public void AddPatch (int i, int j, int depth)
+		{
+			Patch p = new Patch (view, i, j, depth);
 			tree.AddPatch (p);
 		}
 	}

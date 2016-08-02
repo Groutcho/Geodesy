@@ -98,5 +98,29 @@ namespace Geodesy.Views
 			DrawAxes ();
 			DrawGraticule ();
 		}
+
+		/// <summary>
+		/// Project the point at the surface of the datum and return
+		/// its cartesian coordinates.
+		/// </summary>
+		/// <param name="lat">Latitude of the point to project.</param>
+		/// <param name="lon">Longitude of the point to project.</param>
+		public Vector3 Project (float lat, float lon)
+		{
+			lat = Mathf.Deg2Rad * lat;
+			lon = Mathf.Deg2Rad * lon;
+
+			float x = 0;
+			float y = 0;
+			float z = 0;
+
+			float red = (float)(source.SemiminorAxis * reductionFactor);
+			float hRadius = (float)(Mathf.Cos (lat) * red);
+
+			x = Mathf.Cos (lon) * hRadius;
+			y = Mathf.Sin (lat) * red;
+			z = Mathf.Sin (lon) * hRadius;
+			return new Vector3 (x, y, z);
+		}
 	}
 }
