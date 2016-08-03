@@ -9,12 +9,9 @@ namespace Geodesy.Views
 
 		public Camera Camera { get { return camera; } }
 
-		public DatumView View { get; set; }
-
-		public Viewpoint (Camera camera, DatumView view)
+		public Viewpoint (Camera camera)
 		{
 			this.camera = camera;
-			this.View = view;
 		}
 
 		public float DistanceFromView (Vector3 position)

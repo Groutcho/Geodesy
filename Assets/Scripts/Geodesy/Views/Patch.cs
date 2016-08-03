@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using Geodesy.Controllers;
 
 namespace Geodesy.Views
 {
@@ -37,7 +38,7 @@ namespace Geodesy.Views
 
 		private GameObject gameObject;
 
-		public Patch (DatumView view, int i, int j, int depth, Material material)
+		public Patch (Globe globe, int i, int j, int depth, Material material)
 		{
 			CreateMesh ();
 
@@ -57,7 +58,7 @@ namespace Geodesy.Views
 				lon = i * arc;
 				for (int x = 0; x < subdivs; x++)
 				{
-					vertices [x + y * subdivs] = view.Project (lat, lon);
+					vertices [x + y * subdivs] = globe.Project (lat, lon);
 					lon += sarc;
 				}
 				lat += sarc;

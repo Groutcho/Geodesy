@@ -10,15 +10,15 @@ namespace Geodesy.Controllers
 	{
 		public const int MaxDepth = 20;
 
-		private DatumView view;
+		private Globe globe;
 		private Material material;
 
 		List<Patch[]> patches;
 		GameObject patchRoot;
 
-		public PatchManager (DatumView view, Material material)
+		public PatchManager (Globe globe, Material material)
 		{
-			this.view = view;
+			this.globe = globe;
 			this.material = material;
 			patchRoot = new GameObject ("_patches");
 			patches = new List<Patch[]> (MaxDepth);
@@ -89,7 +89,7 @@ namespace Geodesy.Controllers
 		public void AddPatch (int i, int j, int depth)
 		{
 			int width = GetWidth (depth);
-			Patch patch = new Patch (view, i, j, depth, material);
+			Patch patch = new Patch (globe, i, j, depth, material);
 			patches [patch.Depth] [patch.j * width + patch.i] = patch;
 		}
 

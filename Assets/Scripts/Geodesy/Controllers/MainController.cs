@@ -16,7 +16,6 @@ namespace Geodesy.Controllers
 
 		StringBuilder logger;
 		Datum datum;
-		DatumView datumView;
 		Globe globe;
 
 		void Log (string text)
@@ -34,25 +33,22 @@ namespace Geodesy.Controllers
 			CreateView ();
 			CreateDatum ();
 			CreateGlobe ();
-			CreateVectorLayerManager ();
 		}
 
 		void CreateDatum ()
 		{
 			Log ("Creating datum: WGS84");
 			datum = new WGS84 ();
-			datumView = this.gameObject.AddComponent<DatumView> ();
-			datumView.Initialize (datum, 
-				reductionFactor: 0.001f,
-				sampleResolution_deg: 1, 
-				viewpoint: viewpoint,
-				lineMaterial: LineMaterial);
 		}
 
 		void CreateGlobe ()
 		{
 			globe = GameObject.Find ("Globe").AddComponent<Globe> ();
-			globe.Initialize (datumView, DefaultMaterial);
+			globe.Initialize (
+				datum: datum,
+				material: DefaultMaterial, 
+				reductionFactor: 0.001f, 
+				viewpoint: viewpoint);
 		}
 
 		void CreateView ()
@@ -62,18 +58,9 @@ namespace Geodesy.Controllers
 				Log ("No viewpoint selected. Aborting.");
 				throw new NullReferenceException ("No viewpoint selected.");
 			}
-			viewpoint = new Viewpoint (cameraNode, datumView);
+			viewpoint = new Viewpoint (cameraNode);
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
-		}
-
-		void CreateVectorLayerManager ()
-		{
-			VectorLayerManager vectorManager = new VectorLayerManager ();
-			var vectorFeatureView = new VectorFeatureView (datumView);
-			vectorManager.OnFeatureAdded += vectorFeatureView.OnNewFeatureAdded;
-
-			vectorManager.AddVectorFeature (new EmptyFeature (new LatLon (48.8534100, 2.3488000, 0)));
 		}
 
 		// Update is called once per frame
