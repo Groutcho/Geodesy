@@ -12,18 +12,6 @@ namespace Geodesy.Controllers
 		{
 			this.viewpoint = viewpoint;
 		}
-
-		void Update ()
-		{
-			float speed = 5000;
-			float vector = Input.GetAxis ("Mouse ScrollWheel");
-			transform.Translate (Vector3.forward * vector * speed, Space.Self);
-
-			if (viewpoint.View != null)
-			{
-				transform.LookAt (viewpoint.View.Position);
-			}
-		}
 	}
 }
 
