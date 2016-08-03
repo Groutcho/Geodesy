@@ -33,6 +33,7 @@ namespace Geodesy.Controllers
 			CreateDatum ();
 			CreateView ();
 			CreatePatchManager ();
+			CreateVectorLayerManager ();
 		}
 
 		void CreateDatum ()
@@ -63,6 +64,15 @@ namespace Geodesy.Controllers
 		{
 			PatchManager mgr = new PatchManager (datumView, DefaultMaterial);
 			mgr.FillDepth (4);
+		}
+
+		void CreateVectorLayerManager ()
+		{
+			VectorLayerManager vectorManager = new VectorLayerManager ();
+			var vectorFeatureView = new VectorFeatureView (datumView);
+			vectorManager.OnFeatureAdded += vectorFeatureView.OnNewFeatureAdded;
+
+			vectorManager.AddVectorFeature (new EmptyFeature (new LatLon (48.8534100, 2.3488000, 0)));
 		}
 
 		// Update is called once per frame
