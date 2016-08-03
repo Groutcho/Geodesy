@@ -134,7 +134,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.03952206, g: 0.07276347, b: 0.125, a: 0.019607844}
+  m_BackGroundColor: {r: 0.010813141, g: 0.020905405, b: 0.03676468, a: 0.019607844}
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -214,6 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraNode: {fileID: 967111964}
   DefaultMaterial: {fileID: 2100000, guid: 195cf40782f344144844998cc343bbc6, type: 2}
+  LineMaterial: {fileID: 2100000, guid: b8c45370a3899df418f3f58883933f9c, type: 2}
 --- !u!1 &1388966890
 GameObject:
   m_ObjectHideFlags: 0
