@@ -82,55 +82,6 @@ namespace Geodesy.Controllers
 			}	
 		}
 
-		private void AddEllipseRendrer (Ellipse ellipse, Material material, Color color)
-		{
-			GameObject go = new GameObject ("ellipse");
-			go.transform.parent = transform;
-			LineRenderer lr = go.AddComponent<LineRenderer> ();
-			lr.SetWidth (15, 15);
-			lr.material = material;
-			lr.material.color = color;
-			Vector3 from = Vector3.zero;
-
-			lr.SetVertexCount (360);
-			for (int i = 0; i < 360; i += sampleResolution_deg)
-			{
-				from = (ellipse.Sample (i) * reductionFactor).ToVector3 ();
-				lr.SetPosition (i, from);
-			}
-		}
-
-		private void AddGraticule (Material lineMaterial)
-		{
-			Ellipse equator = datum.GetParallel (0);
-			Ellipse northernTropic = datum.GetParallel (23.43713);
-			Ellipse southernTropic = datum.GetParallel (-23.43713);
-
-			AddEllipseRendrer (equator, lineMaterial, Color.red);
-			AddEllipseRendrer (northernTropic, lineMaterial, Color.blue);
-			AddEllipseRendrer (southernTropic, lineMaterial, Color.blue);
-
-			int everyNth = 10;
-
-			for (int latitude = everyNth; latitude < 89; latitude += everyNth)
-			{
-				Ellipse parallel = datum.GetParallel (latitude);
-				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
-			}
-
-			for (int latitude = everyNth; latitude < 89; latitude += everyNth)
-			{
-				Ellipse parallel = datum.GetParallel (-latitude);
-				AddEllipseRendrer (parallel, lineMaterial, Colors.LightGrey);
-			}
-
-			for (int longitude = 0; longitude < 360; longitude += everyNth)
-			{
-				Ellipse meridian = datum.GetMeridian (longitude);
-				AddEllipseRendrer (meridian, lineMaterial, Colors.LightGrey);
-			}
-		}
-
 		/// <summary>
 		/// Draws the graticule.
 		/// </summary>
