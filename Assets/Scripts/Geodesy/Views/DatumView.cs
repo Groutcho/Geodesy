@@ -151,6 +151,11 @@ namespace Geodesy.Views
 			DrawDebugGraticule ();
 		}
 
+		public Vector3 Project (LatLon point)
+		{
+			return Project ((float)point.Latitude, (float)point.Longitude);
+		}
+
 		/// <summary>
 		/// Project the point at the surface of the datum and return
 		/// its cartesian coordinates.
