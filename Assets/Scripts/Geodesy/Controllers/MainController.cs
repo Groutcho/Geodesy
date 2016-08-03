@@ -17,6 +17,7 @@ namespace Geodesy.Controllers
 		StringBuilder logger;
 		Datum datum;
 		DatumView datumView;
+		Globe globe;
 
 		void Log (string text)
 		{
@@ -30,9 +31,9 @@ namespace Geodesy.Controllers
 			logger = new StringBuilder ();
 			Log ("Starting...");
 
-			CreateDatum ();
 			CreateView ();
-			CreatePatchManager ();
+			CreateDatum ();
+			CreateGlobe ();
 			CreateVectorLayerManager ();
 		}
 
@@ -48,6 +49,12 @@ namespace Geodesy.Controllers
 				lineMaterial: LineMaterial);
 		}
 
+		void CreateGlobe ()
+		{
+			globe = GameObject.Find ("Globe").AddComponent<Globe> ();
+			globe.Initialize (datumView, DefaultMaterial);
+		}
+
 		void CreateView ()
 		{
 			if (cameraNode == null)
@@ -58,12 +65,6 @@ namespace Geodesy.Controllers
 			viewpoint = new Viewpoint (cameraNode, datumView);
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
-		}
-
-		void CreatePatchManager ()
-		{
-			PatchManager mgr = new PatchManager (datumView, DefaultMaterial);
-			mgr.FillDepth (4);
 		}
 
 		void CreateVectorLayerManager ()

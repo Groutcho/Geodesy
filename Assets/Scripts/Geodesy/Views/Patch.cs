@@ -23,7 +23,21 @@ namespace Geodesy.Views
 
 		public int Depth { get; private set; }
 
-		public Patch (DatumView view, int i, int j, int depth)
+		private bool visible;
+
+		public bool Visible
+		{
+			get { return visible; } 
+			set
+			{
+				gameObject.SetActive (value);
+				visible = value;
+			}
+		}
+
+		private GameObject gameObject;
+
+		public Patch (DatumView view, int i, int j, int depth, Material material)
 		{
 			CreateMesh ();
 
@@ -52,6 +66,19 @@ namespace Geodesy.Views
 			Mesh.vertices = vertices;
 			Mesh.RecalculateBounds ();
 			Mesh.RecalculateNormals ();
+
+			CreateGameObject (material);
+		}
+
+		private void CreateGameObject (Material material)
+		{
+			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
+
+			var mr = gameObject.AddComponent<MeshRenderer> ();
+			mr.sharedMaterial = material;
+
+			var mf = gameObject.AddComponent<MeshFilter> ();
+			mf.mesh = Mesh;
 		}
 
 		/// <summary>

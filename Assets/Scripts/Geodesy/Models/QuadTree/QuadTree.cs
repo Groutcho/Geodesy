@@ -3,13 +3,29 @@ using System.Collections.Generic;
 
 namespace Geodesy.Models.QuadTree
 {
+	public class DepthChangedEventArgs : EventArgs
+	{
+		public int NewDepth { get; private set; }
+
+		public DepthChangedEventArgs (int newDepth)
+		{
+			this.NewDepth = newDepth;
+		}
+	}
+
 	public class QuadTree
 	{
 		Node root;
+		int currentDepth;
+
+		public int CurrentDepth { get { return currentDepth; } }
+
+		public event EventHandler DepthChanged;
 
 		public QuadTree ()
 		{
 			root = new Node (this, new Coordinate (0, 0, 0));
+			Divide ();
 		}
 
 		public IEnumerable<Node> Traverse (bool onlyLeaves)
@@ -20,6 +36,12 @@ namespace Geodesy.Models.QuadTree
 		public void Divide ()
 		{
 			root.Divide ();
+			currentDepth++;
+
+			if (DepthChanged != null)
+			{
+				DepthChanged (this, new DepthChangedEventArgs (currentDepth));
+			}
 		}
 
 		public Node Find (int i, int j, int depth)
