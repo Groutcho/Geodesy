@@ -60,6 +60,12 @@ namespace Geodesy.Models.QuadTree
 			}
 			return null;
 		}
+
+		public IEnumerable<Node> GetVisibleNodes ()
+		{
+			// TODO: return only visible nodes. For now, return all nodes.
+			return Traverse (onlyLeaves: true);
+		}
 	}
 }
 

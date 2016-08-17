@@ -33,6 +33,7 @@ namespace Geodesy.Controllers
 			CreateView ();
 			CreateDatum ();
 			CreateGlobe ();
+			CreateCompositer ();
 		}
 
 		void CreateDatum ()
@@ -62,6 +63,13 @@ namespace Geodesy.Controllers
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
 		}
+
+		void CreateCompositer ()
+		{
+			Compositer compositer = GameObject.Find ("Compositer").GetComponent<Compositer> ();
+			compositer.Initialize (globe);
+		}
+
 
 		// Update is called once per frame
 		void Update ()

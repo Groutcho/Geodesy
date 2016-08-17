@@ -24,6 +24,8 @@ namespace Geodesy.Views
 
 		public int Depth { get; private set; }
 
+		public RenderTexture Texture { get; private set; }
+
 		private bool visible;
 
 		public bool Visible
@@ -77,7 +79,11 @@ namespace Geodesy.Views
 			gameObject.transform.parent = root;
 
 			var mr = gameObject.AddComponent<MeshRenderer> ();
-			mr.sharedMaterial = material;
+			mr.material = material;
+			RenderTexture tex = new RenderTexture (256, 256, 16);
+			tex.name = gameObject.name;
+			mr.material.mainTexture = tex;
+			Texture = tex;
 
 			var mf = gameObject.AddComponent<MeshFilter> ();
 			mf.mesh = Mesh;

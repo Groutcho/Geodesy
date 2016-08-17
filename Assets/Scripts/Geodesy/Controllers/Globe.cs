@@ -16,6 +16,10 @@ namespace Geodesy.Controllers
 		float reductionFactor;
 		Viewpoint viewpoint;
 
+		public QuadTree Tree { get { return tree; } }
+
+		public PatchManager PatchManager { get { return patchManager; } }
+
 		public void Initialize (Datum datum, Material material, float reductionFactor, Viewpoint viewpoint)
 		{
 			this.reductionFactor = reductionFactor;

@@ -87,6 +87,18 @@ namespace Geodesy.Controllers
 			return (int)(Math.Pow (2, depth));
 		}
 
+		public Patch Get (int i, int j, int depth)
+		{
+			foreach (var item in patches[depth])
+			{
+				if (item.i == i && item.j == j)
+				{
+					return item;
+				}
+			}
+			return null;
+		}
+
 		public void AddPatch (int i, int j, int depth)
 		{
 			int width = GetWidth (depth);
