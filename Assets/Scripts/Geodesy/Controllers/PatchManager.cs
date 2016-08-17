@@ -21,6 +21,7 @@ namespace Geodesy.Controllers
 			this.globe = globe;
 			this.material = material;
 			patchRoot = new GameObject ("_patches");
+			patchRoot.transform.parent = globe.transform;
 			patches = new List<Patch[]> (MaxDepth);
 			for (int i = 0; i < MaxDepth; i++)
 			{
@@ -89,7 +90,7 @@ namespace Geodesy.Controllers
 		public void AddPatch (int i, int j, int depth)
 		{
 			int width = GetWidth (depth);
-			Patch patch = new Patch (globe, i, j, depth, material);
+			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, material);
 			patches [patch.Depth] [patch.j * width + patch.i] = patch;
 		}
 

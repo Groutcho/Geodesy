@@ -38,7 +38,7 @@ namespace Geodesy.Views
 
 		private GameObject gameObject;
 
-		public Patch (Globe globe, int i, int j, int depth, Material material)
+		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material)
 		{
 			CreateMesh ();
 
@@ -68,12 +68,13 @@ namespace Geodesy.Views
 			Mesh.RecalculateBounds ();
 			Mesh.RecalculateNormals ();
 
-			CreateGameObject (material);
+			CreateGameObject (material, root);
 		}
 
-		private void CreateGameObject (Material material)
+		private void CreateGameObject (Material material, Transform root)
 		{
 			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
+			gameObject.transform.parent = root;
 
 			var mr = gameObject.AddComponent<MeshRenderer> ();
 			mr.sharedMaterial = material;
