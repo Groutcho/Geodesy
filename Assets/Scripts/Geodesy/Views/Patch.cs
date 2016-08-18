@@ -48,22 +48,26 @@ namespace Geodesy.Views
 			this.j = j;
 			this.Depth = depth;
 
+			float subs = Mathf.Pow (2, depth);
+
 			var vertices = Mesh.vertices;
-			float arc = 360 / Mathf.Pow (2, depth);
-			float lat = j * arc;
-			float lon = 0;
-			float sarc = arc / Subdivisions;
+			float height = 180 / subs;
+			float width = 360 / subs;
+			float lat = j * height - 90;
+			float lon = -180f;
+			float sarcH = height / Subdivisions;
+			float sarcW = width / Subdivisions;
 			int subdivs = Subdivisions + 1;
 
 			for (int y = 0; y < subdivs; y++)
 			{
-				lon = i * arc;
+				lon = i * width;
 				for (int x = 0; x < subdivs; x++)
 				{
 					vertices [x + y * subdivs] = globe.Project (lat, lon);
-					lon += sarc;
+					lon += sarcW;
 				}
-				lat += sarc;
+				lat += sarcH;
 			}
 
 			Mesh.vertices = vertices;

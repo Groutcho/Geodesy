@@ -25,9 +25,9 @@ namespace Geodesy.Models.QuadTree
 		public QuadTree ()
 		{
 			root = new Node (this, new Coordinate (0, 0, 0));
-			Divide ();
-			Divide ();
-			Divide ();
+			Divide (); // 4 nodes
+			Divide (); // 8 nodes
+			Divide (); // 16 nodes
 		}
 
 		public IEnumerable<Node> Traverse (bool onlyLeaves)
