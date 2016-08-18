@@ -15,6 +15,7 @@ namespace Geodesy.Views
 		/// If a patch is reduced in size, then its resolution will increase.
 		/// </summary>
 		public const int Subdivisions = 8;
+		public const int TextureSize = 256;
 
 		public Mesh Mesh { get; private set; }
 
@@ -84,7 +85,7 @@ namespace Geodesy.Views
 
 			var mr = gameObject.AddComponent<MeshRenderer> ();
 			mr.material = material;
-			RenderTexture tex = new RenderTexture (256, 256, 16);
+			RenderTexture tex = new RenderTexture (TextureSize, TextureSize, 16);
 			tex.name = gameObject.name;
 			mr.material.mainTexture = tex;
 			Texture = tex;
