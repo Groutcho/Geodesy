@@ -65,10 +65,18 @@ namespace Geodesy.Controllers
 		private bool ready;
 		private QuadTree tree;
 		private PatchManager patchManager;
+		private int compositingLayer;
+
+		private Grid grid;
+
+		public const float MAX_HEIGHT = 10;
+		public const float GRID_HEIGHT = 9;
 
 		public void Start ()
 		{
 			isDirty = true;
+			compositingLayer = LayerMask.NameToLayer ("Compositing");
+			grid = new Grid ();
 		}
 
 		public void Initialize (Globe globe)
@@ -77,32 +85,18 @@ namespace Geodesy.Controllers
 			this.tree = globe.Tree;
 			this.patchManager = globe.PatchManager;
 			ready = true;
+			ShowGrid (true);
 		}
 
-		private IEnumerator RenderNodes (List<Node> nodes)
+		/// <summary>
+		/// Display an adaptive grid.
+		/// </summary>
+		/// <param name="show">If set to <c>true</c> show the grid.</param>
+		public void ShowGrid (bool show)
 		{
-			foreach (Node node in nodes)
-			{
-				Coordinate coord = node.Coordinate;
-				Zone zone = Zone.FromCoordinates (coord);
-				Debug.Log (zone);
-
-				float x = zone.Longitude + zone.Width / 2;
-				float y = zone.Latitude + zone.Height / 2;
-
-				CompositerCamera.transform.position = new Vector3 (x, 5, y);
-				CompositerCamera.orthographicSize = zone.Width / 4;
-				CompositerCamera.aspect = 2f;
-
-				Patch patch = patchManager.Get (coord.I, coord.J, coord.Depth);
-
-				CompositerCamera.targetTexture = patch.Texture;
-				CompositerCamera.Render ();
-				yield return new WaitForEndOfFrame ();
-
-//				yield return new WaitForSeconds (0.5f);
-			}
-
+			// Initialize grid if needed
+			grid.Visible = show;
+			Render ();
 		}
 
 		/// <summary>
@@ -122,7 +116,30 @@ namespace Geodesy.Controllers
 			StartCoroutine (RenderNodes (nodes));
 		}
 
-		void LateUpdate ()
+		private IEnumerator RenderNodes (List<Node> nodes)
+		{
+			foreach (Node node in nodes)
+			{
+				Coordinate coord = node.Coordinate;
+				Zone zone = Zone.FromCoordinates (coord);
+				Debug.Log (zone);
+
+				float x = zone.Longitude + zone.Width / 2;
+				float y = zone.Latitude + zone.Height / 2;
+
+				CompositerCamera.transform.position = new Vector3 (x, MAX_HEIGHT, y);
+				CompositerCamera.orthographicSize = zone.Width / 4;
+				CompositerCamera.aspect = 2f;
+
+				Patch patch = patchManager.Get (coord.I, coord.J, coord.Depth);
+
+				CompositerCamera.targetTexture = patch.Texture;
+				CompositerCamera.Render ();
+				yield return new WaitForEndOfFrame ();
+			}
+		}
+
+		private void LateUpdate ()
 		{
 			if (!ready)
 				return;
