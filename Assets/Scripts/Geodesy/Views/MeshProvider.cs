@@ -14,14 +14,16 @@ namespace Geodesy
 		/// 
 		/// </summary>
 		/// <value>The quad.</value>
-		public static Mesh Quad {
-			get {
+		public static Mesh Quad
+		{
+			get
+			{
 				Mesh quad = new Mesh ();
 				quad.vertices = new [] { 
 					Vector3.zero,
-					Vector3.zero,
-					Vector3.zero,
-					Vector3.zero
+					new Vector3 (1, 0),
+					new Vector3 (1, 1),
+					new Vector3 (0, 1)
 				};
 				quad.uv = new [] {
 					Vector2.zero,
