@@ -161,18 +161,6 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		private void LateUpdate ()
-		{
-			if (!ready)
-				return;
-
-			if (isDirty)
-			{
-				isDirty = false;
-				Render ();
-			}
-		}
-
 		#region IConsoleCommandHandler implementation
 
 		public CommandResult ExecuteCommand (string[] argument)
