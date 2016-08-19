@@ -12,7 +12,7 @@ namespace Geodesy.Controllers
 	/// <summary>
 	/// Class responsible for compositing raster images into the map to be later cut into tiles assigned to the 3D patches on the surface of the globe.
 	/// </summary>
-	public class Compositer : MonoBehaviour
+	public class Compositer : MonoBehaviour, IConsoleCommandHandler
 	{
 		/// <summary>
 		/// Describes a zone in the compositing area.
@@ -100,6 +100,15 @@ namespace Geodesy.Controllers
 			ready = true;
 			ShowGrid (true);
 			ViewpointController.Instance.HasMoved += OnViewpointMoved;
+
+			RegisterConsoleCommands ();
+		}
+
+		private void RegisterConsoleCommands ()
+		{
+			var console = Views.Debugging.Console.Instance;
+
+			console.Register (this, "grid");
 		}
 
 		/// <summary>
@@ -163,6 +172,52 @@ namespace Geodesy.Controllers
 				Render ();
 			}
 		}
+
+		#region IConsoleCommandHandler implementation
+
+		public CommandResult ExecuteCommand (string[] argument)
+		{
+			switch (argument [0])
+			{
+				case "grid":
+					return ExecuteGridCommands (argument);
+				default:
+					break;
+			}
+
+			throw new NotImplementedException ();
+		}
+
+		private CommandResult ExecuteGridCommands (string[] argument)
+		{
+			if (argument.Length == 1)
+				return new CommandResult (grid.Visible);
+			else if (argument.Length == 2)
+			{
+				bool? visible = Views.Debugging.Console.GetThruthValue (argument [1]);
+				if (visible.HasValue)
+				{
+					grid.Visible = visible.Value;
+				} else
+				{
+					throw new ArgumentException ("Expected truth value, got " + argument [1]);
+				}
+				return new CommandResult (grid.Visible);
+			} else
+			{
+				throw new ArgumentException ("Expected 0 or 1 argument, got " + argument.Length.ToString ());
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				throw new NotImplementedException ();
+			}
+		}
+
+		#endregion
 	}
 }
 
