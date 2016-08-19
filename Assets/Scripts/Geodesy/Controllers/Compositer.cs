@@ -109,6 +109,7 @@ namespace Geodesy.Controllers
 			var console = Views.Debugging.Console.Instance;
 
 			console.Register (this, "grid");
+			console.Register (this, "render");
 		}
 
 		/// <summary>
@@ -169,6 +170,9 @@ namespace Geodesy.Controllers
 			{
 				case "grid":
 					return ExecuteGridCommands (argument);
+				case "render":
+					Render ();
+					return new CommandResult ("done");
 				default:
 					break;
 			}
@@ -201,7 +205,7 @@ namespace Geodesy.Controllers
 		{
 			get
 			{
-				throw new NotImplementedException ();
+				return "Compositer";
 			}
 		}
 
