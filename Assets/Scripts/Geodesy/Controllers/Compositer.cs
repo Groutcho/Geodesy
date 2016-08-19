@@ -67,6 +67,7 @@ namespace Geodesy.Controllers
 		private QuadTree tree;
 		private PatchManager patchManager;
 		private int compositingLayer;
+		private int yieldEveryNth = 8;
 
 		private Grid grid;
 
@@ -142,6 +143,8 @@ namespace Geodesy.Controllers
 
 		private IEnumerator RenderNodes (List<Node> nodes)
 		{
+			int current = 0;
+
 			foreach (Node node in nodes)
 			{
 				Coordinate coord = node.Coordinate;
@@ -155,10 +158,15 @@ namespace Geodesy.Controllers
 				CompositerCamera.aspect = 2f;
 
 				Patch patch = patchManager.Get (coord.I, coord.J, coord.Depth);
-
 				CompositerCamera.targetTexture = patch.Texture;
 				CompositerCamera.Render ();
-				yield return new WaitForEndOfFrame ();
+
+				if (current == yieldEveryNth)
+				{
+					current = 0;
+					yield return new WaitForEndOfFrame ();
+				} else
+					current++;
 			}
 		}
 
