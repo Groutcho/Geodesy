@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using Geodesy.Views;
+using Geodesy.Models;
 
 namespace Geodesy.Controllers
 {
@@ -77,6 +78,18 @@ namespace Geodesy.Controllers
 			isDirty = true;
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
+			grid.Changed += OnGridChanged;
+		}
+
+		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
+		{
+			float dist = Vector3.Distance (Vector3.zero, arg.Position) - 6300;
+			grid.Resolution = (int)(dist / 800);
+		}
+
+		private void OnGridChanged (object sender, EventArgs args)
+		{
+			Render ();
 		}
 
 		public void Initialize (Globe globe)
@@ -86,6 +99,7 @@ namespace Geodesy.Controllers
 			this.patchManager = globe.PatchManager;
 			ready = true;
 			ShowGrid (true);
+			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 		}
 
 		/// <summary>
@@ -122,7 +136,6 @@ namespace Geodesy.Controllers
 			{
 				Coordinate coord = node.Coordinate;
 				Zone zone = Zone.FromCoordinates (coord);
-				Debug.Log (zone);
 
 				float x = zone.Longitude + zone.Width / 2;
 				float y = zone.Latitude + zone.Height / 2;
