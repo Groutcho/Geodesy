@@ -15,7 +15,7 @@ namespace Geodesy.Controllers
 
 		public bool Visible
 		{
-			get { return gridObject.activeSelf; } 
+			get { return gridObject.activeSelf; }
 			set
 			{
 				gridObject.SetActive (value);
@@ -107,7 +107,7 @@ namespace Geodesy.Controllers
 			{
 				if (i == 0)
 					continue;
-				
+
 				AddGridLine (GridLineOrientation.Vertical, i, Colors.LightGrey);
 			}
 
