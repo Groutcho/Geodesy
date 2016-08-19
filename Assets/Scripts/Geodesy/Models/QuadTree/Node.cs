@@ -16,7 +16,25 @@ namespace Geodesy.Models.QuadTree
 
 		public bool IsLeaf { get { return isLeaf; } }
 
-		public bool Visible { get; set; }
+		private bool visible;
+
+		public bool Visible
+		{
+			get { return visible; }
+			set
+			{
+				if (value != visible)
+				{
+					visible = value;
+					if (visible)
+						LastVisible = DateTime.Now;
+				}
+			}
+		}
+
+		public DateTime LastRefresh { get; set; }
+
+		public DateTime LastVisible { get; set; }
 
 		public Node (QuadTree tree, Coordinate coordinate)
 		{

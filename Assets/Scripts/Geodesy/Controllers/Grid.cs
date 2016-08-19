@@ -18,10 +18,13 @@ namespace Geodesy.Controllers
 			get { return gridObject.activeSelf; }
 			set
 			{
-				gridObject.SetActive (value);
-				if (Changed != null)
+				if (gridObject.activeSelf != value)
 				{
-					Changed (this, null);
+					gridObject.SetActive (value);
+					if (Changed != null)
+					{
+						Changed (this, null);
+					}
 				}
 			}
 		}

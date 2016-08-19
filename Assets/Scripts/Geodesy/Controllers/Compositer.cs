@@ -62,8 +62,6 @@ namespace Geodesy.Controllers
 		public Camera CompositerCamera;
 
 		// Set to true when a render is necessary.
-		private bool isDirty;
-		private bool ready;
 		private QuadTree tree;
 		private PatchManager patchManager;
 		private int compositingLayer;
@@ -76,7 +74,6 @@ namespace Geodesy.Controllers
 
 		public void Start ()
 		{
-			isDirty = true;
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
 			grid.Changed += OnGridChanged;
@@ -90,15 +87,15 @@ namespace Geodesy.Controllers
 
 		private void OnGridChanged (object sender, EventArgs args)
 		{
-			Render ();
+			Render (forceRender: true);
 		}
 
 		public void Initialize (Globe globe)
 		{
 			Debug.Log ("Initializing compositer.");
 			this.tree = globe.Tree;
+			this.tree.Changed += OnTreeChanged;
 			this.patchManager = globe.PatchManager;
-			ready = true;
 			ShowGrid (true);
 			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 
@@ -121,15 +118,13 @@ namespace Geodesy.Controllers
 		{
 			// Initialize grid if needed
 			grid.Visible = show;
-			Render ();
 		}
 
 		/// <summary>
 		/// Triggers the compositing process.
 		/// </summary>
-		public void Render ()
+		public void Render (bool forceRender = false)
 		{
-			Debug.Log ("Compositing pass.");
 			if (CompositerCamera == null)
 			{
 				Debug.LogError ("No compositing camera. Aborting rendering.");
@@ -137,16 +132,35 @@ namespace Geodesy.Controllers
 			}
 
 			// Collect visible nodes
-			List<Node> nodes = tree.GetVisibleNodes ().ToList ();
-			StartCoroutine (RenderNodes (nodes));
+			IEnumerable<Node> toRender = tree.GetVisibleNodes ();
+
+			if (!forceRender)
+			{
+				// only render the nodes who actually need an updated texture
+				toRender = toRender.Where (n => n.LastRefresh < n.LastVisible);
+			}
+
+			// stop current render pass, if any.
+			StopAllCoroutines ();
+
+			// render the nodes asynchronously
+			StartCoroutine (RenderNodes (toRender));
 		}
 
-		private IEnumerator RenderNodes (List<Node> nodes)
+		private void OnTreeChanged (object sender, EventArgs args)
+		{
+			Render ();
+		}
+
+		private IEnumerator RenderNodes (IEnumerable<Node> nodes)
 		{
 			int current = 0;
+			int count = 0;
 
 			foreach (Node node in nodes)
 			{
+				node.LastRefresh = DateTime.Now;
+
 				Coordinate coord = node.Coordinate;
 				Zone zone = Zone.FromCoordinates (coord);
 
@@ -167,7 +181,11 @@ namespace Geodesy.Controllers
 					yield return new WaitForEndOfFrame ();
 				} else
 					current++;
+
+				count++;
 			}
+
+			Debug.Log (count.ToString () + " nodes rendered.");
 		}
 
 		#region IConsoleCommandHandler implementation
@@ -180,7 +198,7 @@ namespace Geodesy.Controllers
 					return ExecuteGridCommands (argument);
 				case "render":
 					Render ();
-					return new CommandResult ("done");
+					return new CommandResult ("rendering...");
 				default:
 					break;
 			}
