@@ -26,7 +26,7 @@ namespace Geodesy.Models.QuadTree
 
 		void Start ()
 		{
-			tree = new QuadTree ();
+			tree = new QuadTree (null);
 			objects = new List<GameObject> (128);
 			red = new Texture2D (1, 1);
 			red.SetPixel (0, 0, colors [depth]);

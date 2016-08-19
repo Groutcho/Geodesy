@@ -26,8 +26,8 @@ namespace Geodesy.Controllers
 			this.viewpoint = viewpoint;
 			this.datum = datum;
 
+			this.tree = new QuadTree (this);
 			patchManager = new PatchManager (this, material);
-			this.tree = new QuadTree ();
 			this.tree.DepthChanged += patchManager.UpdateDepth;
 
 			patchManager.ChangeDepth (tree.CurrentDepth);
