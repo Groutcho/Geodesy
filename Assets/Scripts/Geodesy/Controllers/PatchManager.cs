@@ -20,6 +20,7 @@ namespace Geodesy.Controllers
 		{
 			this.globe = globe;
 			this.material = material;
+			this.globe.Tree.Changed += Update;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
 			patches = new List<Patch[]> (MaxDepth);
@@ -104,6 +105,15 @@ namespace Geodesy.Controllers
 			int width = GetWidth (depth);
 			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, material);
 			patches [patch.Depth] [patch.j * width + patch.i] = patch;
+		}
+
+		public void Update (object sender, EventArgs args)
+		{
+			HideAllPatches ();
+			foreach (var item in globe.Tree.GetVisibleNodes())
+			{
+				Get (item.Coordinate.I, item.Coordinate.J, item.Coordinate.Depth).Visible = true;
+			}
 		}
 
 		public void UpdateDepth (object sender, EventArgs args)
