@@ -34,6 +34,8 @@ namespace Geodesy.Controllers
 			CreateDatum ();
 			CreateGlobe ();
 			CreateCompositer ();
+
+			globe.Tree.Update ();
 		}
 
 		void CreateDatum ()
@@ -74,13 +76,6 @@ namespace Geodesy.Controllers
 		{
 			Compositer compositer = GameObject.Find ("Compositer").GetComponent<Compositer> ();
 			compositer.Initialize (globe);
-		}
-
-
-		// Update is called once per frame
-		void Update ()
-		{
-	
 		}
 	}
 }
