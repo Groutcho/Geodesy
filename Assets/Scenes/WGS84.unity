@@ -147,7 +147,7 @@ Camera:
   field of view: 60
   orthographic: 1
   orthographic size: 20
-  m_Depth: 0
+  m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 256
@@ -307,7 +307,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 1000
+  near clip plane: 100
   far clip plane: 35000
   field of view: 30
   orthographic: 0
@@ -357,8 +357,8 @@ MonoBehaviour:
   ySpeed: 1
   yMinLimit: -20
   yMaxLimit: 80
-  distanceMin: 200
-  distanceMax: 100000
+  distanceMin: 6500
+  distanceMax: 30000
 --- !u!1 &1354831862
 GameObject:
   m_ObjectHideFlags: 0
