@@ -40,6 +40,7 @@ namespace Geodesy.Models.QuadTree
 		{
 			this.tree = tree;
 			this.coordinate = coordinate;
+			Visible = true;
 		}
 
 		public void Divide ()

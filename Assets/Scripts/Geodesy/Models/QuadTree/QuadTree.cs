@@ -55,6 +55,7 @@ namespace Geodesy.Models.QuadTree
 			Divide (); // 64 nodes
 
 			Views.Debugging.Console.Instance.Register (this, "culling");
+			Views.Debugging.Console.Instance.Register (this, "qt");
 		}
 
 		public IEnumerable<Node> Traverse (bool onlyLeaves)
@@ -114,8 +115,8 @@ namespace Geodesy.Models.QuadTree
 				item.Visible = true;
 			}
 
-			if (needsRefresh && Changed != null)
-				Changed (this, null);
+			if (needsRefresh)
+				RaiseChangedEvent ();
 		}
 
 		private void UpdateVisibleNodes ()
@@ -192,10 +193,16 @@ namespace Geodesy.Models.QuadTree
 				}
 			}
 
-			if (atLeastOneNodeChanged && Changed != null)
+			if (atLeastOneNodeChanged)
 			{
-				Changed (this, null);
+				RaiseChangedEvent ();
 			}
+		}
+
+		private void RaiseChangedEvent ()
+		{
+			if (Changed != null)
+				Changed (this, null);
 		}
 
 		#region IConsoleCommandHandler implementation
@@ -205,24 +212,49 @@ namespace Geodesy.Models.QuadTree
 			switch (argument [0])
 			{
 				case "culling":
-					if (argument.Length == 1)
-						return new CommandResult (culling);
-					else if (argument.Length == 2)
-					{
-						bool? cull = Views.Debugging.Console.GetThruthValue (argument [1]);
-						if (cull.HasValue)
-						{
-							Culling = cull.Value;
-							return new CommandResult (culling);
-						} else
-						{
-							throw new ArgumentException ("Expected truth value, got: " + argument [1]);
-						}
-					}
-					throw new ArgumentException ("Expected 1 parameter, got: " + (argument.Length - 1).ToString ());
+					return ExecuteCullingCommands (argument);
+				case "qt":
+					return ExecuteQuadTreeCommands (argument);
 				default:
 					throw new NotImplementedException ();
 			}
+		}
+
+		private CommandResult ExecuteQuadTreeCommands (string[] argument)
+		{
+			string keyword = argument [1];
+			switch (keyword)
+			{
+				case "split":
+					int i = int.Parse (argument [2]);
+					int j = int.Parse (argument [3]);
+					int depth = int.Parse (argument [4]);
+					Node node = Find (i, j, depth);
+					node.Divide ();
+					RaiseChangedEvent ();
+					return new CommandResult ("OK");
+				default:
+					throw new ArgumentException ("unknown command: " + keyword);
+			}
+		}
+
+		private CommandResult ExecuteCullingCommands (string[] argument)
+		{
+			if (argument.Length == 1)
+				return new CommandResult (culling);
+			else if (argument.Length == 2)
+			{
+				bool? cull = Views.Debugging.Console.GetThruthValue (argument [1]);
+				if (cull.HasValue)
+				{
+					Culling = cull.Value;
+					return new CommandResult (culling);
+				} else
+				{
+					throw new ArgumentException ("Expected truth value, got: " + argument [1]);
+				}
+			}
+			throw new ArgumentException ("Expected 1 parameter, got: " + (argument.Length - 1).ToString ());
 		}
 
 		public string Name
