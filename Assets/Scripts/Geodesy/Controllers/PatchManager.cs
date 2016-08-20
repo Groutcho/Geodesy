@@ -57,7 +57,7 @@ namespace Geodesy.Controllers
 			{
 				foreach (var p in patches[depth])
 				{
-					p.Visible = true;
+					p.Visible = false;
 				}
 			}
 		}
