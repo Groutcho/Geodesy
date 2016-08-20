@@ -15,6 +15,7 @@ namespace Geodesy.Controllers
 
 		List<Patch[]> patches;
 		GameObject patchRoot;
+		RenderingMode mode;
 
 		public PatchManager (Globe globe, Material material)
 		{
@@ -71,7 +72,10 @@ namespace Geodesy.Controllers
 				}
 				foreach (var p in patches[i])
 				{
-					p.Visible = false;
+					if (p != null)
+					{
+						p.Visible = false;
+					}
 				}
 			}
 		}
@@ -92,6 +96,8 @@ namespace Geodesy.Controllers
 
 		private void UpdatePatchModes (RenderingMode mode)
 		{
+			this.mode = mode;
+
 			foreach (var list in patches)
 			{
 				if (list == null)
@@ -99,27 +105,45 @@ namespace Geodesy.Controllers
 
 				foreach (var item in list)
 				{
-					item.Mode = mode;
+					if (item != null)
+					{
+						item.Mode = mode;
+					}
 				}
 			}
 		}
 
 		public Patch Get (int i, int j, int depth)
 		{
-			foreach (var item in patches[depth])
+			if (patches [depth] != null)
 			{
-				if (item.i == i && item.j == j)
+				foreach (var item in patches[depth])
 				{
-					return item;
+					if (item == null)
+						continue;
+
+					if (item.i == i && item.j == j)
+					{
+						return item;
+					}
 				}
 			}
-			return null;
+
+			// the patch doesn't exist, create it.
+			AddPatch (i, j, depth);
+			return Get (i, j, depth);
 		}
 
 		public void AddPatch (int i, int j, int depth)
 		{
+			if (patches [depth] == null)
+			{
+				RefreshLevel (depth);
+			}
+
 			int width = GetWidth (depth);
 			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, material);
+			patch.Mode = mode;
 			patches [patch.Depth] [patch.j * width + patch.i] = patch;
 		}
 
