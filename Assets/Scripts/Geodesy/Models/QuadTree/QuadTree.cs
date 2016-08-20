@@ -138,6 +138,23 @@ namespace Geodesy.Models.QuadTree
 				}
 			}
 
+			// step 2 frustum culling
+			var frustum = GeometryUtility.CalculateFrustumPlanes (ViewpointController.Instance.GetComponent<Camera> ());
+			foreach (var node in Traverse (onlyLeaves: true))
+			{
+				// not necessary to perform frustum culling on already culled object
+				if (!node.Visible)
+					continue;
+
+				Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+				bool visible = GeometryUtility.TestPlanesAABB (frustum, p.Mesh.bounds);
+				if (node.Visible != visible)
+				{
+					atLeastOneNodeChanged = true;
+					node.Visible = visible;
+				}
+			}
+
 			if (atLeastOneNodeChanged && Changed != null)
 			{
 				Changed (this, null);
