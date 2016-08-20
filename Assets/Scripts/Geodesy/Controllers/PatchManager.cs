@@ -6,7 +6,7 @@ using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Controllers
 {
-	public class PatchManager
+	public class PatchManager : IConsoleCommandHandler
 	{
 		public const int MaxDepth = 20;
 
@@ -28,6 +28,8 @@ namespace Geodesy.Controllers
 			{
 				patches.Add (null);
 			}
+
+			Views.Debugging.Console.Instance.Register (this, "patch");
 		}
 
 		/// <summary>
@@ -51,7 +53,7 @@ namespace Geodesy.Controllers
 					}
 				}
 			} else
-			{				
+			{
 				foreach (var p in patches[depth])
 				{
 					p.Visible = true;
@@ -86,6 +88,20 @@ namespace Geodesy.Controllers
 		private int GetWidth (int depth)
 		{
 			return (int)(Math.Pow (2, depth));
+		}
+
+		private void UpdatePatchModes (RenderingMode mode)
+		{
+			foreach (var list in patches)
+			{
+				if (list == null)
+					continue;
+
+				foreach (var item in list)
+				{
+					item.Mode = mode;
+				}
+			}
 		}
 
 		public Patch Get (int i, int j, int depth)
@@ -123,6 +139,54 @@ namespace Geodesy.Controllers
 				ChangeDepth ((args as DepthChangedEventArgs).NewDepth);
 			}
 		}
+
+		#region IConsoleCommandHandler implementation
+
+		public CommandResult ExecuteCommand (string[] argument)
+		{
+			string keyword = argument [0];
+			switch (keyword)
+			{
+				case "patch":
+					return HandlePatchCommand (argument);
+				default:
+					break;
+			}
+
+			throw new NotImplementedException ();
+		}
+
+		private CommandResult HandlePatchCommand (string[] argument)
+		{
+			string keyword = argument [1];
+			if (keyword == "mode")
+			{
+				string mode = argument [2];
+				switch (mode)
+				{
+					case "texture":
+						UpdatePatchModes (RenderingMode.Texture);
+						return new CommandResult ("texture");
+					case "depth":
+						UpdatePatchModes (RenderingMode.Depth);
+						return new CommandResult ("depth");
+					default:
+						break;
+				}
+			}
+
+			throw new NotImplementedException ();
+		}
+
+		public string Name
+		{
+			get
+			{
+				return "PatchManager";
+			}
+		}
+
+		#endregion
 	}
 }
 

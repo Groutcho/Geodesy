@@ -5,6 +5,12 @@ using Geodesy.Controllers;
 
 namespace Geodesy.Views
 {
+	public enum RenderingMode
+	{
+		Texture,
+		Depth
+	}
+
 	/// <summary>
 	/// Define a rectangular quad mesh projected on a datum.
 	/// </summary>
@@ -27,6 +33,27 @@ namespace Geodesy.Views
 
 		public RenderTexture Texture { get; private set; }
 
+		private RenderingMode mode;
+
+		public RenderingMode Mode
+		{
+			get { return mode; }
+			set
+			{
+				if (mode != value)
+				{
+					mode = value;
+					UpdateRenderingMode ();
+				}
+			}
+		}
+
+		private Material textureMaterial;
+
+		private Material pseudocolorMaterial;
+
+		private MeshRenderer renderer;
+
 		private bool visible;
 
 		public bool Visible
@@ -44,6 +71,8 @@ namespace Geodesy.Views
 		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material)
 		{
 			CreateMesh ();
+
+			pseudocolorMaterial = (Material)Resources.Load ("Solid");
 
 			this.i = i;
 			this.j = j;
@@ -78,17 +107,34 @@ namespace Geodesy.Views
 			CreateGameObject (material, root);
 		}
 
+		private void UpdateRenderingMode ()
+		{
+			switch (mode)
+			{
+				case RenderingMode.Texture:
+					renderer.material = textureMaterial;
+					break;
+				case RenderingMode.Depth:
+					renderer.material = pseudocolorMaterial;
+					renderer.material.color = Colors.MakeCheckered (Colors.GetDepthColor (Depth), 0.15f, i, j);
+					break;
+				default:
+					throw new ArgumentException ("Unknown mode: " + mode);
+			}
+		}
+
 		private void CreateGameObject (Material material, Transform root)
 		{
 			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
 			gameObject.transform.parent = root;
 
-			var mr = gameObject.AddComponent<MeshRenderer> ();
-			mr.material = material;
+			renderer = gameObject.AddComponent<MeshRenderer> ();
+			renderer.material = material;
+			textureMaterial = renderer.material;
 			RenderTexture tex = new RenderTexture (TextureSize, TextureSize, 16);
 			tex.name = gameObject.name;
-			mr.material.mainTexture = tex;
-			mr.material.SetTexture ("_EmissionMap", tex);
+			renderer.material.mainTexture = tex;
+			renderer.material.SetTexture ("_EmissionMap", tex);
 			Texture = tex;
 
 			var mf = gameObject.AddComponent<MeshFilter> ();
