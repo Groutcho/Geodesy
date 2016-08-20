@@ -48,6 +48,8 @@ namespace Geodesy.Views
 			}
 		}
 
+		public DateTime BecameInvisible { get; private set; }
+
 		private Material textureMaterial;
 
 		private Material pseudocolorMaterial;
@@ -63,6 +65,10 @@ namespace Geodesy.Views
 			{
 				gameObject.SetActive (value);
 				visible = value;
+				if (!value)
+				{
+					BecameInvisible = DateTime.Now;
+				}
 			}
 		}
 
@@ -187,6 +193,13 @@ namespace Geodesy.Views
 			Mesh.uv = uv;
 			Mesh.triangles = triangles.ToArray ();
 			Mesh.Optimize ();
+		}
+
+		public void Destroy ()
+		{
+			GameObject.Destroy (Mesh);
+			GameObject.Destroy (textureMaterial);
+			GameObject.Destroy (gameObject);
 		}
 	}
 }

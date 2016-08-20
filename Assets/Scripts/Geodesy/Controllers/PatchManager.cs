@@ -10,10 +10,15 @@ namespace Geodesy.Controllers
 	{
 		public const int MaxDepth = 20;
 
+		/// <summary>
+		/// How long a patch has to be invisible before being destroyed ?
+		/// </summary>
+		public const float DurationToTriggerCleanup = 5;
+
 		private Globe globe;
 		private Material material;
 
-		List<Patch[]> patches;
+		List<List<Patch>> patches;
 		GameObject patchRoot;
 		RenderingMode mode;
 
@@ -24,8 +29,8 @@ namespace Geodesy.Controllers
 			this.globe.Tree.Changed += Update;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
-			patches = new List<Patch[]> (MaxDepth);
-			for (int i = 0; i < MaxDepth; i++)
+			patches = new List<List<Patch>> (QuadTree.MaxDepth);
+			for (int i = 0; i < QuadTree.MaxDepth; i++)
 			{
 				patches.Add (null);
 			}
@@ -85,7 +90,7 @@ namespace Geodesy.Controllers
 			if (patches [depth] == null)
 			{
 				int width = GetWidth (depth);
-				patches [depth] = new Patch[width * width];
+				patches [depth] = new List<Patch> (width * 4);
 			}
 		}
 
@@ -108,6 +113,23 @@ namespace Geodesy.Controllers
 					if (item != null)
 					{
 						item.Mode = mode;
+					}
+				}
+			}
+		}
+
+		private IEnumerable<Patch> Traverse ()
+		{
+			foreach (var list in patches)
+			{
+				if (list == null)
+					continue;
+
+				foreach (var item in list)
+				{
+					if (item != null)
+					{
+						yield return item;
 					}
 				}
 			}
@@ -144,7 +166,16 @@ namespace Geodesy.Controllers
 			int width = GetWidth (depth);
 			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, material);
 			patch.Mode = mode;
-			patches [patch.Depth] [patch.j * width + patch.i] = patch;
+			patches [patch.Depth].Add (patch);
+		}
+
+		public void RemovePatch (Patch p)
+		{
+			if (patches [p.Depth] != null)
+			{
+				p.Destroy ();
+				patches [p.Depth].Remove (p);
+			}
 		}
 
 		public void Update (object sender, EventArgs args)
@@ -162,6 +193,32 @@ namespace Geodesy.Controllers
 			{
 				ChangeDepth ((args as DepthChangedEventArgs).NewDepth);
 			}
+		}
+
+		/// <summary>
+		/// Perform removal of old patches to save memory.
+		/// </summary>
+		public void Cleanup ()
+		{
+			List<Patch> toRemove = new List<Patch> (256);
+			var now = DateTime.Now;
+			foreach (Patch p in Traverse ())
+			{
+				if (p.Visible)
+					continue;
+
+				if ((now - p.BecameInvisible).TotalSeconds > DurationToTriggerCleanup)
+				{
+					toRemove.Add (p);
+				}
+			}
+
+			foreach (var item in toRemove)
+			{
+				RemovePatch (item);
+			}
+
+			Debug.Log (string.Format ("PatchManager: cleaned {0} patches", toRemove.Count));
 		}
 
 		#region IConsoleCommandHandler implementation

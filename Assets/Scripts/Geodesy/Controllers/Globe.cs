@@ -3,6 +3,7 @@ using Geodesy.Views;
 using Geodesy.Models.QuadTree;
 using UnityEngine;
 using Geodesy.Models;
+using System.Collections;
 
 namespace Geodesy.Controllers
 {
@@ -15,6 +16,11 @@ namespace Geodesy.Controllers
 		Datum datum;
 		float reductionFactor;
 		Viewpoint viewpoint;
+
+		/// <summary>
+		/// Every nth seconds, the globe will trigger a cleanup function to delete obsolete cached data.
+		/// </summary>
+		public const float CleanupFrequency = 10;
 
 		public QuadTree Tree { get { return tree; } }
 
@@ -31,6 +37,7 @@ namespace Geodesy.Controllers
 			this.tree.DepthChanged += patchManager.UpdateDepth;
 
 			patchManager.ChangeDepth (tree.CurrentDepth);
+			StartCoroutine (PatchManagerGarbageCollector ());
 		}
 
 		public Vector3 Project (LatLon point)
@@ -60,6 +67,15 @@ namespace Geodesy.Controllers
 			y = Mathf.Sin (lat) * red;
 			z = Mathf.Sin (lon) * hRadius;
 			return new Vector3 (x, y, z);
+		}
+
+		private IEnumerator PatchManagerGarbageCollector ()
+		{
+			while (true)
+			{
+				yield return new WaitForSeconds (CleanupFrequency);
+				PatchManager.Cleanup ();
+			}
 		}
 
 		void Update ()
