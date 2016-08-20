@@ -74,6 +74,7 @@ namespace Geodesy.Controllers
 		{
 			var compositer = GameObject.Find ("Compositer");
 			gridObject = new GameObject ("grid");
+			gridObject.SetActive (false);
 			gridObject.layer = compositingLayer;
 			gridObject.transform.position = new Vector3 (0, Compositer.GRID_HEIGHT, 0);
 			gridObject.transform.parent = compositer.transform;

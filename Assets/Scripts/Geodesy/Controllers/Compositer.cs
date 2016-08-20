@@ -96,7 +96,6 @@ namespace Geodesy.Controllers
 			this.tree = globe.Tree;
 			this.tree.Changed += OnTreeChanged;
 			this.patchManager = globe.PatchManager;
-			ShowGrid (true);
 			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 
 			RegisterConsoleCommands ();
