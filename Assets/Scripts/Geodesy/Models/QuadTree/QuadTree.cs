@@ -16,7 +16,7 @@ namespace Geodesy.Models.QuadTree
 		}
 	}
 
-	public class QuadTree
+	public class QuadTree : IConsoleCommandHandler
 	{
 		Node root;
 		int currentDepth;
@@ -24,16 +24,37 @@ namespace Geodesy.Models.QuadTree
 
 		public int CurrentDepth { get { return currentDepth; } }
 
+		private bool culling = true;
+
+		public bool Culling
+		{
+			get { return culling; }
+			set
+			{
+				if (culling != value)
+				{
+					culling = value;
+					if (value)
+						UpdateVisibleNodes ();
+					else
+						ShowAllNodes ();
+				}
+			}
+		}
+
 		public event EventHandler DepthChanged;
 		public event EventHandler Changed;
 
 		public QuadTree (Globe globe)
 		{
 			this.globe = globe;
+
 			root = new Node (this, new Coordinate (0, 0, 0));
 			Divide (); // 4 nodes
 			Divide (); // 16 nodes
 			Divide (); // 64 nodes
+
+			Views.Debugging.Console.Instance.Register (this, "culling");
 		}
 
 		public IEnumerable<Node> Traverse (bool onlyLeaves)
@@ -78,7 +99,23 @@ namespace Geodesy.Models.QuadTree
 
 		public void Update ()
 		{
-			UpdateVisibleNodes ();
+			if (culling)
+				UpdateVisibleNodes ();
+		}
+
+		private void ShowAllNodes ()
+		{
+			bool needsRefresh = false;
+			foreach (var item in Traverse(true))
+			{
+				if (!item.Visible && !needsRefresh)
+					needsRefresh = true;
+
+				item.Visible = true;
+			}
+
+			if (needsRefresh && Changed != null)
+				Changed (this, null);
 		}
 
 		private void UpdateVisibleNodes ()
@@ -160,6 +197,43 @@ namespace Geodesy.Models.QuadTree
 				Changed (this, null);
 			}
 		}
+
+		#region IConsoleCommandHandler implementation
+
+		public CommandResult ExecuteCommand (string[] argument)
+		{
+			switch (argument [0])
+			{
+				case "culling":
+					if (argument.Length == 1)
+						return new CommandResult (culling);
+					else if (argument.Length == 2)
+					{
+						bool? cull = Views.Debugging.Console.GetThruthValue (argument [1]);
+						if (cull.HasValue)
+						{
+							Culling = cull.Value;
+							return new CommandResult (culling);
+						} else
+						{
+							throw new ArgumentException ("Expected truth value, got: " + argument [1]);
+						}
+					}
+					throw new ArgumentException ("Expected 1 parameter, got: " + (argument.Length - 1).ToString ());
+				default:
+					throw new NotImplementedException ();
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				return "Console";
+			}
+		}
+
+		#endregion
 	}
 }
 
