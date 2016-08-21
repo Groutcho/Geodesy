@@ -44,6 +44,7 @@ namespace Geodesy.Controllers
 			this.viewpoint = viewpoint;
 			lastPos = transform.position;
 			Views.Debugging.Console.Instance.Register (this, "frustum");
+			AdaptClippingRanges ();
 		}
 
 		public void Update ()
@@ -55,7 +56,22 @@ namespace Geodesy.Controllers
 				{
 					HasMoved (this, new CameraMovedEventArgs (this, lastPos));
 				}
+
+				AdaptClippingRanges ();
 			}
+		}
+
+		/// <summary>
+		/// Adapt the clipping planes so that:
+		/// 1. the near clipping plane is slightly above the globe surface
+		/// 2. the far clipping plane is slightly farther than the hemisphere boundary.
+		/// </summary>
+		private void AdaptClippingRanges ()
+		{
+			Camera cam = viewpoint.Camera;
+			float dist = viewpoint.DistanceFromView (Vector3.zero);
+			cam.farClipPlane = dist + 3000;
+			cam.nearClipPlane = dist - 7000;
 		}
 
 		public void OnDrawGizmos ()
