@@ -16,6 +16,7 @@ namespace Geodesy.Controllers
 		Datum datum;
 		float reductionFactor;
 		Viewpoint viewpoint;
+		SphereCollider approximateCollider;
 
 		/// <summary>
 		/// Every nth seconds, the globe will trigger a cleanup function to delete obsolete cached data.
@@ -35,6 +36,11 @@ namespace Geodesy.Controllers
 			this.tree = new QuadTree (this);
 			patchManager = new PatchManager (this, material);
 			this.tree.DepthChanged += patchManager.UpdateDepth;
+
+			// Create a spherical approximation of the spheroid
+			// for purposes that don't need exact calculations.
+			approximateCollider = gameObject.AddComponent<SphereCollider> ();
+			approximateCollider.radius = (float)(datum.SemimajorAxis * reductionFactor) * 0.995f;
 
 			patchManager.ChangeDepth (tree.CurrentDepth);
 			StartCoroutine (PatchManagerGarbageCollector ());
