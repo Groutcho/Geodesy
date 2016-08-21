@@ -136,6 +136,9 @@ namespace Geodesy.Controllers
 
 		public Patch Get (int i, int j, int depth)
 		{
+			if (depth < QuadTree.MinDepth || depth > QuadTree.MaxDepth)
+				return null;
+
 			if (patches [depth] != null)
 			{
 				foreach (var item in patches[depth])
