@@ -47,6 +47,10 @@ public class CompositerFrame : MonoBehaviour
 
 		if (transform.position != lastPosition)
 		{
+			if (frames.Count > 64)
+			{
+				frames.Clear ();
+			}
 			frames.Add (new Frame (transform, camera));
 		}
 
