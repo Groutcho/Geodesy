@@ -8,8 +8,6 @@ namespace Geodesy.Controllers
 {
 	public class PatchManager : IConsoleCommandHandler
 	{
-		public const int MaxDepth = 20;
-
 		/// <summary>
 		/// How long a patch has to be invisible before being destroyed ?
 		/// </summary>
@@ -30,6 +28,7 @@ namespace Geodesy.Controllers
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
 			patches = new List<List<Patch>> (QuadTree.MaxDepth);
+
 			for (int i = 0; i < QuadTree.MaxDepth; i++)
 			{
 				patches.Add (null);

@@ -22,6 +22,9 @@ namespace Geodesy.Models.QuadTree
 		int currentDepth;
 		Globe globe;
 
+		public const int MinDepth = 3;
+		public const int MaxDepth = 19;
+
 		public int CurrentDepth { get { return currentDepth; } }
 
 		private bool culling = true;
