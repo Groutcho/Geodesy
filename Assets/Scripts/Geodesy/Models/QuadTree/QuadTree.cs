@@ -223,7 +223,12 @@ namespace Geodesy.Models.QuadTree
 			}
 
 			// step 2 frustum culling
-			var frustum = GeometryUtility.CalculateFrustumPlanes (ViewpointController.Instance.GetComponent<Camera> ());
+			Camera cam = ViewpointController.Instance.GetComponent<Camera> ();
+			float originalNearPlane = cam.nearClipPlane;
+			cam.nearClipPlane = 1;
+			var frustum = GeometryUtility.CalculateFrustumPlanes (cam);
+			cam.nearClipPlane = originalNearPlane;
+
 			foreach (var node in Traverse (onlyLeaves: true))
 			{
 				// not necessary to perform frustum culling on already culled object
