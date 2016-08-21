@@ -52,7 +52,7 @@ namespace Geodesy.Models.QuadTree
 		{
 			this.globe = globe;
 
-			root = new Node (this, new Coordinate (0, 0, 0));
+			root = new Node (this, null, new Coordinate (0, 0, 0));
 			Divide (); // 4 nodes
 			Divide (); // 16 nodes
 			Divide (); // 64 nodes
@@ -104,6 +104,49 @@ namespace Geodesy.Models.QuadTree
 		public void Update ()
 		{
 			if (culling)
+				UpdateVisibleNodes ();
+
+			ComputeNodes ();
+		}
+
+		/// <summary>
+		/// Split or reduce nodes when necessary.
+		/// </summary>
+		private void ComputeNodes ()
+		{
+			bool needsRefresh = false;
+			foreach (Node node in GetVisibleNodes ())
+			{
+				Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+				Rect screenRect = p.GetScreenRect ();
+				if (screenRect.width > Screen.width / 2f)
+				{
+					needsRefresh = true;
+					node.Divide ();
+					node.Visible = false;
+				} else
+				{
+					int count = 0;
+
+					foreach (Node child in node.Parent.Children)
+					{
+						Patch childPatch = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+						Rect childRect = p.GetScreenRect ();
+						if (childRect.width < Screen.width / 3f)
+						{
+							count++;
+						}
+					}
+
+					if (count == 4)
+					{
+						node.Parent.Reduce ();
+						needsRefresh = true;
+					}
+				}
+			}
+
+			if (culling && needsRefresh)
 				UpdateVisibleNodes ();
 		}
 

@@ -12,6 +12,8 @@ namespace Geodesy.Models.QuadTree
 
 		private Node[] children = new Node[4];
 
+		public IEnumerable<Node> Children { get { return children; } }
+
 		private bool isLeaf = true;
 
 		public bool IsLeaf { get { return isLeaf; } }
@@ -36,25 +38,43 @@ namespace Geodesy.Models.QuadTree
 
 		public DateTime LastVisible { get; set; }
 
-		public Node (QuadTree tree, Coordinate coordinate)
+		public Node Parent { get; set; }
+
+		public Node (QuadTree tree, Node parent, Coordinate coordinate)
 		{
 			this.tree = tree;
 			this.coordinate = coordinate;
 			Visible = true;
+			this.Parent = parent;
+		}
+
+		public void Reduce ()
+		{
+			if (isLeaf)
+				return;
+
+			if (coordinate.Depth <= QuadTree.MinDepth - 1)
+				return;
+
+			children = new Node[4];
+			isLeaf = true;
 		}
 
 		public void Divide ()
 		{
 			if (IsLeaf)
 			{
+				if (coordinate.Depth == QuadTree.MaxDepth)
+					return;
+
 				int childrenDepth = coordinate.Depth + 1;
 				int i = coordinate.I * 2;
 				int j = coordinate.J * 2;
 
-				children [0] = new Node (tree, new Coordinate (i, j, childrenDepth));
-				children [1] = new Node (tree, new Coordinate (i + 1, j, childrenDepth));
-				children [2] = new Node (tree, new Coordinate (i, j + 1, childrenDepth));
-				children [3] = new Node (tree, new Coordinate (i + 1, j + 1, childrenDepth));
+				children [0] = new Node (tree, this, new Coordinate (i, j, childrenDepth));
+				children [1] = new Node (tree, this, new Coordinate (i + 1, j, childrenDepth));
+				children [2] = new Node (tree, this, new Coordinate (i, j + 1, childrenDepth));
+				children [3] = new Node (tree, this, new Coordinate (i + 1, j + 1, childrenDepth));
 				isLeaf = false;
 			} else
 			{
