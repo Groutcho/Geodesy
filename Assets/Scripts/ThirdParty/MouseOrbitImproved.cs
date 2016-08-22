@@ -14,8 +14,6 @@ public class MouseOrbitImproved : MonoBehaviour
 	public float distanceMin = .5f;
 	public float distanceMax = 15f;
 
-	private Rigidbody rigidbody;
-
 	float x = 0.0f;
 	float y = 0.0f;
 
@@ -25,14 +23,6 @@ public class MouseOrbitImproved : MonoBehaviour
 		Vector3 angles = transform.eulerAngles;
 		x = angles.y;
 		y = angles.x;
-
-		rigidbody = GetComponent<Rigidbody> ();
-
-		// Make the rigid body not change rotation
-		if (rigidbody != null)
-		{
-			rigidbody.freezeRotation = true;
-		}
 	}
 
 	void LateUpdate ()
@@ -41,8 +31,8 @@ public class MouseOrbitImproved : MonoBehaviour
 		{
 			if (Input.GetKey (KeyCode.Mouse0))
 			{
-				x += Input.GetAxis ("Mouse X") * xSpeed * distance * 0.0002f;
-				y -= Input.GetAxis ("Mouse Y") * ySpeed * 0.0002f;
+				x += Input.GetAxis ("Mouse X") * xSpeed * distance * 0.0001f;
+				y -= Input.GetAxis ("Mouse Y") * ySpeed * distance * 0.0001f;
 
 				y = ClampAngle (y, yMinLimit, yMaxLimit);
 			}
