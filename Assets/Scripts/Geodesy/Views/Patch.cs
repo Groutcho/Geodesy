@@ -90,14 +90,14 @@ namespace Geodesy.Views
 			float height = 180 / subs;
 			float width = 360 / subs;
 			float lat = j * height - 90;
-			float lon = -180f;
+			float lon;
 			float sarcH = height / Subdivisions;
 			float sarcW = width / Subdivisions;
 			int subdivs = Subdivisions + 1;
 
 			for (int y = 0; y < subdivs; y++)
 			{
-				lon = i * width;
+				lon = i * width - 180;
 				for (int x = 0; x < subdivs; x++)
 				{
 					vertices [x + y * subdivs] = globe.Project (lat, lon);
