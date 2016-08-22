@@ -4,10 +4,11 @@ using Geodesy.Models.QuadTree;
 using UnityEngine;
 using Geodesy.Models;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Geodesy.Controllers
 {
-	public class Globe : MonoBehaviour
+	public class Globe : MonoBehaviour, IConsoleCommandHandler
 	{
 		private const int sampleResolution_deg = 1;
 
@@ -17,6 +18,7 @@ namespace Geodesy.Controllers
 		float reductionFactor;
 		Viewpoint viewpoint;
 		SphereCollider approximateCollider;
+		List<Vector3> debugPoints = new List<Vector3> (10);
 
 		/// <summary>
 		/// Every nth seconds, the globe will trigger a cleanup function to delete obsolete cached data.
@@ -44,6 +46,8 @@ namespace Geodesy.Controllers
 
 			patchManager.ChangeDepth (tree.CurrentDepth);
 			StartCoroutine (PatchManagerGarbageCollector ());
+
+			Views.Debugging.Console.Instance.Register (this, "point");
 		}
 
 		public Vector3 Project (LatLon point)
@@ -162,16 +166,66 @@ namespace Geodesy.Controllers
 			Gizmos.DrawLine (orig.ToVector3 (), semimin.ToVector3 ());
 		}
 
+		private void DrawPoints ()
+		{
+			Gizmos.color = Color.green;
+			foreach (var item in debugPoints)
+			{
+				Gizmos.DrawWireSphere (item, 100);
+			}
+		}
+
 		// Update is called once per frame
 		void OnDrawGizmos ()
 		{
 			DrawAxes ();
 			DrawDebugGraticule ();
+			DrawPoints ();
 		}
 
 		#endregion
 
 
+		#region IConsoleCommandHandler implementation
+
+		public CommandResult ExecuteCommand (string[] argument)
+		{
+			string keyword = argument [0];
+			switch (keyword)
+			{
+				case "point":
+					try
+					{
+						var lat = double.Parse (argument [1]);
+						var lon = double.Parse (argument [2]);
+						LatLon latlon = new LatLon (lat, lon, 0);
+						DebugCreatePoint (latlon);
+						return new CommandResult (latlon);
+					} catch (Exception)
+					{
+						throw new FormatException ("Expected coordinates, got: " + string.Join (" ", argument));
+					}
+				default:
+					break;
+			}
+			throw new NotImplementedException ();
+		}
+
+		private void DebugCreatePoint (LatLon latlon)
+		{
+			Vector3 pos = Project (latlon);
+			debugPoints.Add (pos);
+		}
+
+		public string Name
+		{
+			get
+			{
+				return "Globe";
+			}
+		}
+
+		#endregion
 	}
 }
 
