@@ -205,16 +205,9 @@ namespace Geodesy.Models.QuadTree
 				var dot2 = Vector3.Dot (cameraForward, vtopLeft);
 				var dot3 = Vector3.Dot (cameraForward, vtopRight);
 
-				bool visible;
-
-				if (dot0 > 0 || dot1 > 0 || dot2 > 0 || dot3 > 0)
-				{
-					visible = true;
-				} else
-				{
-					visible = false;
-				}
-
+				// If any of those 4 vectors crosses the camera forward, then we consider
+				// this patch is point toward us.
+				bool visible = (dot0 < 0 || dot1 < 0 || dot2 < 0 || dot3 < 0);
 				if (node.Visible != visible)
 				{
 					node.Visible = visible;
