@@ -144,7 +144,7 @@ namespace Geodesy.Controllers
 				DrawEllipse (parallel, 0, 360, resolution, Colors.LightGrey);
 			}
 
-			Ellipse referenceMeridian = datum.GetMeridian (0);
+			Ellipse referenceMeridian = datum.GetMeridian (90);
 			DrawEllipse (referenceMeridian, 0, 360, resolution, Color.red);
 
 			for (int longitude = subdivisions; longitude < 360; longitude += subdivisions)
