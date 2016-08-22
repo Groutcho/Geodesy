@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class CompositerFrame : MonoBehaviour
 {
-	Camera camera;
+	Camera compositerCamera;
 	Vector3 lastPosition;
 	List<Frame> frames = new List<Frame> (256);
 
@@ -35,12 +35,12 @@ public class CompositerFrame : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		camera = GetComponent<Camera> ();
+		compositerCamera = GetComponent<Camera> ();
 	}
 
 	void OnDrawGizmos ()
 	{
-		if (camera == null)
+		if (compositerCamera == null)
 			return;
 
 		Gizmos.DrawRay (transform.position, transform.forward * 10);
@@ -51,7 +51,8 @@ public class CompositerFrame : MonoBehaviour
 			{
 				frames.Clear ();
 			}
-			frames.Add (new Frame (transform, camera));
+			frames.Add (new Frame (transform, compositerCamera));
+			lastPosition = transform.position;
 		}
 
 		foreach (var frame in frames)
