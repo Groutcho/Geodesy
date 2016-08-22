@@ -86,8 +86,8 @@ namespace Geodesy.Models
 		public override string ToString ()
 		{
 			return string.Format (
-				"{0} {1:D2}° {2:D2}' {3:F4}\" " +
-				"{4} {5:D2}° {6:D2}' {7:F4}\", " +
+				"{0} {1:00}° {2:00}' {3:F4}\" " +
+				"{4} {5:00}° {6:00}' {7:F4}\", " +
 				"{8:0}m", 
 				northingChar, latDegrees, latMinutes, latSeconds,
 				eastingChar, lonDegrees, lonMinutes, lonSeconds,
