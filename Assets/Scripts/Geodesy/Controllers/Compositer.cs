@@ -77,6 +77,7 @@ namespace Geodesy.Controllers
 		{
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
+			grid.Visible = false;
 			AddLayer (grid);
 			grid.Changed += OnGridChanged;
 		}
