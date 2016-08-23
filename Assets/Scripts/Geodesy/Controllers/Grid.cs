@@ -2,31 +2,16 @@
 using UnityEngine;
 using Geodesy.Views;
 using System.Collections.Generic;
+using Geodesy.Models;
 
 namespace Geodesy.Controllers
 {
-	public class Grid
+	public class Grid : Layer
 	{
 		public enum GridLineOrientation
 		{
 			Vertical,
 			Horizontal
-		}
-
-		public bool Visible
-		{
-			get { return gridObject.activeSelf; }
-			set
-			{
-				if (gridObject.activeSelf != value)
-				{
-					gridObject.SetActive (value);
-					if (Changed != null)
-					{
-						Changed (this, null);
-					}
-				}
-			}
 		}
 
 		public const int MAX_RESOLUTION = 10;
@@ -35,14 +20,10 @@ namespace Geodesy.Controllers
 		private const float MIN_LINE_WIDTH = 0.001f;
 		private const float MAX_LINE_WIDTH = 0.15f;
 
-		private int compositingLayer;
 		private Material gridMaterial;
-		private GameObject gridObject;
 		private int resolution;
 
 		private List<GameObject> gridLines = new List<GameObject> (128);
-
-		public event EventHandler Changed;
 
 		/// <summary>
 		/// How many degrees are between each grid line ?
@@ -61,9 +42,8 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		public Grid ()
+		public Grid () : base ("grid", Layer.MaxDepth)
 		{
-			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			gridMaterial = Resources.Load ("TransparentSolid") as Material;
 			resolution = MAX_RESOLUTION;
 			CreateGrid ();
@@ -72,13 +52,6 @@ namespace Geodesy.Controllers
 		// Create a basic grid.
 		private void CreateGrid ()
 		{
-			var compositer = GameObject.Find ("Compositer");
-			gridObject = new GameObject ("grid");
-			gridObject.SetActive (false);
-			gridObject.layer = compositingLayer;
-			gridObject.transform.position = new Vector3 (0, Compositer.GRID_HEIGHT, 0);
-			gridObject.transform.parent = compositer.transform;
-
 			// Create permanent lines
 
 			// equator
@@ -123,8 +96,7 @@ namespace Geodesy.Controllers
 				AddGridLine (GridLineOrientation.Horizontal, i, Colors.LightGrey);
 			}
 
-			if (Changed != null)
-				Changed (this, null);
+			RaiseChanged ();
 		}
 
 		/// <summary>
@@ -145,7 +117,7 @@ namespace Geodesy.Controllers
 			}
 
 			line.layer = compositingLayer;
-			line.transform.parent = gridObject.transform;
+			line.transform.parent = node.transform;
 			line.transform.localPosition = Vector3.zero;
 
 			Vector3 linePosition;

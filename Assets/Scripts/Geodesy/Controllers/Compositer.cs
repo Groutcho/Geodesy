@@ -71,13 +71,13 @@ namespace Geodesy.Controllers
 
 		private Grid grid;
 
-		public const float MAX_HEIGHT = 10;
-		public const float GRID_HEIGHT = 9;
+		private List<Layer> layers = new List<Layer> (10);
 
 		public void Start ()
 		{
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
+			AddLayer (grid);
 			grid.Changed += OnGridChanged;
 		}
 
@@ -107,6 +107,7 @@ namespace Geodesy.Controllers
 		{
 			Console.Instance.Register ("grid", ExecuteGridCommand);
 			Console.Instance.Register ("render", ExecuteRenderingCommand);
+			Console.Instance.Register ("addlayer", ExecuteLayerCommands);
 		}
 
 		/// <summary>
@@ -166,7 +167,7 @@ namespace Geodesy.Controllers
 				float x = zone.Longitude + zone.Width / 2;
 				float y = zone.Latitude + zone.Height / 2;
 
-				CompositerCamera.transform.position = new Vector3 (x, MAX_HEIGHT, y);
+				CompositerCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
 				CompositerCamera.orthographicSize = zone.Width / 4;
 				CompositerCamera.aspect = 2f;
 
@@ -187,7 +188,16 @@ namespace Geodesy.Controllers
 			Debug.Log (count.ToString () + " nodes rendered.");
 		}
 
-		#region IConsoleCommandHandler implementation
+		#region layering
+
+		private void AddLayer (Layer layer)
+		{
+			layers.Add (layer);
+		}
+
+		#endregion
+
+		#region Console commands
 
 		private CommandResult ExecuteRenderingCommand (Command command)
 		{
@@ -211,6 +221,7 @@ namespace Geodesy.Controllers
 				float depth = command.Tokens [1].Float;
 				created = new Layer (name, depth);
 			}
+
 			AddLayer (created);
 			return new CommandResult (created);
 		}
@@ -232,14 +243,6 @@ namespace Geodesy.Controllers
 			} else
 			{
 				throw new ArgumentException (Console.ExpectedGot ("0-1 argument", command.TokenCount));
-			}
-		}
-
-		public string Name
-		{
-			get
-			{
-				return "Compositer";
 			}
 		}
 
