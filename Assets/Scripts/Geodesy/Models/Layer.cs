@@ -49,6 +49,8 @@ namespace Geodesy.Models
 
 		protected GameObject node;
 
+		public GameObject Node { get { return node; } }
+
 		public Layer (string name, float depth)
 		{
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
