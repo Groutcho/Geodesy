@@ -35,7 +35,7 @@ namespace Geodesy.Models
 			{
 				for (int j = 0; j < n; j++)
 				{
-					byte[] data = client.DownloadData (new Uri (uri, string.Format (@"{0}\{1}\{1}_{2}.jpg", d - 1, i, j)));
+					byte[] data = client.DownloadData (new Uri (uri, string.Format (@"{0}\{1}\{2}.jpg", d, i, j)));
 					Texture2D tex = new Texture2D (256, 256);
 					tex.LoadImage (data);
 					tex.Compress (false);
