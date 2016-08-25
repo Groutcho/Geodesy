@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System.IO;
 
 namespace Geodesy.Views.Debugging
 {
@@ -18,7 +19,9 @@ namespace Geodesy.Views.Debugging
 		private bool hasJustAppeared;
 		private Vector2 scroll;
 
-		private Dictionary<string, IConsoleCommandHandler> handlers = new Dictionary<string, IConsoleCommandHandler> (8);
+		public delegate CommandResult CommandHandler (Command cmd);
+
+		private Dictionary<string, CommandHandler> handlers = new Dictionary<string, CommandHandler> (8);
 		private List<string> content = new List<string> (256);
 
 		private const string Error = "ff0000ff";
@@ -66,20 +69,19 @@ namespace Geodesy.Views.Debugging
 			}
 		}
 
-		public void Register (IConsoleCommandHandler handler, string keyword)
+		public void Register (string keyword, CommandHandler handler)
 		{
-			if (handlers.ContainsKey (keyword))
-			{
-				Debug.LogError ("Console: Trying to register twice the command " + keyword);
-				return;
-			}
-
 			handlers.Add (keyword, handler);
 		}
 
 		public void LateUpdate ()
 		{
 			userHasPressedReturn = false;
+		}
+
+		public static string ExpectedGot (object expected, object got)
+		{
+			return string.Format ("Expected {0}, got: {1}", expected, got);
 		}
 
 		public void OnGUI ()
@@ -138,6 +140,17 @@ namespace Geodesy.Views.Debugging
 			content.Add (string.Format ("{0}<i>{1}</i>", Prompt, line));
 		}
 
+		private IList<CommandToken> Tokenize (string[] words)
+		{
+			IList<CommandToken> result = new List<CommandToken> (words.Length - 1);
+			for (int i = 1; i < words.Length; i++)
+			{
+				result.Add (CommandToken.Tokenize (words [i]));
+			}
+
+			return result;
+		}
+
 		private void ProcessLine (string line)
 		{
 			string actual = line.Trim ();
@@ -151,15 +164,23 @@ namespace Geodesy.Views.Debugging
 			AddLine (line);
 
 			string[] args = actual.Split ();
+			string keyword = args [0];
+
 			if (handlers.ContainsKey (args [0]))
 			{
 				try
 				{
-					var response = handlers [args [0]].ExecuteCommand (args);
+					IList<CommandToken> tokens = Tokenize (args);
+					Command command = new Command {
+						Keyword = keyword,
+						Tokens = tokens
+					};
+
+					var response = handlers [keyword] (command);
 					AddResponse (response.Result, Success);
 				} catch (Exception e)
 				{
-					AddResponse (e, Error);
+					AddResponse (e.Message, Error);
 				}
 			} else
 			{

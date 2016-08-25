@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy
+namespace Geodesy.Views.Debugging
 {
 	public class CommandResult
 	{
@@ -10,13 +10,6 @@ namespace Geodesy
 		{
 			Result = result;
 		}
-	}
-
-	public interface IConsoleCommandHandler
-	{
-		string Name { get; }
-
-		CommandResult ExecuteCommand (string[] argument);
 	}
 }
 
