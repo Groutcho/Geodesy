@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using Geodesy.Views;
+using Geodesy.Views.Debugging;
+using Console = Geodesy.Views.Debugging.Console;
 
 namespace Geodesy.Controllers
 {
@@ -19,7 +21,7 @@ namespace Geodesy.Controllers
 
 	public delegate void CameraMovedEventHandler (object sender, CameraMovedEventArgs args);
 
-	public class ViewpointController : MonoBehaviour, IConsoleCommandHandler
+	public class ViewpointController : MonoBehaviour
 	{
 		Viewpoint viewpoint;
 		Vector3 lastPos;
@@ -43,7 +45,7 @@ namespace Geodesy.Controllers
 			ShowFrustum = true;
 			this.viewpoint = viewpoint;
 			lastPos = transform.position;
-			Views.Debugging.Console.Instance.Register (this, "frustum");
+			Console.Instance.Register ("frustum", ExecuteFrustumCommands);
 			AdaptClippingRanges ();
 		}
 
@@ -91,47 +93,26 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		#region IConsoleCommandHandler implementation
+		#region Console commands
 
-		public CommandResult ExecuteCommand (string[] argument)
+		private CommandResult ExecuteFrustumCommands (Command command)
 		{
-			string keyword = argument [0];
-			switch (keyword)
-			{
-				case "frustum":
-					return ExecuteFrustumCommands (argument);
-				default:
-					throw new NotImplementedException ();
-			}
-		}
-
-		private CommandResult ExecuteFrustumCommands (string[] argument)
-		{
-			if (argument.Length == 1)
+			if (command.TokenCount == 0)
 			{
 				return new CommandResult (ShowFrustum);
-			} else if (argument.Length == 2)
+			} else if (command.TokenCount == 1)
 			{
-				bool? show = Views.Debugging.Console.GetThruthValue (argument [1]);
-				if (show.HasValue)
+				if (command.Tokens [0].TokenType == CommandToken.BOOL)
 				{
-					ShowFrustum = show.Value;
+					ShowFrustum = command.Tokens [0].Bool;
 					return new CommandResult (ShowFrustum);
 				} else
 				{
-					throw new ArgumentException ("Expected truth value, got: " + argument [1]);
+					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
 				}
 			}
 
 			throw new NotImplementedException ();
-		}
-
-		public string Name
-		{
-			get
-			{
-				return "ViewpointController";
-			}
 		}
 
 		#endregion
