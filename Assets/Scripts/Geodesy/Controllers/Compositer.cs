@@ -6,13 +6,15 @@ using System.Linq;
 using System.Collections;
 using Geodesy.Views;
 using Geodesy.Models;
+using Geodesy.Views.Debugging;
+using Console = Geodesy.Views.Debugging.Console;
 
 namespace Geodesy.Controllers
 {
 	/// <summary>
 	/// Class responsible for compositing raster images into the map to be later cut into tiles assigned to the 3D patches on the surface of the globe.
 	/// </summary>
-	public class Compositer : MonoBehaviour, IConsoleCommandHandler
+	public class Compositer : MonoBehaviour
 	{
 		/// <summary>
 		/// Describes a zone in the compositing area.
@@ -103,10 +105,8 @@ namespace Geodesy.Controllers
 
 		private void RegisterConsoleCommands ()
 		{
-			var console = Views.Debugging.Console.Instance;
-
-			console.Register (this, "grid");
-			console.Register (this, "render");
+			Console.Instance.Register ("grid", ExecuteGridCommand);
+			Console.Instance.Register ("render", ExecuteRenderingCommand);
 		}
 
 		/// <summary>
@@ -189,40 +189,49 @@ namespace Geodesy.Controllers
 
 		#region IConsoleCommandHandler implementation
 
-		public CommandResult ExecuteCommand (string[] argument)
+		private CommandResult ExecuteRenderingCommand (Command command)
 		{
-			switch (argument [0])
-			{
-				case "grid":
-					return ExecuteGridCommands (argument);
-				case "render":
-					Render ();
-					return new CommandResult ("rendering...");
-				default:
-					break;
-			}
-
-			throw new NotImplementedException ();
+			Render (forceRender: true);
+			return new CommandResult ("Rendering...");
 		}
 
-		private CommandResult ExecuteGridCommands (string[] argument)
+		private CommandResult ExecuteLayerCommands (Command command)
 		{
-			if (argument.Length == 1)
-				return new CommandResult (grid.Visible);
-			else if (argument.Length == 2)
+			string name = command.Tokens [0].Id;
+
+			Layer created;
+
+			if (name == "bm")
 			{
-				bool? visible = Views.Debugging.Console.GetThruthValue (argument [1]);
-				if (visible.HasValue)
+				Uri uri = new Uri (@"\\SGA-NAS\sga\media\GIS\store\BlueMarble\tileset.kml");
+				created = new RasterLayer (uri, "NASA BlueMarble", 2);
+
+			} else
+			{
+				float depth = command.Tokens [1].Float;
+				created = new Layer (name, depth);
+			}
+			AddLayer (created);
+			return new CommandResult (created);
+		}
+
+		private CommandResult ExecuteGridCommand (Command command)
+		{
+			if (command.TokenCount == 0)
+				return new CommandResult (grid.Visible);
+			else if (command.TokenCount == 1)
+			{
+				if (command.Tokens [0].TokenType == CommandToken.BOOL)
 				{
-					grid.Visible = visible.Value;
+					grid.Visible = command.Tokens [0].Bool;
 				} else
 				{
-					throw new ArgumentException ("Expected truth value, got " + argument [1]);
+					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
 				}
 				return new CommandResult (grid.Visible);
 			} else
 			{
-				throw new ArgumentException ("Expected 0 or 1 argument, got " + argument.Length.ToString ());
+				throw new ArgumentException (Console.ExpectedGot ("0-1 argument", command.TokenCount));
 			}
 		}
 
