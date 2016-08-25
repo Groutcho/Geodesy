@@ -5,10 +5,12 @@ using UnityEngine;
 using Geodesy.Models;
 using System.Collections;
 using System.Collections.Generic;
+using Geodesy.Views.Debugging;
+using Console = Geodesy.Views.Debugging.Console;
 
 namespace Geodesy.Controllers
 {
-	public class Globe : MonoBehaviour, IConsoleCommandHandler
+	public class Globe : MonoBehaviour
 	{
 		private const int sampleResolution_deg = 1;
 
@@ -47,7 +49,7 @@ namespace Geodesy.Controllers
 			patchManager.ChangeDepth (tree.CurrentDepth);
 			StartCoroutine (PatchManagerGarbageCollector ());
 
-			Views.Debugging.Console.Instance.Register (this, "point");
+			Console.Instance.Register ("point", ExecutePointCommand);
 		}
 
 		public Vector3 Project (LatLon point)
@@ -188,41 +190,30 @@ namespace Geodesy.Controllers
 
 		#region IConsoleCommandHandler implementation
 
-		public CommandResult ExecuteCommand (string[] argument)
+		public CommandResult ExecutePointCommand (Command command)
 		{
-			string keyword = argument [0];
-			switch (keyword)
+			if (command.TokenCount != 2)
 			{
-				case "point":
-					try
-					{
-						var lat = double.Parse (argument [1]);
-						var lon = double.Parse (argument [2]);
-						LatLon latlon = new LatLon (lat, lon, 0);
-						DebugCreatePoint (latlon);
-						return new CommandResult (latlon);
-					} catch (Exception)
-					{
-						throw new FormatException ("Expected coordinates, got: " + string.Join (" ", argument));
-					}
-				default:
-					break;
+				throw new FormatException ("Expected geographic coordinates");
 			}
-			throw new NotImplementedException ();
+
+			try
+			{
+				var lat = command.Tokens [0].Float;
+				var lon = command.Tokens [1].Float;
+				LatLon latlon = new LatLon (lat, lon, 0);
+				DebugCreatePoint (latlon);
+				return new CommandResult (latlon);
+			} catch (Exception)
+			{
+				throw new FormatException ("Expected geographic coordinates");
+			}
 		}
 
 		private void DebugCreatePoint (LatLon latlon)
 		{
 			Vector3 pos = Project (latlon);
 			debugPoints.Add (pos);
-		}
-
-		public string Name
-		{
-			get
-			{
-				return "Globe";
-			}
 		}
 
 		#endregion
