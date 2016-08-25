@@ -3,10 +3,12 @@ using Geodesy.Views;
 using System.Collections.Generic;
 using UnityEngine;
 using Geodesy.Models.QuadTree;
+using Geodesy.Views.Debugging;
+using Console = Geodesy.Views.Debugging.Console;
 
 namespace Geodesy.Controllers
 {
-	public class PatchManager : IConsoleCommandHandler
+	public class PatchManager
 	{
 		/// <summary>
 		/// How long a patch has to be invisible before being destroyed ?
@@ -34,7 +36,7 @@ namespace Geodesy.Controllers
 				patches.Add (null);
 			}
 
-			Views.Debugging.Console.Instance.Register (this, "patch");
+			Views.Debugging.Console.Instance.Register ("patch", HandlePatchCommand);
 		}
 
 		/// <summary>
@@ -223,50 +225,41 @@ namespace Geodesy.Controllers
 			Debug.Log (string.Format ("PatchManager: cleaned {0} patches", toRemove.Count));
 		}
 
-		#region IConsoleCommandHandler implementation
+		#region Console commands
 
-		public CommandResult ExecuteCommand (string[] argument)
+		private CommandResult HandlePatchCommand (Command command)
 		{
-			string keyword = argument [0];
-			switch (keyword)
+			if ((string)command.Tokens [0].Value == "mode")
 			{
-				case "patch":
-					return HandlePatchCommand (argument);
-				default:
-					break;
-			}
-
-			throw new NotImplementedException ();
-		}
-
-		private CommandResult HandlePatchCommand (string[] argument)
-		{
-			string keyword = argument [1];
-			if (keyword == "mode")
-			{
-				string mode = argument [2];
-				switch (mode)
+				if (command.TokenCount == 1)
 				{
-					case "texture":
-						UpdatePatchModes (RenderingMode.Texture);
-						return new CommandResult ("texture");
-					case "depth":
-						UpdatePatchModes (RenderingMode.Depth);
-						return new CommandResult ("depth");
-					default:
-						break;
+					return new CommandResult (mode);
+				} else if (command.TokenCount == 2)
+				{
+					if (command.Tokens [1].TokenType == CommandToken.ID)
+					{
+						string value = command.Tokens [1].Id;
+						switch (value.ToLowerInvariant ())
+						{
+							case "texture":
+								mode = RenderingMode.Texture;
+								UpdatePatchModes (mode);
+								return new CommandResult (mode);
+							case "depth":
+								mode = RenderingMode.Depth;
+								UpdatePatchModes (mode);
+								return new CommandResult (mode);
+							default:
+								throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
+						}
+					} else
+					{
+						throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
+					}
 				}
 			}
 
 			throw new NotImplementedException ();
-		}
-
-		public string Name
-		{
-			get
-			{
-				return "PatchManager";
-			}
 		}
 
 		#endregion
