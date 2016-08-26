@@ -29,6 +29,7 @@ namespace Geodesy.Models
 			#if UNITY_EDITOR
 			LayerSurfaceView lsv = node.AddComponent<LayerSurfaceView> ();
 			lsv.Surface = Surface;
+			lsv.Centered = true;
 			#endif
 
 			int d = 2;
