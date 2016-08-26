@@ -13,13 +13,16 @@ namespace Geodesy.Models
 
 		public Rect Surface { get; set; }
 
+		public string Name { get; set; }
+
 		List<Tile> tiles = new List<Tile> (128);
 
 		WebClient client = new WebClient ();
 
 		public RasterLayer (Uri uri, string name, float depth) : base (name, depth)
 		{
-			this.Uri = uri;
+			Uri = uri;
+			Name = name;
 
 			Surface = new Rect (-180, 90, 360, 180);
 
@@ -47,7 +50,7 @@ namespace Geodesy.Models
 
 		public override string ToString ()
 		{
-			return string.Format ("[RasterLayer: Uri={0}, Surface={1}]", Uri, Surface);
+			return string.Format ("[RasterLayer <{2}> {1}\nUri={0}]", Uri, Surface, Name);
 		}
 
 		private void AddTile (int i, int j, int depth, Texture2D image)
