@@ -13,7 +13,10 @@ namespace Geodesy.Views.Debugging
 		void OnDrawGizmos ()
 		{
 			Gizmos.color = Color.cyan;
-			Gizmos.DrawWireCube (transform.position, new Vector3 (Surface.width, 0, Surface.height));
+			Vector3 pos = transform.position;
+			pos.x += Surface.width / 2;
+			pos.z -= Surface.height / 2;
+			Gizmos.DrawWireCube (pos, new Vector3 (Surface.width, 0, Surface.height));
 
 			Vector3 labelCenter = new Vector3 (Surface.x, 0, Surface.y);
 			Gizmos.DrawWireSphere (labelCenter, 2);
