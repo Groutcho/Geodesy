@@ -14,8 +14,6 @@ namespace Geodesy.Models
 
 		public Rect Surface { get; set; }
 
-		public string Name { get; set; }
-
 		List<Tile> tiles = new List<Tile> (128);
 
 		WebClient client = new WebClient ();
