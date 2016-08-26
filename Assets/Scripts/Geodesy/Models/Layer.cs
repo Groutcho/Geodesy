@@ -5,7 +5,7 @@ namespace Geodesy.Models
 {
 	public class Layer
 	{
-		public const float CameraDepth = 10.2f;
+		public const float CameraDepth = 10.5f;
 		public const float MaxDepth = 9.9f;
 		public const float MinDepth = 0.1f;
 
