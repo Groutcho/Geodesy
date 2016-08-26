@@ -51,10 +51,12 @@ namespace Geodesy.Controllers
 			{
 				float lat, lon, width, height;
 
+				int d = (int)Mathf.Pow (2, coord.Depth);
+
 				float subdivs = (float)Math.Pow (2, coord.Depth);
 				width = 360f / subdivs;
 				height = 180f / subdivs;
-				lat = (coord.J * height) - 90;
+				lat = ((d - coord.J) * height) - 90;
 				lon = (coord.I * width) - 180;
 
 				return new Zone (lat, lon, width, height);
@@ -216,7 +218,7 @@ namespace Geodesy.Controllers
 				Zone zone = Zone.FromCoordinates (coord);
 
 				float x = zone.Longitude + zone.Width / 2;
-				float y = zone.Latitude + zone.Height / 2;
+				float y = zone.Latitude - zone.Height / 2;
 
 				CompositerCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
 				CompositerCamera.orthographicSize = zone.Width / 4;

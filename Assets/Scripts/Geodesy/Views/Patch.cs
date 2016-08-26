@@ -89,7 +89,7 @@ namespace Geodesy.Views
 			var vertices = Mesh.vertices;
 			float height = 180 / subs;
 			float width = 360 / subs;
-			float lat = j * height - 90;
+			float lat = 180 - (j * height) - 90 - height;
 			float lon;
 			float sarcH = height / Subdivisions;
 			float sarcW = width / Subdivisions;

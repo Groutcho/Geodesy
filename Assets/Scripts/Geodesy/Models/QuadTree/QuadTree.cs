@@ -179,10 +179,11 @@ namespace Geodesy.Models.QuadTree
 				double subdivs = Math.Pow (2, node.Coordinate.Depth);
 				double width = 360 / subdivs;
 				double height = 180 / subdivs;
+				int s = (int)subdivs;
 
-				double minLat = node.Coordinate.J * height - 90;
+				double minLat = (s - node.Coordinate.J) * height - 90;
 				double minLon = node.Coordinate.I * width - 180;
-				double maxLat = minLat + height;
+				double maxLat = minLat - height;
 				double maxLon = minLon + width;
 
 				LatLon bottomLeft = new LatLon (minLat, minLon, 0);
