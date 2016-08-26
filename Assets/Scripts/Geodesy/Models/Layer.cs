@@ -73,6 +73,16 @@ namespace Geodesy.Models
 			if (Changed != null)
 				Changed (this, null);
 		}
+
+		public virtual void Cleanup ()
+		{
+			
+		}
+
+		public virtual bool RequestTileForArea (int i, int j, int depth)
+		{
+			return false;
+		}
 	}
 }
 

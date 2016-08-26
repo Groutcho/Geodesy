@@ -162,16 +162,45 @@ namespace Geodesy.Controllers
 				toRender = toRender.Where (n => n.LastRefresh < n.LastVisible);
 			}
 
+			RequestDataToLayers (toRender);
+
 			// stop current render pass, if any.
 			StopAllCoroutines ();
 
 			// render the nodes asynchronously
 			StartCoroutine (RenderNodes (toRender));
+
+			CleanupLayers ();
 		}
 
 		private void OnTreeChanged (object sender, EventArgs args)
 		{
 			Render ();
+		}
+
+		private void CleanupLayers ()
+		{
+			if (layers != null && layers.Count > 0)
+			{
+				foreach (var layer in layers)
+				{
+					layer.Cleanup ();
+				}
+			}
+		}
+
+		private void RequestDataToLayers (IEnumerable<Node> toRender)
+		{
+			if (layers != null && layers.Count > 0)
+			{
+				foreach (var node in toRender)
+				{
+					foreach (var layer in layers)
+					{
+						layer.RequestTileForArea (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth - 1);
+					}
+				}
+			}
 		}
 
 		private IEnumerator RenderNodes (IEnumerable<Node> nodes)

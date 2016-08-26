@@ -4,7 +4,7 @@ using Geodesy.Views.Debugging;
 
 namespace Geodesy.Models
 {
-	public class Tile
+	public class Tile : IDisposable
 	{
 		public Rect Surface { get; private set; }
 
@@ -58,6 +58,18 @@ namespace Geodesy.Models
 			lsv.Surface = Surface;
 			#endif
 		}
+
+		#region IDisposable implementation
+
+		public void Dispose ()
+		{
+			if (node != null)
+			{
+				GameObject.Destroy (node);
+			}
+		}
+
+		#endregion
 	}
 }
 
