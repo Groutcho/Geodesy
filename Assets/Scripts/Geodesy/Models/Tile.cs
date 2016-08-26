@@ -12,6 +12,12 @@ namespace Geodesy.Models
 
 		private GameObject node;
 
+		public bool Visible
+		{
+			get { return node.activeSelf; }
+			set { node.SetActive (value); }
+		}
+
 		public Tile (RasterLayer raster, int i, int j, int depth, Texture2D image)
 		{
 			double subdiv = Math.Pow (2, depth + 1);

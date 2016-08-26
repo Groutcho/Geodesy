@@ -19,7 +19,7 @@ namespace Geodesy.Models
 		WebClient client = new WebClient ();
 
 		public const int CacheSize = 256;
-		Dictionary<int, byte[]> cache = new Dictionary<int, byte[]> (CacheSize);
+		Dictionary<int, Tile> cache = new Dictionary<int, Tile> (CacheSize);
 
 		private string cacheDirectory = @"c:\ImageCache";
 
@@ -48,9 +48,7 @@ namespace Geodesy.Models
 			int key = GetKey (i, j, depth);
 			if (cache.ContainsKey (key))
 			{
-				data = cache [key];
-
-				AddTile (i, j, depth, data);
+				cache [key].Visible = true;
 				return true;
 			}
 
@@ -61,7 +59,6 @@ namespace Geodesy.Models
 			if (File.Exists (cacheUri.FullName))
 			{
 				data = File.ReadAllBytes (cacheUri.FullName);
-				cache [GetKey (i, j, depth)] = data;
 				AddTile (i, j, depth, data);
 				return true;
 			} else
@@ -69,7 +66,6 @@ namespace Geodesy.Models
 				try
 				{
 					data = client.DownloadData (tileUri);
-					cache [GetKey (i, j, depth)] = data;
 
 					if (!cacheUri.Directory.Exists)
 					{
@@ -148,6 +144,7 @@ namespace Geodesy.Models
 
 			Tile tile = new Tile (this, i, j, depth, tex);
 			tiles.Add (tile);
+			cache.Add (GetKey (i, j, depth), tile);
 		}
 	}
 }
