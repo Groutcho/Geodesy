@@ -21,6 +21,25 @@ namespace Geodesy.Controllers
 		Viewpoint viewpoint;
 		SphereCollider approximateCollider;
 		List<Vector3> debugPoints = new List<Vector3> (10);
+		bool atmosphereVisible;
+		GameObject atmosphere;
+
+		public bool AtmosphereVisible
+		{
+			get
+			{
+				return atmosphereVisible;
+			}
+
+			set
+			{
+				if (value != AtmosphereVisible)
+				{
+					atmosphereVisible = value;
+					atmosphere.SetActive (value);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Every nth seconds, the globe will trigger a cleanup function to delete obsolete cached data.
@@ -41,6 +60,9 @@ namespace Geodesy.Controllers
 			patchManager = new PatchManager (this, material);
 			this.tree.DepthChanged += patchManager.UpdateDepth;
 
+			atmosphere = GameObject.Find ("Globe/Atmosphere");
+			atmosphereVisible = true;
+
 			// Create a spherical approximation of the spheroid
 			// for purposes that don't need exact calculations.
 			approximateCollider = gameObject.AddComponent<SphereCollider> ();
@@ -50,6 +72,7 @@ namespace Geodesy.Controllers
 			StartCoroutine (PatchManagerGarbageCollector ());
 
 			Console.Instance.Register ("point", ExecutePointCommand);
+			Console.Instance.Register ("atmosphere", ExecuteAtmosphereCommand);
 		}
 
 		public Vector3 Project (LatLon point)
@@ -189,6 +212,16 @@ namespace Geodesy.Controllers
 
 
 		#region IConsoleCommandHandler implementation
+
+		public CommandResult ExecuteAtmosphereCommand (Command command)
+		{
+			if (command.TokenCount != 1 ||
+			    command.Tokens [0].TokenType != CommandToken.BOOL)
+				throw new FormatException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
+
+			AtmosphereVisible = command.Tokens [0].Bool;
+			return new CommandResult (AtmosphereVisible);
+		}
 
 		public CommandResult ExecutePointCommand (Command command)
 		{
