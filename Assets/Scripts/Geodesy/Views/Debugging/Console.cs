@@ -132,7 +132,7 @@ namespace Geodesy.Views.Debugging
 
 		private void AddResponse (object response, string color)
 		{
-			content.Add (string.Format ("  <color=#{1}>{0}</color>", response, color));
+			content.Add (string.Format ("<color=#{1}>{0}</color>", response, color));
 		}
 
 		private void AddLine (string line)
