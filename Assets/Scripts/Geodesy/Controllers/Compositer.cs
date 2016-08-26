@@ -69,12 +69,32 @@ namespace Geodesy.Controllers
 		private int compositingLayer;
 		private int yieldEveryNth = 8;
 
+		GameObject background;
+		private bool backgroundVisible = true;
+
+		public bool BackgroundVisible
+		{
+			get
+			{
+				return backgroundVisible;
+			}
+			set
+			{
+				if (backgroundVisible != value)
+				{
+					backgroundVisible = value;
+					background.SetActive (value);
+				}
+			}
+		}
+
 		private Grid grid;
 
 		private List<Layer> layers = new List<Layer> (10);
 
 		public void Start ()
 		{
+			background = GameObject.Find ("Compositer/_background");
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
 			grid.Visible = false;
@@ -109,6 +129,7 @@ namespace Geodesy.Controllers
 			Console.Instance.Register ("grid", ExecuteGridCommand);
 			Console.Instance.Register ("render", ExecuteRenderingCommand);
 			Console.Instance.Register ("addlayer", ExecuteLayerCommands);
+			Console.Instance.Register ("bg", ExecuteBackgroundCommand);
 		}
 
 		/// <summary>
@@ -204,6 +225,27 @@ namespace Geodesy.Controllers
 		{
 			Render (forceRender: true);
 			return new CommandResult ("Rendering...");
+		}
+
+		private CommandResult ExecuteBackgroundCommand (Command command)
+		{
+			if (command.TokenCount == 0)
+				return new CommandResult (BackgroundVisible);
+			else if (command.TokenCount == 1)
+			{
+				if (command.Tokens [0].TokenType == CommandToken.BOOL)
+				{
+					BackgroundVisible = command.Tokens [0].Bool;
+					Render (forceRender: true);
+				} else
+				{
+					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
+				}
+				return new CommandResult (BackgroundVisible);
+			} else
+			{
+				throw new ArgumentException (Console.ExpectedGot ("0-1 argument", command.TokenCount));
+			}
 		}
 
 		private CommandResult ExecuteLayerCommands (Command command)
