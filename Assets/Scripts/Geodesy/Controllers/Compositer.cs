@@ -181,6 +181,15 @@ namespace Geodesy.Controllers
 			StartCoroutine (RenderNodes (toRender));
 		}
 
+		public void Render (Coordinate coord)
+		{
+			Node node = tree.Find (coord.I, coord.J, coord.Depth);
+			if (node != null)
+			{
+				RenderNode (node);
+			}
+		}
+
 		private void OnTreeChanged (object sender, EventArgs args)
 		{
 			Render ();
@@ -211,6 +220,25 @@ namespace Geodesy.Controllers
 			}
 		}
 
+		private void RenderNode (Node node)
+		{
+			node.LastRefresh = DateTime.Now;
+
+			Zone zone = Zone.FromCoordinates (node.Coordinate);
+
+			float x = zone.Longitude + zone.Width / 2;
+			float y = zone.Latitude - zone.Height / 2;
+
+			CompositerCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
+			CompositerCamera.orthographicSize = zone.Width / 4;
+			CompositerCamera.aspect = 2f;
+
+			Patch patch = patchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+			CompositerCamera.targetTexture = patch.Texture;
+
+			CompositerCamera.Render ();
+		}
+
 		private IEnumerator RenderNodes (IEnumerable<Node> nodes)
 		{
 			int current = 0;
@@ -218,21 +246,7 @@ namespace Geodesy.Controllers
 
 			foreach (Node node in nodes)
 			{
-				node.LastRefresh = DateTime.Now;
-
-				Coordinate coord = node.Coordinate;
-				Zone zone = Zone.FromCoordinates (coord);
-
-				float x = zone.Longitude + zone.Width / 2;
-				float y = zone.Latitude - zone.Height / 2;
-
-				CompositerCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
-				CompositerCamera.orthographicSize = zone.Width / 4;
-				CompositerCamera.aspect = 2f;
-
-				Patch patch = patchManager.Get (coord.I, coord.J, coord.Depth);
-				CompositerCamera.targetTexture = patch.Texture;
-				CompositerCamera.Render ();
+				RenderNode (node);
 
 				if (current == yieldEveryNth)
 				{
@@ -254,6 +268,12 @@ namespace Geodesy.Controllers
 		private void AddLayer (Layer layer)
 		{
 			layers.Add (layer);
+
+			if (layer is RasterLayer)
+			{
+				(layer as RasterLayer).OnNewDataAvailable += (Coordinate coord) => Render (coord);
+			}
+
 			if (layer.Visible)
 			{
 				Render (true);

@@ -9,6 +9,8 @@ using System.Linq;
 
 namespace Geodesy.Models
 {
+	public delegate void NewDataAvailableHandler (QuadTree.Coordinate coord);
+
 	public class RasterLayer : Layer
 	{
 		private class Download
@@ -36,6 +38,8 @@ namespace Geodesy.Models
 		object pendingTilesMonitor = new object ();
 		Queue<Download> pendingDownloads = new Queue<Download> (128);
 
+		public event NewDataAvailableHandler OnNewDataAvailable;
+
 		public RasterLayer (Uri uri, string name, float depth) : base (name, depth)
 		{
 			Uri = uri;
@@ -62,6 +66,10 @@ namespace Geodesy.Models
 				{
 					var toCreate = pendingDownloads.Dequeue ();
 					AddTile (toCreate.Coords.I, toCreate.Coords.J, toCreate.Coords.Depth, toCreate.Data);
+					if (OnNewDataAvailable != null)
+					{
+						OnNewDataAvailable (toCreate.Coords);
+					}
 				}
 			}
 		}
