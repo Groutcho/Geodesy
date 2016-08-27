@@ -81,6 +81,28 @@ namespace Geodesy.Controllers
 		}
 
 		/// <summary>
+		/// Return the geographic coordinates of the point under the cursor.
+		/// If the cursor is not over the globe, return 0, 0, 0;
+		/// </summary>
+		/// <value>The cursor coordinates.</value>
+		public LatLon CursorCoordinates
+		{
+			get
+			{
+				// TODO: implement correct trigonometric computation using actual datum instead of sphere
+				RaycastHit hit;
+				if (Physics.Raycast (viewpoint.Camera.ScreenPointToRay (Input.mousePosition), out hit))
+				{
+					float lat = Mathf.Clamp (Vector3.Angle (new Vector3 (hit.point.x, hit.point.y, 0), Vector3.right) * Mathf.Sign (hit.point.y), -90, 90);
+					float lon = Mathf.Clamp (Vector3.Angle (new Vector3 (hit.point.x, 0, hit.point.z), Vector3.right) * Mathf.Sign (hit.point.z), -180, 180);
+
+					return new LatLon (lat, lon, 0);
+				}
+				return new LatLon ();
+			}
+		}
+
+		/// <summary>
 		/// Project the point at the surface of the datum and return
 		/// its cartesian coordinates.
 		/// </summary>
