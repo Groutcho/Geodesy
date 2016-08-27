@@ -254,6 +254,10 @@ namespace Geodesy.Controllers
 		private void AddLayer (Layer layer)
 		{
 			layers.Add (layer);
+			if (layer.Visible)
+			{
+				Render (true);
+			}
 		}
 
 		#endregion
