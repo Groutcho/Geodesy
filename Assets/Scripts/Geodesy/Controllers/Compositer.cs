@@ -163,6 +163,9 @@ namespace Geodesy.Controllers
 				return;
 			}
 
+			// stop current render pass, if any.
+			StopAllCoroutines ();
+
 			// Collect visible nodes
 			IEnumerable<Node> toRender = tree.GetVisibleNodes ();
 
@@ -174,13 +177,8 @@ namespace Geodesy.Controllers
 
 			RequestDataToLayers (toRender);
 
-			// stop current render pass, if any.
-			StopAllCoroutines ();
-
 			// render the nodes asynchronously
 			StartCoroutine (RenderNodes (toRender));
-
-			CleanupLayers ();
 		}
 
 		private void OnTreeChanged (object sender, EventArgs args)
@@ -247,6 +245,8 @@ namespace Geodesy.Controllers
 			}
 
 			Debug.Log (count.ToString () + " nodes rendered.");
+
+			CleanupLayers ();
 		}
 
 		#region layering
