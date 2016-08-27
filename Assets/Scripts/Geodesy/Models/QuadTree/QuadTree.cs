@@ -89,13 +89,17 @@ namespace Geodesy.Models.QuadTree
 			return null;
 		}
 
-		public IEnumerable<Node> GetVisibleNodes ()
+		public IList<Node> GetVisibleNodes ()
 		{
+			List<Node> result = new List<Node> ();
+
 			foreach (var item in Traverse(true))
 			{
 				if (item.Visible)
-					yield return item;
+					result.Add (item);
 			}
+
+			return result;
 		}
 
 		public void Update ()
