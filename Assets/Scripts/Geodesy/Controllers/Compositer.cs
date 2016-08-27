@@ -167,12 +167,12 @@ namespace Geodesy.Controllers
 			StopAllCoroutines ();
 
 			// Collect visible nodes
-			IEnumerable<Node> toRender = tree.GetVisibleNodes ();
+			IList<Node> toRender = tree.GetVisibleNodes ();
 
 			if (!forceRender)
 			{
 				// only render the nodes who actually need an updated texture
-				toRender = toRender.Where (n => n.LastRefresh < n.LastVisible);
+				toRender = toRender.Where (n => n.LastRefresh < n.LastVisible).ToList ();
 			}
 
 			RequestDataToLayers (toRender);
@@ -239,14 +239,23 @@ namespace Geodesy.Controllers
 			CompositerCamera.Render ();
 		}
 
-		private IEnumerator RenderNodes (IEnumerable<Node> nodes)
+		private IEnumerator RenderNodes (IList<Node> nodes)
 		{
+			bool showProgress = nodes.Count > 20;
+
 			int current = 0;
 			int count = 0;
+
+			UiController.Instance.Progress = 0;
 
 			foreach (Node node in nodes)
 			{
 				RenderNode (node);
+
+				if (showProgress)
+				{
+					UiController.Instance.Progress += 1f / nodes.Count;
+				}
 
 				if (current == yieldEveryNth)
 				{
@@ -257,6 +266,8 @@ namespace Geodesy.Controllers
 
 				count++;
 			}
+
+			UiController.Instance.Progress = 1f;
 
 			Debug.Log (count.ToString () + " nodes rendered.");
 
