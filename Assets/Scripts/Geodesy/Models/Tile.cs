@@ -17,8 +17,18 @@ namespace Geodesy.Models
 
 		public bool Visible
 		{
-			get { return node.activeSelf; }
-			set { node.SetActive (value); }
+			get
+			{
+				if (node != null)
+					return node.activeSelf;
+				else
+					return false;
+			}
+			set
+			{
+				if (node != null)
+					node.SetActive (value);
+			}
 		}
 
 		public Tile (RasterLayer raster, int i, int j, int depth, Texture2D image)
