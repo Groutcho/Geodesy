@@ -139,6 +139,11 @@ namespace Geodesy.Models
 
 		public override void Cleanup ()
 		{
+			foreach (var tile in tiles)
+			{
+				tile.Visible = false;
+			}
+
 			if (tiles.Count < MaxTileCount)
 				return;
 
