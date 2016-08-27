@@ -26,6 +26,8 @@ namespace Geodesy.Controllers
 		Viewpoint viewpoint;
 		Vector3 lastPos;
 
+		float minClip = 1f;
+
 		public static ViewpointController Instance { get; private set; }
 
 		public bool ShowFrustum { get; set; }
@@ -72,7 +74,7 @@ namespace Geodesy.Controllers
 			Camera cam = viewpoint.Camera;
 			float dist = viewpoint.DistanceFromView (Vector3.zero);
 			cam.farClipPlane = dist + 3000;
-			cam.nearClipPlane = dist - 7000;
+			cam.nearClipPlane = Mathf.Clamp (dist - 7000, minClip, cam.farClipPlane - 1);
 		}
 
 		public void OnDrawGizmos ()
