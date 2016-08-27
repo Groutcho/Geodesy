@@ -360,7 +360,7 @@ MonoBehaviour:
   ySpeed: 1
   yMinLimit: -20
   yMaxLimit: 80
-  distanceMin: 6500
+  distanceMin: 6380
   distanceMax: 30000
 --- !u!1 &1081455715
 GameObject:
