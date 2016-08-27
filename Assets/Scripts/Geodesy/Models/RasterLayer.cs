@@ -139,6 +139,8 @@ namespace Geodesy.Models
 		{
 			Texture2D tex = new Texture2D (Patch.TextureSize, Patch.TextureSize);
 			tex.LoadImage (data);
+			tex.filterMode = FilterMode.Bilinear;
+			tex.wrapMode = TextureWrapMode.Clamp;
 			tex.Compress (false);
 			tex.Apply (false, true);
 
