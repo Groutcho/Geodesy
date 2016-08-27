@@ -68,6 +68,9 @@ namespace Geodesy.Models
 
 		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs arg)
 		{
+			if (arg.Result == null || arg.Result.Length == 0)
+				return;
+
 			Download token = (Download)arg.UserState;
 			FileInfo cacheFile = new FileInfo (token.CacheUri.AbsolutePath);
 
