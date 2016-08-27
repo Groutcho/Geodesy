@@ -54,12 +54,11 @@ namespace Geodesy.Controllers
 			if (Vector3.Distance (lastPos, transform.position) > 1)
 			{
 				lastPos = transform.position;
+				AdaptClippingRanges ();
 				if (HasMoved != null)
 				{
 					HasMoved (this, new CameraMovedEventArgs (this, lastPos));
 				}
-
-				AdaptClippingRanges ();
 			}
 		}
 
