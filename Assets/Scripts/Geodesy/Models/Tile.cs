@@ -46,8 +46,10 @@ namespace Geodesy.Models
 
 			node.layer = LayerMask.NameToLayer ("Compositing");
 
+			float tileDepth = depth / 10f;
+
 			node.transform.parent = raster.Node.transform;
-			node.transform.localPosition = new Vector3 (x, 0, y);
+			node.transform.localPosition = new Vector3 (x, tileDepth, y);
 
 			var mf = node.AddComponent<MeshFilter> ();
 			Mesh mesh = MeshProvider.Quad;
