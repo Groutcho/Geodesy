@@ -9,9 +9,12 @@ namespace Geodesy.Views
 
 		public Camera Camera { get { return camera; } }
 
+		public MouseOrbitImproved Handler { get; set; }
+
 		public Viewpoint (Camera camera)
 		{
 			this.camera = camera;
+			Handler = camera.gameObject.GetComponent<MouseOrbitImproved> ();
 		}
 
 		public float DistanceFromView (Vector3 position)

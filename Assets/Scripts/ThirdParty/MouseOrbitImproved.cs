@@ -26,6 +26,8 @@ public class MouseOrbitImproved : MonoBehaviour
 		y = angles.x;
 	}
 
+	public event CameraMovedEventHandler Moved;
+
 	void LateUpdate ()
 	{
 		if (target)
@@ -49,6 +51,11 @@ public class MouseOrbitImproved : MonoBehaviour
 			}
 			Vector3 negDistance = new Vector3 (0.0f, 0.0f, -distance);
 			Vector3 position = rotation * negDistance + target.position;
+
+			if (Moved != null)
+			{
+				Moved (this, new CameraMovedEventArgs (this, position, rotation));
+			}
 
 			transform.rotation = rotation;
 			transform.position = position;

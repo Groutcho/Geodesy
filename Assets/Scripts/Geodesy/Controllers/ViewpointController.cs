@@ -12,10 +12,18 @@ namespace Geodesy.Controllers
 
 		public Vector3 Position { get; set; }
 
+		public Quaternion Orientation { get; set; }
+
 		public CameraMovedEventArgs (object sender, Vector3 position)
 		{
 			this.Sender = sender;
 			this.Position = position;
+		}
+
+		public CameraMovedEventArgs (object sender, Vector3 position, Quaternion orientation)
+			: this (sender, position)
+		{
+			this.Orientation = orientation;
 		}
 	}
 
@@ -46,17 +54,18 @@ namespace Geodesy.Controllers
 		{
 			ShowFrustum = true;
 			this.viewpoint = viewpoint;
+			this.viewpoint.Handler.Moved += Viewpoint_Handler_Moved;
 			lastPos = transform.position;
 			Console.Instance.Register ("frustum", ExecuteFrustumCommands);
-			AdaptClippingRanges ();
+			AdaptClippingRanges (lastPos);
 		}
 
-		public void Update ()
+		void Viewpoint_Handler_Moved (object sender, CameraMovedEventArgs args)
 		{
-			if (Vector3.Distance (lastPos, transform.position) > 1)
+			if (Vector3.Distance (lastPos, args.Position) > 1)
 			{
-				lastPos = transform.position;
-				AdaptClippingRanges ();
+				lastPos = args.Position;
+				AdaptClippingRanges (args.Position);
 				if (HasMoved != null)
 				{
 					HasMoved (this, new CameraMovedEventArgs (this, lastPos));
@@ -69,10 +78,10 @@ namespace Geodesy.Controllers
 		/// 1. the near clipping plane is slightly above the globe surface
 		/// 2. the far clipping plane is slightly farther than the hemisphere boundary.
 		/// </summary>
-		private void AdaptClippingRanges ()
+		private void AdaptClippingRanges (Vector3 position)
 		{
 			Camera cam = viewpoint.Camera;
-			float dist = viewpoint.DistanceFromView (Vector3.zero);
+			float dist = position.magnitude;
 			cam.farClipPlane = dist + 3000;
 			cam.nearClipPlane = Mathf.Clamp (dist - 7000, minClip, cam.farClipPlane - 1);
 		}
