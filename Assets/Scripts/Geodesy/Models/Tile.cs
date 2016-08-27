@@ -1,12 +1,15 @@
 ﻿using System;
 using UnityEngine;
 using Geodesy.Views.Debugging;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Models
 {
 	public class Tile : IDisposable
 	{
 		public Rect Surface { get; private set; }
+
+		public Coordinate Coords { get; set; }
 
 		private static Material surfaceMaterial = null;
 
@@ -20,6 +23,8 @@ namespace Geodesy.Models
 
 		public Tile (RasterLayer raster, int i, int j, int depth, Texture2D image)
 		{
+			Coords = new Coordinate (i, j, depth);
+
 			double subdiv = Math.Pow (2, depth + 1);
 			float width = (float)(raster.Surface.width / subdiv);
 			float height = (float)(raster.Surface.height / subdiv);

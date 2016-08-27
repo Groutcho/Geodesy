@@ -5,23 +5,36 @@ using UnityEngine;
 using Geodesy.Views.Debugging;
 using System.Collections.Generic;
 using Geodesy.Views;
+using System.Linq;
 
 namespace Geodesy.Models
 {
 	public class RasterLayer : Layer
 	{
+		private class Download
+		{
+			public Uri Uri { get; set; }
+
+			public Uri CacheUri { get; set; }
+
+			public byte[] Data { get; set; }
+
+			public QuadTree.Coordinate Coords { get; set; }
+		}
+
 		public Uri Uri { get; private set; }
 
 		public Rect Surface { get; set; }
 
-		List<Tile> tiles = new List<Tile> (128);
+		// The maximum number of tile objects that can be maintained.
+		private const int MaxTileCount = 256;
 
-		WebClient client = new WebClient ();
-
-		public const int CacheSize = 256;
-		Dictionary<int, Tile> cache = new Dictionary<int, Tile> (CacheSize);
+		List<Tile> tiles = new List<Tile> (MaxTileCount);
 
 		private string cacheDirectory = @"c:\ImageCache";
+
+		object pendingTilesMonitor = new object ();
+		Queue<Download> pendingDownloads = new Queue<Download> (128);
 
 		public RasterLayer (Uri uri, string name, float depth) : base (name, depth)
 		{
@@ -41,38 +54,69 @@ namespace Geodesy.Models
 			#endif
 		}
 
+		public override void Update ()
+		{
+			lock (pendingTilesMonitor)
+			{
+				while (pendingDownloads.Count > 0)
+				{
+					var toCreate = pendingDownloads.Dequeue ();
+					AddTile (toCreate.Coords.I, toCreate.Coords.J, toCreate.Coords.Depth, toCreate.Data);
+				}
+			}
+		}
+
+		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs arg)
+		{
+			Download token = (Download)arg.UserState;
+			FileInfo cacheFile = new FileInfo (token.CacheUri.AbsolutePath);
+
+			if (!cacheFile.Directory.Exists)
+			{
+				cacheFile.Directory.Create ();
+			}
+			File.WriteAllBytes (cacheFile.FullName, arg.Result);
+			token.Data = arg.Result;
+
+			lock (pendingTilesMonitor)
+			{
+				pendingDownloads.Enqueue (token);
+			}
+		}
+
 		public override bool RequestTileForArea (int i, int j, int depth)
 		{
 			byte[] data;
 
 			int key = GetKey (i, j, depth);
-			if (cache.ContainsKey (key))
+			Tile cached = tiles.FirstOrDefault (t => t.Coords.I == i && t.Coords.J == j && t.Coords.Depth == depth);
+			if (cached != null)
 			{
-				cache [key].Visible = true;
+				cached.Visible = true;
 				return true;
 			}
 
 			string path = string.Format (@"{0}\{1}\{2}.jpg", depth, i, j);
 			Uri tileUri = new Uri (Uri, path);
-			FileInfo cacheUri = new FileInfo (Path.Combine (cacheDirectory, path));
+			Uri cacheUri = new Uri (Path.Combine (cacheDirectory, path));
 
-			if (File.Exists (cacheUri.FullName))
+			if (File.Exists (cacheUri.AbsolutePath))
 			{
-				data = File.ReadAllBytes (cacheUri.FullName);
+				data = File.ReadAllBytes (cacheUri.AbsolutePath);
 				AddTile (i, j, depth, data);
 				return true;
 			} else
 			{
 				try
 				{
-					data = client.DownloadData (tileUri);
-
-					if (!cacheUri.Directory.Exists)
-					{
-						cacheUri.Directory.Create ();
-					}
-					File.WriteAllBytes (cacheUri.FullName, data);
-					AddTile (i, j, depth, data);
+					Download download = new Download {
+						Uri = tileUri,
+						CacheUri = cacheUri,
+						Coords = new QuadTree.Coordinate (i, j, depth)
+					};
+					WebClient client = new WebClient ();
+					client.DownloadDataAsync (tileUri, download);
+					client.DownloadDataCompleted += OnDownloadDataCompleted;
 					return true;
 				} catch (Exception ex)
 				{
@@ -84,14 +128,12 @@ namespace Geodesy.Models
 
 		public override void Cleanup ()
 		{
+			if (tiles.Count < MaxTileCount)
+				return;
+
 			foreach (var tile in tiles)
 			{
 				tile.Dispose ();
-			}
-
-			if (cache.Count >= CacheSize)
-			{
-				cache.Clear ();
 			}
 
 			tiles.Clear ();
@@ -146,7 +188,6 @@ namespace Geodesy.Models
 
 			Tile tile = new Tile (this, i, j, depth, tex);
 			tiles.Add (tile);
-			cache.Add (GetKey (i, j, depth), tile);
 		}
 	}
 }

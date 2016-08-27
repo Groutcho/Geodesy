@@ -104,6 +104,14 @@ namespace Geodesy.Controllers
 			grid.Changed += OnGridChanged;
 		}
 
+		private void Update ()
+		{
+			foreach (var item in layers)
+			{
+				item.Update ();
+			}
+		}
+
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
 		{
 			float dist = Vector3.Distance (Vector3.zero, arg.Position) - 6300;

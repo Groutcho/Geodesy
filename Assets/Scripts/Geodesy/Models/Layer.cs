@@ -83,6 +83,11 @@ namespace Geodesy.Models
 		{
 			return false;
 		}
+
+		public virtual void Update ()
+		{
+			
+		}
 	}
 }
 
