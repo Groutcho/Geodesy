@@ -115,10 +115,7 @@ namespace Geodesy.Controllers
 
 		void Update ()
 		{
-			if (Input.GetKeyUp (KeyCode.O))
-			{
-				tree.Divide ();
-			}
+			AtmosphereVisible = ViewpointController.Instance.DistanceFromView (Vector3.zero) > 12000;
 		}
 
 		#region Visual debugging

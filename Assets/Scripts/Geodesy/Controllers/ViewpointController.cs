@@ -94,6 +94,11 @@ namespace Geodesy.Controllers
 			}
 		}
 
+		public float DistanceFromView (Vector3 position)
+		{
+			return viewpoint.DistanceFromView (position);
+		}
+
 		#region Console commands
 
 		private CommandResult ExecuteFrustumCommands (Command command)
