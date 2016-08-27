@@ -34,6 +34,7 @@ namespace Geodesy.Controllers
 			CreateDatum ();
 			CreateGlobe ();
 			CreateCompositer ();
+			CreateUiController ();
 
 			globe.Tree.Update ();
 		}
@@ -76,6 +77,12 @@ namespace Geodesy.Controllers
 		{
 			Compositer compositer = GameObject.Find ("Compositer").GetComponent<Compositer> ();
 			compositer.Initialize (globe);
+		}
+
+		void CreateUiController ()
+		{
+			var ui = GameObject.Find ("_UI").AddComponent<UiController> ();
+			ui.Initialize (globe);
 		}
 	}
 }
