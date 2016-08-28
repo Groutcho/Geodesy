@@ -24,18 +24,35 @@ namespace Geodesy.Controllers
 		bool atmosphereVisible;
 		GameObject atmosphere;
 
+		private bool atmosphereEnabled = true;
+
+		public bool AtmosphereEnabled
+		{
+			get
+			{
+				return atmosphereEnabled;
+			}
+			set
+			{
+				atmosphereEnabled = value;
+				if (!value)
+				{
+					atmosphere.SetActive (false);
+				}
+			}
+		}
+
 		public bool AtmosphereVisible
 		{
 			get
 			{
-				return atmosphereVisible;
+				return atmosphere.activeSelf && AtmosphereEnabled;
 			}
 
 			set
 			{
-				if (value != AtmosphereVisible)
+				if (AtmosphereEnabled)
 				{
-					atmosphereVisible = value;
 					atmosphere.SetActive (value);
 				}
 			}
@@ -244,8 +261,8 @@ namespace Geodesy.Controllers
 			if (!Console.Matches (command, CommandToken.BOOL))
 				throw new FormatException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
 
-			AtmosphereVisible = command.Tokens [0].Bool;
-			return new CommandResult (AtmosphereVisible);
+			AtmosphereEnabled = command.Tokens [0].Bool;
+			return new CommandResult (AtmosphereEnabled);
 		}
 
 		public CommandResult ExecutePointCommand (Command command)
