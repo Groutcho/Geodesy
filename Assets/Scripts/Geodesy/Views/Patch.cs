@@ -100,7 +100,8 @@ namespace Geodesy.Views
 				lon = i * width - 180;
 				for (int x = 0; x < subdivs; x++)
 				{
-					vertices [x + y * subdivs] = globe.Project (lat, lon);
+					float alt = 0;
+					vertices [x + y * subdivs] = globe.Project (lat, lon, alt);
 					lon += sarcW;
 				}
 				lat += sarcH;
