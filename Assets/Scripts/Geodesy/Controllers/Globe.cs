@@ -128,7 +128,7 @@ namespace Geodesy.Controllers
 		/// </summary>
 		/// <param name="lat">Latitude of the point to project.</param>
 		/// <param name="lon">Longitude of the point to project.</param>
-		public Vector3 Project (float lat, float lon)
+		public Vector3 Project (float lat, float lon, float alt = 0)
 		{
 			lat = Mathf.Deg2Rad * lat;
 			lon = Mathf.Deg2Rad * lon;
@@ -137,8 +137,8 @@ namespace Geodesy.Controllers
 			float y = 0;
 			float z = 0;
 
-			float redY = (float)(datum.SemiminorAxis * reductionFactor);
-			float redX = (float)(datum.SemimajorAxis * reductionFactor);
+			float redY = (float)((datum.SemiminorAxis + alt) * reductionFactor);
+			float redX = (float)((datum.SemimajorAxis + alt) * reductionFactor);
 			float hRadius = (float)(Mathf.Cos (lat) * redY);
 			float wRadius = (float)(Mathf.Cos (lat) * redX);
 
