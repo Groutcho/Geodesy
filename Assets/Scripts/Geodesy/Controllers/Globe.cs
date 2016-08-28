@@ -65,14 +65,14 @@ namespace Geodesy.Controllers
 
 		public PatchManager PatchManager { get { return patchManager; } }
 
-		public void Initialize (Datum datum, Material material, float reductionFactor, Viewpoint viewpoint)
+		public void Initialize (Datum datum, float reductionFactor, Viewpoint viewpoint)
 		{
 			this.reductionFactor = reductionFactor;
 			this.viewpoint = viewpoint;
 			this.datum = datum;
 
 			this.tree = new QuadTree (this);
-			patchManager = new PatchManager (this, material);
+			patchManager = new PatchManager (this);
 			this.tree.DepthChanged += patchManager.UpdateDepth;
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");

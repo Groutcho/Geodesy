@@ -16,16 +16,20 @@ namespace Geodesy.Controllers
 		public const float DurationToTriggerCleanup = 5;
 
 		private Globe globe;
-		private Material material;
+		private Material texture;
+		private Material pseudoColor;
+		private Material terrain;
 
 		List<List<Patch>> patches;
 		GameObject patchRoot;
 		RenderingMode mode;
 
-		public PatchManager (Globe globe, Material material)
+		public PatchManager (Globe globe)
 		{
 			this.globe = globe;
-			this.material = material;
+			this.texture = (Material)Resources.Load ("Patch");
+			this.pseudoColor = (Material)Resources.Load ("Solid");
+			this.terrain = (Material)Resources.Load ("Terrain");
 			this.globe.Tree.Changed += Update;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
@@ -168,7 +172,7 @@ namespace Geodesy.Controllers
 			}
 
 			int width = GetWidth (depth);
-			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, material);
+			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, texture, pseudoColor, terrain);
 			patch.Mode = mode;
 			patches [patch.Depth].Add (patch);
 		}
@@ -245,6 +249,10 @@ namespace Geodesy.Controllers
 						return new CommandResult (mode);
 					case "depth":
 						mode = RenderingMode.Depth;
+						UpdatePatchModes (mode);
+						return new CommandResult (mode);
+					case "terrain":
+						mode = RenderingMode.Terrain;
 						UpdatePatchModes (mode);
 						return new CommandResult (mode);
 					default:

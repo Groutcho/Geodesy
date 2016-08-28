@@ -11,7 +11,6 @@ namespace Geodesy.Controllers
 	{
 		public Camera cameraNode;
 		private Viewpoint viewpoint;
-		public Material DefaultMaterial;
 		public Material LineMaterial;
 
 		StringBuilder logger;
@@ -50,7 +49,6 @@ namespace Geodesy.Controllers
 			globe = GameObject.Find ("Globe").AddComponent<Globe> ();
 			globe.Initialize (
 				datum: datum,
-				material: DefaultMaterial, 
 				reductionFactor: 0.001f, 
 				viewpoint: viewpoint);
 		}

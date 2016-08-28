@@ -8,7 +8,8 @@ namespace Geodesy.Views
 	public enum RenderingMode
 	{
 		Texture,
-		Depth
+		Depth,
+		Terrain
 	}
 
 	/// <summary>
@@ -54,6 +55,8 @@ namespace Geodesy.Views
 
 		private Material pseudocolorMaterial;
 
+		private Material terrainMaterial;
+
 		private MeshRenderer renderer;
 
 		private bool visible;
@@ -74,9 +77,10 @@ namespace Geodesy.Views
 
 		private GameObject gameObject;
 
-		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material)
+		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material, Material pseudoColor, Material terrain)
 		{
-			CreateMesh ();
+			pseudocolorMaterial = pseudoColor;
+			terrainMaterial = terrain;
 
 			pseudocolorMaterial = (Material)Resources.Load ("Solid");
 
@@ -120,6 +124,9 @@ namespace Geodesy.Views
 			{
 				case RenderingMode.Texture:
 					renderer.material = textureMaterial;
+					break;
+				case RenderingMode.Terrain:
+					renderer.material = terrainMaterial;
 					break;
 				case RenderingMode.Depth:
 					renderer.material = pseudocolorMaterial;
