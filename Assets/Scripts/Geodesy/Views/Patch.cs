@@ -100,7 +100,7 @@ namespace Geodesy.Views
 				lon = i * width - 180;
 				for (int x = 0; x < subdivs; x++)
 				{
-					float alt = 0;
+					float alt = TerrainManager.Instance.GetElevation (lat, lon);
 					vertices [x + y * subdivs] = globe.Project (lat, lon, alt);
 					lon += sarcW;
 				}
