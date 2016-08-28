@@ -117,12 +117,14 @@ namespace Geodesy.Controllers
 			float y = 0;
 			float z = 0;
 
-			float red = (float)(datum.SemiminorAxis * reductionFactor);
-			float hRadius = (float)(Mathf.Cos (lat) * red);
+			float redY = (float)(datum.SemiminorAxis * reductionFactor);
+			float redX = (float)(datum.SemimajorAxis * reductionFactor);
+			float hRadius = (float)(Mathf.Cos (lat) * redY);
+			float wRadius = (float)(Mathf.Cos (lat) * redX);
 
-			x = Mathf.Cos (lon) * hRadius;
-			y = Mathf.Sin (lat) * red;
-			z = Mathf.Sin (lon) * hRadius;
+			x = Mathf.Cos (lon) * wRadius;
+			y = Mathf.Sin (lat) * redY;
+			z = Mathf.Sin (lon) * wRadius;
 			return new Vector3 (x, y, z);
 		}
 
