@@ -62,6 +62,11 @@ namespace Geodesy.Controllers
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");
 			atmosphereVisible = true;
+			float atmosphereHeight = 100;
+			atmosphere.transform.localScale = new Vector3 (
+				(float)(datum.SemimajorAxis * reductionFactor + atmosphereHeight),
+				(float)(datum.SemiminorAxis * reductionFactor + atmosphereHeight),
+				(float)(datum.SemimajorAxis * reductionFactor + atmosphereHeight));
 
 			// Create a spherical approximation of the spheroid
 			// for purposes that don't need exact calculations.
