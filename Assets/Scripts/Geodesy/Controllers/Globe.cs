@@ -12,8 +12,6 @@ namespace Geodesy.Controllers
 {
 	public class Globe : MonoBehaviour
 	{
-		private const int sampleResolution_deg = 1;
-
 		QuadTree tree;
 		PatchManager patchManager;
 		Datum datum;
@@ -161,6 +159,7 @@ namespace Geodesy.Controllers
 
 		void Update ()
 		{
+			// Hide atmosphere if we get close to the globe to avoid the blue veil effect
 			AtmosphereVisible = ViewpointController.Instance.DistanceFromView (Vector3.zero) > 12000;
 		}
 
