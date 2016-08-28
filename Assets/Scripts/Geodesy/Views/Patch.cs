@@ -22,7 +22,11 @@ namespace Geodesy.Views
 		/// If a patch is reduced in size, then its resolution will increase.
 		/// </summary>
 		public const int Subdivisions = 8;
+		public const int SharpSubdivisions = 64;
 		public const int TextureSize = 256;
+
+		// don't sample terrain data before this depth
+		private const int SampleTerrainDepth = 8;
 
 		public Mesh Mesh { get; private set; }
 
@@ -82,7 +86,8 @@ namespace Geodesy.Views
 			pseudocolorMaterial = pseudoColor;
 			terrainMaterial = terrain;
 
-			pseudocolorMaterial = (Material)Resources.Load ("Solid");
+			int subdivisions = depth < SampleTerrainDepth ? Subdivisions : SharpSubdivisions;
+			CreateMesh (subdivisions);
 
 			this.i = i;
 			this.j = j;
@@ -95,16 +100,20 @@ namespace Geodesy.Views
 			float width = 360 / subs;
 			float lat = 180 - (j * height) - 90 - height;
 			float lon;
-			float sarcH = height / Subdivisions;
-			float sarcW = width / Subdivisions;
-			int subdivs = Subdivisions + 1;
+			float sarcH = height / subdivisions;
+			float sarcW = width / subdivisions;
+			int subdivs = subdivisions + 1;
 
 			for (int y = 0; y < subdivs; y++)
 			{
 				lon = i * width - 180;
 				for (int x = 0; x < subdivs; x++)
 				{
-					float alt = TerrainManager.Instance.GetElevation (lat, lon);
+					float alt = 0;
+					if (depth >= SampleTerrainDepth)
+					{
+						alt = TerrainManager.Instance.GetElevation (lat, lon);
+					}
 					vertices [x + y * subdivs] = globe.Project (lat, lon, alt);
 					lon += sarcW;
 				}
@@ -159,33 +168,33 @@ namespace Geodesy.Views
 		/// Creates the mesh on the interval [0, 1].
 		/// </summary>
 		/// <returns>The mesh.</returns>
-		private void CreateMesh ()
+		private void CreateMesh (int subdivs)
 		{
 			Mesh = new Mesh ();
-			Vector3[] vertices = new Vector3[(Subdivisions + 1) * (Subdivisions + 1)];
+			Vector3[] vertices = new Vector3[(subdivs + 1) * (subdivs + 1)];
 			Vector2[] uv = new Vector2[vertices.Length];
-			var triangles = new List<int> (Subdivisions * Subdivisions * 2 * 3);
-			float stride = 1 / (float)Subdivisions;
+			var triangles = new List<int> (subdivs * subdivs * 2 * 3);
+			float stride = 1 / (float)subdivs;
 
 			int v = 0;
-			for (int j = 0; j <= Subdivisions; j++)
+			for (int j = 0; j <= subdivs; j++)
 			{
-				for (int i = 0; i <= Subdivisions; i++)
+				for (int i = 0; i <= subdivs; i++)
 				{
 					uv [v] = new Vector2 (i * stride, j * stride);
 					v++;
 				}
 			}
 
-			for (int j = 0; j < Subdivisions; j++)
+			for (int j = 0; j < subdivs; j++)
 			{
-				for (int i = 0; i < Subdivisions; i++)
+				for (int i = 0; i < subdivs; i++)
 				{
-					int k = i + j * (Subdivisions + 1);
+					int k = i + j * (subdivs + 1);
 
 					int A = k;
 					int B = A + 1;
-					int C = B + Subdivisions;
+					int C = B + subdivs;
 					int E = C + 1;
 
 					triangles.Add (C);
