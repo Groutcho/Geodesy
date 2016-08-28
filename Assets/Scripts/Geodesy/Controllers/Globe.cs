@@ -241,8 +241,7 @@ namespace Geodesy.Controllers
 
 		public CommandResult ExecuteAtmosphereCommand (Command command)
 		{
-			if (command.TokenCount != 1 ||
-			    command.Tokens [0].TokenType != CommandToken.BOOL)
+			if (!Console.Matches (command, CommandToken.BOOL))
 				throw new FormatException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
 
 			AtmosphereVisible = command.Tokens [0].Bool;
@@ -251,22 +250,15 @@ namespace Geodesy.Controllers
 
 		public CommandResult ExecutePointCommand (Command command)
 		{
-			if (command.TokenCount != 2)
-			{
+			if (!Console.Matches (command, CommandToken.FLOAT, CommandToken.FLOAT))
 				throw new FormatException ("Expected geographic coordinates");
-			}
 
-			try
-			{
-				var lat = command.Tokens [0].Float;
-				var lon = command.Tokens [1].Float;
-				LatLon latlon = new LatLon (lat, lon, 0);
-				DebugCreatePoint (latlon);
-				return new CommandResult (latlon);
-			} catch (Exception)
-			{
-				throw new FormatException ("Expected geographic coordinates");
-			}
+			var lat = command.Tokens [0].Float;
+			var lon = command.Tokens [1].Float;
+
+			LatLon latlon = new LatLon (lat, lon, 0);
+			DebugCreatePoint (latlon);
+			return new CommandResult (latlon);
 		}
 
 		private void DebugCreatePoint (LatLon latlon)

@@ -69,6 +69,27 @@ namespace Geodesy.Views.Debugging
 			}
 		}
 
+		/// <summary>
+		/// Check the given command against the specified signature and return true if they match.
+		/// </summary>
+		/// <param name="command">The command to check.</param>
+		/// <param name="types">The signature.</param>
+		public static bool Matches (Command command, params int[] types)
+		{
+			if (command.TokenCount != types.Length)
+			{
+				return false;
+			}
+
+			for (int i = 0; i < command.Tokens.Count; i++)
+			{
+				if (command.Tokens [i].TokenType != types [i])
+					return false;
+			}
+
+			return true;
+		}
+
 		public void Register (string keyword, CommandHandler handler)
 		{
 			handlers.Add (keyword, handler);
