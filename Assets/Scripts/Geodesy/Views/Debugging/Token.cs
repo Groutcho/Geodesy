@@ -4,12 +4,17 @@ using System.Globalization;
 
 namespace Geodesy.Views.Debugging
 {
-	public class CommandToken
+	public class Token
 	{
-		public const int FLOAT = 1;
-		public const int INT = 2;
-		public const int ID = 3;
-		public const int BOOL = 4;
+		public const int T_FLOAT = 1;
+		public const int T_INT = 2;
+		public const int T_ID = 3;
+		public const int T_BOOL = 4;
+
+		public static Token BOOL = new Token (T_BOOL);
+		public static Token FLOAT = new Token (T_FLOAT);
+		public static Token ID = new Token (T_ID);
+		public static Token INT = new Token (T_INT);
 
 		public static Regex INT_Regex = new Regex (@"\d+");
 		public static Regex FLOAT_Regex = new Regex (@"\d+\.\d+");
@@ -26,29 +31,33 @@ namespace Geodesy.Views.Debugging
 
 		public string Id { get { return (string)Value; } }
 
-		public int TokenType { get; set; }
+		public int Type { get; set; }
 
-		public CommandToken (int type, object value)
+		public Token (int type, object value)
 		{
-			this.TokenType = type;
+			this.Type = type;
 			this.Value = value;
+		}
+
+		public Token (int type) : this (type, null)
+		{
 		}
 
 		public override string ToString ()
 		{
 			string typeStr = "";
-			switch (TokenType)
+			switch (Type)
 			{
-				case INT:
+				case T_INT:
 					typeStr = "int";
 					break;
-				case FLOAT:
+				case T_FLOAT:
 					typeStr = "float";
 					break;
-				case BOOL:
+				case T_BOOL:
 					typeStr = "truth";
 					break;
-				case ID:
+				case T_ID:
 					typeStr = "ident";
 					break;
 				default:
@@ -58,19 +67,19 @@ namespace Geodesy.Views.Debugging
 			return string.Format ("({0}, <{1}>)", typeStr, Value);
 		}
 
-		public static CommandToken Tokenize (string word)
+		public static Token Tokenize (string word)
 		{
 			if (FLOAT_Regex.IsMatch (word))
-				return new CommandToken (FLOAT, float.Parse (word, CultureInfo.InvariantCulture));
+				return new Token (T_FLOAT, float.Parse (word, CultureInfo.InvariantCulture));
 
 			if (INT_Regex.IsMatch (word))
-				return new CommandToken (INT, int.Parse (word));
+				return new Token (T_INT, int.Parse (word));
 
 			if (TRUTH_Regex.IsMatch (word))
-				return new CommandToken (BOOL, word == "on" || word == "true");
+				return new Token (T_BOOL, word == "on" || word == "true");
 
 			if (ID_Regex.IsMatch (word))
-				return new CommandToken (ID, word);
+				return new Token (T_ID, word);
 
 			throw new NotImplementedException ("Invalid token: " + word);
 		}

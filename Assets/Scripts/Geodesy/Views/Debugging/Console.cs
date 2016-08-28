@@ -74,17 +74,26 @@ namespace Geodesy.Views.Debugging
 		/// </summary>
 		/// <param name="command">The command to check.</param>
 		/// <param name="types">The signature.</param>
-		public static bool Matches (Command command, params int[] types)
+		public static bool Matches (Command command, params Token[] tokens)
 		{
-			if (command.TokenCount != types.Length)
+			if (command.TokenCount != tokens.Length)
 			{
 				return false;
 			}
 
 			for (int i = 0; i < command.Tokens.Count; i++)
 			{
-				if (command.Tokens [i].TokenType != types [i])
+				if (command.Tokens [i].Type != tokens [i].Type)
 					return false;
+
+				// a null value matches any value
+				if (tokens [i].Value != null)
+				{
+					if (!tokens [i].Value.Equals (command.Tokens [i].Value))
+					{
+						return false;
+					}
+				}
 			}
 
 			return true;
@@ -161,12 +170,12 @@ namespace Geodesy.Views.Debugging
 			content.Add (string.Format ("{0}<i>{1}</i>", Prompt, line));
 		}
 
-		private IList<CommandToken> Tokenize (string[] words)
+		private IList<Token> Tokenize (string[] words)
 		{
-			IList<CommandToken> result = new List<CommandToken> (words.Length - 1);
+			IList<Token> result = new List<Token> (words.Length - 1);
 			for (int i = 1; i < words.Length; i++)
 			{
-				result.Add (CommandToken.Tokenize (words [i]));
+				result.Add (Token.Tokenize (words [i]));
 			}
 
 			return result;
@@ -191,7 +200,7 @@ namespace Geodesy.Views.Debugging
 			{
 				try
 				{
-					IList<CommandToken> tokens = Tokenize (args);
+					IList<Token> tokens = Tokenize (args);
 					Command command = new Command {
 						Keyword = keyword,
 						Tokens = tokens

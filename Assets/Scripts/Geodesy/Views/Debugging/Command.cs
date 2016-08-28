@@ -9,7 +9,7 @@ namespace Geodesy.Views.Debugging
 
 		public int TokenCount { get { return Tokens.Count; } }
 
-		public IList<CommandToken> Tokens { get; set; }
+		public IList<Token> Tokens { get; set; }
 	}
 }
 
