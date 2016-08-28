@@ -229,33 +229,26 @@ namespace Geodesy.Controllers
 
 		private CommandResult HandlePatchCommand (Command command)
 		{
-			if ((string)command.Tokens [0].Value == "mode")
+			if (Console.Matches (command, new Token (Token.T_ID, "mode")))
 			{
-				if (command.TokenCount == 1)
+				return new CommandResult (mode);
+			}
+
+			if (command.TokenCount == 2)
+			{
+				string value = command.Tokens [1].Id;
+				switch (value.ToLowerInvariant ())
 				{
-					return new CommandResult (mode);
-				} else if (command.TokenCount == 2)
-				{
-					if (command.Tokens [1].TokenType == CommandToken.ID)
-					{
-						string value = command.Tokens [1].Id;
-						switch (value.ToLowerInvariant ())
-						{
-							case "texture":
-								mode = RenderingMode.Texture;
-								UpdatePatchModes (mode);
-								return new CommandResult (mode);
-							case "depth":
-								mode = RenderingMode.Depth;
-								UpdatePatchModes (mode);
-								return new CommandResult (mode);
-							default:
-								throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
-						}
-					} else
-					{
+					case "texture":
+						mode = RenderingMode.Texture;
+						UpdatePatchModes (mode);
+						return new CommandResult (mode);
+					case "depth":
+						mode = RenderingMode.Depth;
+						UpdatePatchModes (mode);
+						return new CommandResult (mode);
+					default:
 						throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
-					}
 				}
 			}
 

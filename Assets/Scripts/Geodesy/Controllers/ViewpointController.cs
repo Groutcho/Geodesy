@@ -113,21 +113,16 @@ namespace Geodesy.Controllers
 		private CommandResult ExecuteFrustumCommands (Command command)
 		{
 			if (command.TokenCount == 0)
-			{
 				return new CommandResult (ShowFrustum);
-			} else if (command.TokenCount == 1)
-			{
-				if (command.Tokens [0].TokenType == CommandToken.BOOL)
-				{
-					ShowFrustum = command.Tokens [0].Bool;
-					return new CommandResult (ShowFrustum);
-				} else
-				{
-					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
-				}
-			}
 
-			throw new NotImplementedException ();
+			if (Console.Matches (command, Token.BOOL))
+			{
+				ShowFrustum = command.Tokens [0].Bool;
+				return new CommandResult (ShowFrustum);
+			} else
+			{
+				throw new ArgumentException ("usage: 'frustum [BOOL]'");
+			}
 		}
 
 		#endregion

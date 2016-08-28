@@ -257,7 +257,7 @@ namespace Geodesy.Controllers
 
 		public CommandResult ExecuteAtmosphereCommand (Command command)
 		{
-			if (!Console.Matches (command, CommandToken.BOOL))
+			if (!Console.Matches (command, Token.BOOL))
 				throw new FormatException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
 
 			AtmosphereEnabled = command.Tokens [0].Bool;
@@ -266,7 +266,7 @@ namespace Geodesy.Controllers
 
 		public CommandResult ExecutePointCommand (Command command)
 		{
-			if (!Console.Matches (command, CommandToken.FLOAT, CommandToken.FLOAT))
+			if (!Console.Matches (command, Token.FLOAT, Token.FLOAT))
 				throw new FormatException ("Expected geographic coordinates");
 
 			var lat = command.Tokens [0].Float;

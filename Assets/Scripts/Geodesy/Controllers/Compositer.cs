@@ -305,38 +305,29 @@ namespace Geodesy.Controllers
 		{
 			if (command.TokenCount == 0)
 				return new CommandResult (BackgroundVisible);
-			else if (command.TokenCount == 1)
+
+			if (Console.Matches (command, Token.BOOL))
 			{
-				if (command.Tokens [0].TokenType == CommandToken.BOOL)
-				{
-					BackgroundVisible = command.Tokens [0].Bool;
-					Render (forceRender: true);
-				} else
-				{
-					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
-				}
+				BackgroundVisible = command.Tokens [0].Bool;
+				Render (forceRender: true);
 				return new CommandResult (BackgroundVisible);
 			} else
 			{
-				throw new ArgumentException (Console.ExpectedGot ("0-1 argument", command.TokenCount));
+				throw new ArgumentException ("usage: 'bg [BOOL]'");
 			}
 		}
 
 		private CommandResult ExecuteLayerCommands (Command command)
 		{
-			string name = command.Tokens [0].Id;
-
 			Layer created;
 
-			if (name == "bm")
+			if (Console.Matches (command, new Token (Token.T_ID, "bm")))
 			{
 				Uri uri = new Uri (@"\\SGA-NAS\sga\media\GIS\store\BlueMarble\tileset.kml");
 				created = new RasterLayer (uri, "NASA BlueMarble", 2);
-
 			} else
 			{
-				float depth = command.Tokens [1].Float;
-				created = new Layer (name, depth);
+				throw new FormatException ("usage: 'addlayer bm' to show the BlueMarble tileset");
 			}
 
 			AddLayer (created);
@@ -347,19 +338,14 @@ namespace Geodesy.Controllers
 		{
 			if (command.TokenCount == 0)
 				return new CommandResult (grid.Visible);
-			else if (command.TokenCount == 1)
+
+			if (Console.Matches (command, Token.BOOL))
 			{
-				if (command.Tokens [0].TokenType == CommandToken.BOOL)
-				{
-					grid.Visible = command.Tokens [0].Bool;
-				} else
-				{
-					throw new ArgumentException (Console.ExpectedGot ("bool", command.Tokens [0].Value));
-				}
+				grid.Visible = command.Tokens [0].Bool;
 				return new CommandResult (grid.Visible);
 			} else
 			{
-				throw new ArgumentException (Console.ExpectedGot ("0-1 argument", command.TokenCount));
+				throw new ArgumentException ("usage: 'grid [BOOL]'");
 			}
 		}
 
