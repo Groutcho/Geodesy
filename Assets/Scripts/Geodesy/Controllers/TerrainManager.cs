@@ -4,6 +4,7 @@ using System.IO;
 using Geodesy.Models;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Geodesy.Controllers
 {
@@ -11,28 +12,34 @@ namespace Geodesy.Controllers
 	{
 		private static TerrainManager instance;
 
-		IList<SrtmTile> tiles = new List<SrtmTile> (140);
+		SrtmTile[,] tileGrid = new SrtmTile[360, 180];
 
 		public static TerrainManager Instance
 		{
 			get
 			{
-				if (instance == null)
-				{
-					instance = new TerrainManager ();
-				}
-
 				return instance;
 			}
 		}
 
 		public TerrainManager ()
 		{
-			DirectoryInfo di = new DirectoryInfo (@"C:\SRTM\srtm");
-			foreach (var hgt in di.GetFiles())
+			instance = this;
+			CollectData (@"C:\SRTM\srtm");
+		}
+
+		private void CollectData (string directory)
+		{
+			new Thread (() =>
 			{
-				tiles.Add (Load (new Uri (hgt.FullName)));
-			}
+				DirectoryInfo di = new DirectoryInfo (directory);
+				FileInfo[] files = di.GetFiles ();
+				for (int i = 0; i < files.Length; i++)
+				{
+					SrtmTile tile = Load (new Uri (files [i].FullName));
+					tileGrid [tile.Easting, tile.Northing] = tile;
+				}
+			}).Start ();
 		}
 
 		static readonly Regex hgtRegex = new Regex (@"(N|S)(\d+)(E|W)(\d+)");
@@ -55,18 +62,24 @@ namespace Geodesy.Controllers
 		}
 
 		/// <summary>
-		/// Return the elevation of the point at specified coordinates.
+		/// Return the elevation in metres of the point at specified coordinates.
 		/// If no elevation data is available, return zero.
 		/// </summary>
 		public float GetElevation (float lat, float lon)
 		{
-			foreach (var item in tiles)
+			int easting;
+			if (lon < 0)
 			{
-				if (item.Contains (lat, lon))
-				{
-					return item.Sample (lat, lon);
-				}
+				easting = (int)lon + 179;
+			} else
+			{
+				easting = (int)lon + 180;
 			}
+			int northing = (int)lat + 90;
+
+			SrtmTile tile = tileGrid [easting, northing];
+			if (tile != null)
+				return tile.Sample (lat, lon);
 
 			return 0f;
 		}

@@ -19,6 +19,16 @@ namespace Geodesy.Models
 		private float latitude;
 		private float longitude;
 
+		public int Easting
+		{
+			get { return (int)(longitude) + 180; }
+		}
+
+		public int Northing
+		{
+			get { return (int)(latitude) + 90; }
+		}
+
 		public SrtmTile (float lat, float lon, byte[] data)
 		{
 			this.latitude = lat;
@@ -48,8 +58,8 @@ namespace Geodesy.Models
 		/// <param name="point">Point.</param>
 		public int Sample (float pLat, float pLon)
 		{
-			double lon = pLon - longitude;
-			double lat = pLat - latitude;
+			float lon = pLon - longitude;
+			float lat = pLat - latitude;
 
 			int size = (int)Format;
 
