@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
+using Geodesy.Controllers;
 
 namespace Geodesy.Models.QuadTree
 {
@@ -17,6 +19,8 @@ namespace Geodesy.Models.QuadTree
 		private bool isLeaf = true;
 
 		public bool IsLeaf { get { return isLeaf; } }
+
+		private Vector3[] corners = new Vector3[4];
 
 		private bool visible;
 
@@ -40,12 +44,49 @@ namespace Geodesy.Models.QuadTree
 
 		public Node Parent { get; set; }
 
+		public float GetScreenArea ()
+		{
+			Vector2[] v = new Vector2[4] {
+				ViewpointController.Instance.WorldToGUIPoint (corners [0]),
+				ViewpointController.Instance.WorldToGUIPoint (corners [1]),
+				ViewpointController.Instance.WorldToGUIPoint (corners [2]),
+				ViewpointController.Instance.WorldToGUIPoint (corners [3])
+			};
+			
+			float minX = float.MaxValue;
+			float maxX = float.MinValue;
+			float minY = float.MaxValue;
+			float maxY = float.MinValue;
+
+			for (int i = 0; i < 4; i++)
+			{
+				minX = v [i].x < minX ? v [i].x : minX;
+				maxX = v [i].x > maxX ? v [i].x : maxX;
+
+				minY = v [i].y < minY ? v [i].y : minY;
+				maxY = v [i].y > maxY ? v [i].y : maxY;
+			}
+
+			return Mathf.Abs ((maxX - minX) * (maxY - minY));
+		}
+
 		public Node (QuadTree tree, Node parent, Coordinate coordinate)
 		{
 			this.tree = tree;
 			this.coordinate = coordinate;
 			Visible = true;
 			this.Parent = parent;
+
+			int subdivs = (int)Math.Pow (2, coordinate.Depth);
+			float w = 360f / subdivs;
+			float h = 180f / subdivs;
+			float lat = (subdivs - coordinate.J) * h - 90;
+			float lon = coordinate.I * w - 180;
+
+			corners [0] = Globe.Instance.Project (lat, lon);
+			corners [1] = Globe.Instance.Project (lat, lon + w);
+			corners [2] = Globe.Instance.Project (lat + h, lon);
+			corners [3] = Globe.Instance.Project (lat + h, lon + w);
 		}
 
 		public void Reduce ()
@@ -76,6 +117,7 @@ namespace Geodesy.Models.QuadTree
 				children [2] = new Node (tree, this, new Coordinate (i, j + 1, childrenDepth));
 				children [3] = new Node (tree, this, new Coordinate (i + 1, j + 1, childrenDepth));
 				isLeaf = false;
+				Visible = false;
 			} else
 			{
 				children [0].Divide ();

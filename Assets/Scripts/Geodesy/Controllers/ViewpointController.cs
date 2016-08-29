@@ -108,6 +108,13 @@ namespace Geodesy.Controllers
 			return viewpoint.DistanceFromView (position);
 		}
 
+		public Vector2 WorldToGUIPoint (Vector3 world)
+		{
+			Vector2 screenPoint = viewpoint.Camera.WorldToScreenPoint (world);
+			screenPoint.y = (float)Screen.height - screenPoint.y;
+			return screenPoint;
+		}
+
 		#region Console commands
 
 		private CommandResult ExecuteFrustumCommands (Command command)

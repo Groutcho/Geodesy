@@ -115,34 +115,31 @@ namespace Geodesy.Models.QuadTree
 		/// </summary>
 		private void ComputeNodes ()
 		{
+			float w = Screen.width;
+			float h = Screen.height;
+			float screenArea = w * h;
+			float upperThreshold = 0.1f;
+			float lowerThreshold = 0.07f;
+
 			bool needsRefresh = false;
-			foreach (Node node in GetVisibleNodes ())
+			foreach (Node node in Traverse(onlyLeaves: true))
 			{
-				Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-				Rect screenRect = p.GetScreenRect ();
-				if (screenRect.width > Screen.width / 2f)
+				if (!node.Visible)
+					continue;
+
+				float area = node.GetScreenArea ();
+				if (area / screenArea > upperThreshold)
 				{
 					needsRefresh = true;
 					node.Divide ();
-					node.Visible = false;
 				} else
 				{
-					int count = 0;
+					area = node.Parent.GetScreenArea ();
 
-					foreach (Node child in node.Parent.Children)
+					if (area / screenArea < lowerThreshold)
 					{
-						Patch childPatch = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-						Rect childRect = p.GetScreenRect ();
-						if (childRect.width < Screen.width / 3f)
-						{
-							count++;
-						}
-					}
-
-					if (count == 4)
-					{
-						node.Parent.Reduce ();
 						needsRefresh = true;
+						node.Parent.Reduce ();
 					}
 				}
 			}
