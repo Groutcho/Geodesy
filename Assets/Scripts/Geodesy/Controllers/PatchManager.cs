@@ -23,8 +23,9 @@ namespace Geodesy.Controllers
 		List<List<Patch>> patches;
 		GameObject patchRoot;
 		RenderingMode mode;
+		public static Gradient TerrainGradient;
 
-		public PatchManager (Globe globe)
+		public PatchManager (Globe globe, Gradient terrainGradient)
 		{
 			this.globe = globe;
 			this.texture = (Material)Resources.Load ("Patch");
@@ -34,6 +35,7 @@ namespace Geodesy.Controllers
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
 			patches = new List<List<Patch>> (QuadTree.MaxDepth);
+			TerrainGradient = terrainGradient;
 
 			for (int i = 0; i < QuadTree.MaxDepth; i++)
 			{

@@ -19,8 +19,9 @@ namespace Geodesy.Controllers
 		Viewpoint viewpoint;
 		SphereCollider approximateCollider;
 		List<Vector3> debugPoints = new List<Vector3> (10);
-		bool atmosphereVisible;
 		GameObject atmosphere;
+
+		public static Globe Instance { get; private set; }
 
 		private bool atmosphereEnabled = true;
 
@@ -65,18 +66,18 @@ namespace Geodesy.Controllers
 
 		public PatchManager PatchManager { get { return patchManager; } }
 
-		public void Initialize (Datum datum, float reductionFactor, Viewpoint viewpoint)
+		public void Initialize (Datum datum, float reductionFactor, Viewpoint viewpoint, Gradient terrainGradient)
 		{
+			Instance = this;
 			this.reductionFactor = reductionFactor;
 			this.viewpoint = viewpoint;
 			this.datum = datum;
 
 			this.tree = new QuadTree (this);
-			patchManager = new PatchManager (this);
+			patchManager = new PatchManager (this, terrainGradient);
 			this.tree.DepthChanged += patchManager.UpdateDepth;
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");
-			atmosphereVisible = true;
 			float atmosphereHeight = 100;
 			atmosphere.transform.localScale = new Vector3 (
 				(float)(datum.SemimajorAxis * reductionFactor + atmosphereHeight),

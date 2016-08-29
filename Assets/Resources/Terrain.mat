@@ -7,10 +7,10 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Terrain
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 208, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -81,6 +81,10 @@ Material:
     m_Floats:
       data:
         first:
+          name: _Scale
+        second: 1
+      data:
+        first:
           name: _SrcBlend
         second: 1
       data:
@@ -102,7 +106,7 @@ Material:
       data:
         first:
           name: _Glossiness
-        second: 0.69
+        second: 0.68
       data:
         first:
           name: _BumpScale
@@ -126,7 +130,7 @@ Material:
       data:
         first:
           name: _Metallic
-        second: 0.15
+        second: 0.47
     m_Colors:
       data:
         first:
@@ -136,3 +140,11 @@ Material:
         first:
           name: _Color
         second: {r: 0.41214317, g: 0.57113117, b: 0.72794116, a: 1}
+      data:
+        first:
+          name: _Center
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _EmisColor
+        second: {r: 0, g: 0, b: 0, a: 1}

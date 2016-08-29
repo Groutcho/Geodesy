@@ -26,7 +26,7 @@ namespace Geodesy.Views
 		public const int TextureSize = 256;
 
 		// don't sample terrain data before this depth
-		private const int SampleTerrainDepth = 8;
+		private const int SampleTerrainDepth = 7;
 
 		public Mesh Mesh { get; private set; }
 
@@ -103,6 +103,7 @@ namespace Geodesy.Views
 			float sarcH = height / subdivisions;
 			float sarcW = width / subdivisions;
 			int subdivs = subdivisions + 1;
+			Color[] colors = new Color[vertices.Length];
 
 			for (int y = 0; y < subdivs; y++)
 			{
@@ -114,13 +115,17 @@ namespace Geodesy.Views
 					{
 						alt = TerrainManager.Instance.GetElevation (lat, lon);
 					}
-					vertices [x + y * subdivs] = globe.Project (lat, lon, alt);
+
+					int index = x + y * subdivs;
+					vertices [index] = globe.Project (lat, lon, alt);
+					colors [index] = PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, 4000) / 4000);
 					lon += sarcW;
 				}
 				lat += sarcH;
 			}
 
 			Mesh.vertices = vertices;
+			Mesh.colors = colors;
 			Mesh.RecalculateBounds ();
 			Mesh.RecalculateNormals ();
 

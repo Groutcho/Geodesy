@@ -12,6 +12,7 @@ namespace Geodesy.Controllers
 		public Camera cameraNode;
 		private Viewpoint viewpoint;
 		public Material LineMaterial;
+		public Gradient Gradient;
 
 		StringBuilder logger;
 		Datum datum;
@@ -33,9 +34,15 @@ namespace Geodesy.Controllers
 			CreateDatum ();
 			CreateGlobe ();
 			CreateCompositer ();
+			CreateTerrainManager ();
 			CreateUiController ();
 
 			globe.Tree.Update ();
+		}
+
+		void CreateTerrainManager ()
+		{
+			new TerrainManager ();
 		}
 
 		void CreateDatum ()
@@ -50,7 +57,8 @@ namespace Geodesy.Controllers
 			globe.Initialize (
 				datum: datum,
 				reductionFactor: 0.001f, 
-				viewpoint: viewpoint);
+				viewpoint: viewpoint,
+				terrainGradient: Gradient);
 		}
 
 		void CreateView ()
