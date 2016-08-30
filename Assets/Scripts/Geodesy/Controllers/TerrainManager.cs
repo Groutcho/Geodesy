@@ -77,20 +77,18 @@ namespace Geodesy.Controllers
 		/// </summary>
 		public float GetElevation (float lat, float lon)
 		{
-			int easting;
-			if (lon < 0)
-			{
-				easting = (int)lon + 179;
-			} else
-			{
-				easting = (int)lon + 180;
-			}
-			int northing = (int)lat + 90;
+			float easting = lon + 180;
+			float northing = lat + 90;
 
-			SrtmTile tile = tileGrid [easting, northing];
+			SrtmTile tile = tileGrid [(int)easting, (int)northing];
 			if (tile != null)
-				return tile.Sample (lat, lon);
+			{
+				double i = easting - Math.Truncate (easting);
+				double j = northing - Math.Truncate (northing);
+				return tile.Sample ((float)j, (float)i);
+			}
 
+			// No data available
 			return 0f;
 		}
 	}

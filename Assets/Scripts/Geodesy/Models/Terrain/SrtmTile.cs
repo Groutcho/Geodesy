@@ -10,7 +10,7 @@ namespace Geodesy.Models
 
 	public class SrtmTile
 	{
-		private const int NoData = short.MinValue;
+		private const int Void = short.MinValue;
 
 		private byte[] data;
 
@@ -56,32 +56,26 @@ namespace Geodesy.Models
 		/// </summary>
 		/// <returns>The elevation.</returns>
 		/// <param name="point">Point.</param>
-		public int Sample (float pLat, float pLon)
+		public int Sample (float lat, float lon)
 		{
-			float lon = pLon - longitude;
-			float lat = pLat - latitude;
-
-			int size = (int)Format;
+			int size = (int)Format - 1;
 
 			int y = (int)(size - (size * lat));
 			int x = (int)(size * lon);
 
-			int index = sizeof(short) * ((y - 1) * size + (x - 1));
+			int index = sizeof(short) * (y * (size + 1) + x);
 
-			if (data.Length <= index || index < 0)
-				return 0;
+			int msb = (int)data [index];
+			int lsb = (int)data [index + 1];
 
-			short msb = (short)data [index];
-			short lsb = (short)data [index + 1];
-
+			// SRTM data is big endian
 			short result = (short)(msb << 8 | lsb);
 
-			if (result == NoData)
+			if (result == Void)
 			{
 				return 0;
 			}
 
-			// SRTM data is big endian
 			return result;
 		}
 	}
