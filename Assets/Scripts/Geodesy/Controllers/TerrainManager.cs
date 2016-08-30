@@ -75,7 +75,7 @@ namespace Geodesy.Controllers
 		/// Return the elevation in metres of the point at specified coordinates.
 		/// If no elevation data is available, return zero.
 		/// </summary>
-		public float GetElevation (float lat, float lon)
+		public float GetElevation (float lat, float lon, int depth)
 		{
 			float easting = lon + 180;
 			float northing = lat + 90;
@@ -83,9 +83,9 @@ namespace Geodesy.Controllers
 			SrtmTile tile = tileGrid [(int)easting, (int)northing];
 			if (tile != null)
 			{
-				double i = easting - Math.Truncate (easting);
-				double j = northing - Math.Truncate (northing);
-				return tile.Sample ((float)j, (float)i);
+				double i = easting - (int)easting;
+				double j = northing - (int)northing;
+				return tile.Sample ((float)j, (float)i, depth > 11 ? Filtering.Bilinear : Filtering.Point);
 			}
 
 			// No data available

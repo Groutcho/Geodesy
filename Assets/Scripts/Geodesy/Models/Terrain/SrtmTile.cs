@@ -8,13 +8,31 @@ namespace Geodesy.Models
 		SRTM1 = 3601
 	}
 
+	public enum Filtering
+	{
+		Point,
+		Bilinear
+	}
+
 	public class SrtmTile
 	{
 		private const int Void = short.MinValue;
 
 		private byte[] data;
 
-		public SrtmFormat Format { get; set; }
+		private SrtmFormat format;
+
+		public SrtmFormat Format
+		{
+			get { return format; }
+			set
+			{
+				format = value;
+				size = (int)value - 1;
+			}
+		}
+
+		private int size;
 
 		private float latitude;
 		private float longitude;
@@ -53,29 +71,54 @@ namespace Geodesy.Models
 
 		/// <summary>
 		/// Return the elevation in meters at the specified point.
+		/// Perform bilinear interpolation.
 		/// </summary>
 		/// <returns>The elevation.</returns>
 		/// <param name="point">Point.</param>
-		public int Sample (float lat, float lon)
+		public int Sample (float lat, float lon, Filtering filtering)
 		{
-			int size = (int)Format - 1;
+			float yratio = size - (size * lat);
+			float xratio = size * lon;
 
-			int y = (int)(size - (size * lat));
-			int x = (int)(size * lon);
+			int x = (int)xratio;
+			int y = (int)yratio;
 
-			int index = sizeof(short) * (y * (size + 1) + x);
+			short a = Sample (x, y);
+			if (filtering == Filtering.Point)
+			{
+				return a;
+			}
+
+			float tx = xratio - x;
+			float ty = yratio - y;
+
+			short b = Sample (x + 1, y);
+			short c = Sample (x, y + 1);
+			short d = Sample (x + 1, y + 1);
+
+			float ab = a + (b - a) * tx;
+			float cd = c + (d - c) * tx;
+
+			float r = ab + (cd - ab) * ty;
+			return (short)r;
+		}
+
+		private short Sample (int i, int j)
+		{
+			i = i >= size ? size : i;
+			j = j >= size ? size : j;
+
+			int index = sizeof(short) * (j * (size + 1) + i);
 
 			int msb = (int)data [index];
 			int lsb = (int)data [index + 1];
 
 			// SRTM data is big endian
 			short result = (short)(msb << 8 | lsb);
-
 			if (result == Void)
 			{
 				return 0;
 			}
-
 			return result;
 		}
 	}

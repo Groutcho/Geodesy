@@ -127,7 +127,7 @@ namespace Geodesy.Views
 					float alt = 0;
 					if (depth >= SampleTerrainDepth)
 					{
-						alt = TerrainManager.Instance.GetElevation (lat, lon);
+						alt = TerrainManager.Instance.GetElevation (lat, lon, depth);
 					}
 
 					int index = x + y * subdivs;
