@@ -14,7 +14,7 @@ namespace Geodesy.Models.QuadTree
 
 		private Node[] children = new Node[4];
 
-		public IEnumerable<Node> Children { get { return children; } }
+		public IList<Node> Children { get { return children; } }
 
 		private bool isLeaf = true;
 
@@ -74,7 +74,6 @@ namespace Geodesy.Models.QuadTree
 		{
 			this.tree = tree;
 			this.coordinate = coordinate;
-			Visible = true;
 			this.Parent = parent;
 
 			int subdivs = (int)Math.Pow (2, coordinate.Depth);

@@ -53,7 +53,7 @@ namespace Geodesy.Views
 			}
 		}
 
-		public DateTime BecameInvisible { get; private set; }
+		public DateTime InvisibleSince { get; private set; }
 
 		private Material textureMaterial;
 
@@ -74,7 +74,7 @@ namespace Geodesy.Views
 				visible = value;
 				if (!value)
 				{
-					BecameInvisible = DateTime.Now;
+					InvisibleSince = DateTime.Now;
 				}
 			}
 		}

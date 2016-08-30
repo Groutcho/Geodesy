@@ -6,13 +6,13 @@ using Geodesy.Views;
 
 namespace Geodesy.Models.QuadTree
 {
-	public class DepthChangedEventArgs : EventArgs
+	public class NodeBecameVisibleEventArgs : EventArgs
 	{
-		public int NewDepth { get; private set; }
+		public Node Node { get; set; }
 
-		public DepthChangedEventArgs (int newDepth)
+		public NodeBecameVisibleEventArgs (Node node)
 		{
-			this.NewDepth = newDepth;
+			this.Node = node;
 		}
 	}
 
@@ -45,8 +45,8 @@ namespace Geodesy.Models.QuadTree
 			}
 		}
 
-		public event EventHandler DepthChanged;
 		public event EventHandler Changed;
+		public event EventHandler NodeChanged;
 
 		public QuadTree (Globe globe)
 		{
@@ -67,11 +67,6 @@ namespace Geodesy.Models.QuadTree
 		{
 			root.Divide ();
 			currentDepth++;
-
-			if (DepthChanged != null)
-			{
-				DepthChanged (this, new DepthChangedEventArgs (currentDepth));
-			}
 		}
 
 		public Node Find (int i, int j, int depth)
@@ -121,7 +116,6 @@ namespace Geodesy.Models.QuadTree
 			float upperThreshold = 0.1f;
 			float lowerThreshold = 0.07f;
 
-			bool needsRefresh = false;
 			foreach (Node node in Traverse(onlyLeaves: true))
 			{
 				if (!node.Visible)
@@ -130,22 +124,33 @@ namespace Geodesy.Models.QuadTree
 				float area = node.GetScreenArea ();
 				if (area / screenArea > upperThreshold)
 				{
-					needsRefresh = true;
+					node.Visible = false;
+					RaiseChangedEvent (node);
 					node.Divide ();
+					for (int i = 0; i < 4; i++)
+					{
+						node.Children [i].Visible = true;
+						RaiseChangedEvent (node.Children [i]);
+					}
+
 				} else
 				{
 					area = node.Parent.GetScreenArea ();
 
 					if (area / screenArea < lowerThreshold)
 					{
-						needsRefresh = true;
+						for (int i = 0; i < 4; i++)
+						{
+							node.Parent.Children [i].Visible = false;
+							RaiseChangedEvent (node.Parent.Children [i]);
+						}
+
 						node.Parent.Reduce ();
 					}
 				}
 			}
 
-			if (culling && needsRefresh)
-				UpdateVisibleNodes ();
+			UpdateVisibleNodes ();
 		}
 
 		private void ShowAllNodes ()
@@ -168,7 +173,12 @@ namespace Geodesy.Models.QuadTree
 			List<Node> visibleNodes = new List<Node> (64);
 			Vector3 cameraForward = ViewpointController.Instance.transform.forward;
 			Vector3 origin = globe.transform.position;
-			bool atLeastOneNodeChanged = false;
+
+			Camera cam = ViewpointController.Instance.GetComponent<Camera> ();
+			float originalNearPlane = cam.nearClipPlane;
+			cam.nearClipPlane = 1;
+			var frustum = GeometryUtility.CalculateFrustumPlanes (cam);
+			cam.nearClipPlane = originalNearPlane;
 
 			// step 1 backface culling.
 			// Take advantage of the fact that node surfaces are convex,
@@ -205,41 +215,28 @@ namespace Geodesy.Models.QuadTree
 				var dot3 = Vector3.Dot (cameraForward, vtopRight);
 
 				// If any of those 4 vectors crosses the camera forward, then we consider
-				// this patch is point toward us.
+				// this patch is pointing toward us.
 				bool visible = (dot0 < 0 || dot1 < 0 || dot2 < 0 || dot3 < 0);
+
+				if (visible)
+				{
+					// step 2 frustum culling
+					Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+					visible = GeometryUtility.TestPlanesAABB (frustum, p.Mesh.bounds);
+				}
+
 				if (node.Visible != visible)
 				{
 					node.Visible = visible;
-					atLeastOneNodeChanged = true;
+					RaiseChangedEvent (node);
 				}
 			}
+		}
 
-			// step 2 frustum culling
-			Camera cam = ViewpointController.Instance.GetComponent<Camera> ();
-			float originalNearPlane = cam.nearClipPlane;
-			cam.nearClipPlane = 1;
-			var frustum = GeometryUtility.CalculateFrustumPlanes (cam);
-			cam.nearClipPlane = originalNearPlane;
-
-			foreach (var node in Traverse (onlyLeaves: true))
-			{
-				// not necessary to perform frustum culling on already culled object
-				if (!node.Visible)
-					continue;
-
-				Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-				bool visible = GeometryUtility.TestPlanesAABB (frustum, p.Mesh.bounds);
-				if (node.Visible != visible)
-				{
-					atLeastOneNodeChanged = true;
-					node.Visible = visible;
-				}
-			}
-
-			if (atLeastOneNodeChanged)
-			{
-				RaiseChangedEvent ();
-			}
+		private void RaiseChangedEvent (Node node)
+		{
+			if (NodeChanged != null)
+				NodeChanged (this, new NodeBecameVisibleEventArgs (node));
 		}
 
 		private void RaiseChangedEvent ()

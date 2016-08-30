@@ -69,10 +69,12 @@ namespace Geodesy.Controllers
 		private QuadTree tree;
 		private PatchManager patchManager;
 		private int compositingLayer;
-		private int yieldEveryNth = 8;
+		private int NodeBatchCount = 64;
 
 		GameObject background;
 		private bool backgroundVisible = true;
+
+		private Queue<Node> renderQueue = new Queue<Node> (128);
 
 		public bool BackgroundVisible
 		{
@@ -110,6 +112,19 @@ namespace Geodesy.Controllers
 			{
 				item.Update ();
 			}
+
+			for (int i = 0; i < NodeBatchCount && i < renderQueue.Count; i++)
+			{
+				Node node = renderQueue.Dequeue ();
+				if (node.Visible)
+				{
+					RequestDataForNode (node);
+					RenderNode (node);
+				} else
+				{
+					i--;
+				}
+			}
 		}
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
@@ -120,14 +135,14 @@ namespace Geodesy.Controllers
 
 		private void OnGridChanged (object sender, EventArgs args)
 		{
-			Render (forceRender: true);
+			RequestRenderForAllNodes ();
 		}
 
 		public void Initialize (Globe globe)
 		{
 			Debug.Log ("Initializing compositer.");
 			this.tree = globe.Tree;
-			this.tree.Changed += OnTreeChanged;
+			this.tree.NodeChanged += OnNodeChanged;
 			this.patchManager = globe.PatchManager;
 			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 
@@ -137,7 +152,6 @@ namespace Geodesy.Controllers
 		private void RegisterConsoleCommands ()
 		{
 			Console.Instance.Register ("grid", ExecuteGridCommand);
-			Console.Instance.Register ("render", ExecuteRenderingCommand);
 			Console.Instance.Register ("addlayer", ExecuteLayerCommands);
 			Console.Instance.Register ("bg", ExecuteBackgroundCommand);
 		}
@@ -152,71 +166,11 @@ namespace Geodesy.Controllers
 			grid.Visible = show;
 		}
 
-		/// <summary>
-		/// Triggers the compositing process.
-		/// </summary>
-		public void Render (bool forceRender = false)
+		private void RequestDataForNode (Node node)
 		{
-			if (CompositerCamera == null)
+			foreach (var layer in layers)
 			{
-				Debug.LogError ("No compositing camera. Aborting rendering.");
-				return;
-			}
-
-			// stop current render pass, if any.
-			StopAllCoroutines ();
-
-			// Collect visible nodes
-			IList<Node> toRender = tree.GetVisibleNodes ();
-
-			if (!forceRender)
-			{
-				// only render the nodes who actually need an updated texture
-				toRender = toRender.Where (n => n.LastRefresh < n.LastVisible).ToList ();
-			}
-
-			RequestDataToLayers (toRender);
-
-			// render the nodes asynchronously
-			StartCoroutine (RenderNodes (toRender));
-		}
-
-		public void Render (Coordinate coord)
-		{
-			Node node = tree.Find (coord.I, coord.J, coord.Depth);
-			if (node != null)
-			{
-				RenderNode (node);
-			}
-		}
-
-		private void OnTreeChanged (object sender, EventArgs args)
-		{
-			Render ();
-		}
-
-		private void CleanupLayers ()
-		{
-			if (layers != null && layers.Count > 0)
-			{
-				foreach (var layer in layers)
-				{
-					layer.Cleanup ();
-				}
-			}
-		}
-
-		private void RequestDataToLayers (IEnumerable<Node> toRender)
-		{
-			if (layers != null && layers.Count > 0)
-			{
-				foreach (var node in toRender)
-				{
-					foreach (var layer in layers)
-					{
-						layer.RequestTileForArea (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth - 1);
-					}
-				}
+				layer.RequestTileForArea (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth - 1);
 			}
 		}
 
@@ -239,39 +193,13 @@ namespace Geodesy.Controllers
 			CompositerCamera.Render ();
 		}
 
-		private IEnumerator RenderNodes (IList<Node> nodes)
+		private void OnNodeChanged (object sender, EventArgs e)
 		{
-			bool showProgress = nodes.Count > 20;
-
-			int current = 0;
-			int count = 0;
-
-			UiController.Instance.Progress = 0;
-
-			foreach (Node node in nodes)
+			Node node = (e as NodeBecameVisibleEventArgs).Node;
+			if (node.Visible)
 			{
-				RenderNode (node);
-
-				if (showProgress)
-				{
-					UiController.Instance.Progress += 1f / nodes.Count;
-				}
-
-				if (current == yieldEveryNth)
-				{
-					current = 0;
-					yield return new WaitForEndOfFrame ();
-				} else
-					current++;
-
-				count++;
+				renderQueue.Enqueue (node);
 			}
-
-			UiController.Instance.Progress = 1f;
-
-			Debug.Log (count.ToString () + " nodes rendered.");
-
-			CleanupLayers ();
 		}
 
 		#region layering
@@ -282,24 +210,30 @@ namespace Geodesy.Controllers
 
 			if (layer is RasterLayer)
 			{
-				(layer as RasterLayer).OnNewDataAvailable += (Coordinate coord) => Render (coord);
+				(layer as RasterLayer).DataAvailable += OnLayerDataAvailable;
 			}
+		}
 
-			if (layer.Visible)
+		void OnLayerDataAvailable (Coordinate coord)
+		{
+			Node node = tree.Find (coord.I, coord.J, coord.Depth);
+			if (node != null && node.Visible)
 			{
-				Render (true);
+				renderQueue.Enqueue (node);
+			}
+		}
+
+		private void RequestRenderForAllNodes ()
+		{
+			foreach (Node node in tree.GetVisibleNodes())
+			{
+				renderQueue.Enqueue (node);
 			}
 		}
 
 		#endregion
 
 		#region Console commands
-
-		private CommandResult ExecuteRenderingCommand (Command command)
-		{
-			Render (forceRender: true);
-			return new CommandResult ("Rendering...");
-		}
 
 		private CommandResult ExecuteBackgroundCommand (Command command)
 		{
@@ -309,7 +243,7 @@ namespace Geodesy.Controllers
 			if (Console.Matches (command, Token.BOOL))
 			{
 				BackgroundVisible = command.Tokens [0].Bool;
-				Render (forceRender: true);
+				RequestRenderForAllNodes ();
 				return new CommandResult (BackgroundVisible);
 			} else
 			{

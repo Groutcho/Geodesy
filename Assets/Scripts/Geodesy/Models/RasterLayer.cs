@@ -38,7 +38,7 @@ namespace Geodesy.Models
 		object pendingTilesMonitor = new object ();
 		Queue<Download> pendingDownloads = new Queue<Download> (128);
 
-		public event NewDataAvailableHandler OnNewDataAvailable;
+		public event NewDataAvailableHandler DataAvailable;
 
 		public RasterLayer (Uri uri, string name, float depth) : base (name, depth)
 		{
@@ -66,9 +66,9 @@ namespace Geodesy.Models
 				{
 					var toCreate = pendingDownloads.Dequeue ();
 					AddTile (toCreate.Coords.I, toCreate.Coords.J, toCreate.Coords.Depth, toCreate.Data);
-					if (OnNewDataAvailable != null)
+					if (DataAvailable != null)
 					{
-						OnNewDataAvailable (toCreate.Coords);
+						DataAvailable (toCreate.Coords);
 					}
 				}
 			}
@@ -135,24 +135,6 @@ namespace Geodesy.Models
 					return false;
 				}
 			}
-		}
-
-		public override void Cleanup ()
-		{
-			foreach (var tile in tiles)
-			{
-				tile.Visible = false;
-			}
-
-			if (tiles.Count < MaxTileCount)
-				return;
-
-			foreach (var tile in tiles)
-			{
-				tile.Dispose ();
-			}
-
-			tiles.Clear ();
 		}
 
 		// Robert Jenkins' 96 bit Mix Function

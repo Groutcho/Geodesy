@@ -13,12 +13,13 @@ namespace Geodesy.Controllers
 		/// <summary>
 		/// How long a patch has to be invisible before being destroyed ?
 		/// </summary>
-		public const float DurationToTriggerCleanup = 5;
+		public const float DurationToTriggerCleanup = 20;
 
 		private Globe globe;
 		private Material texture;
 		private Material pseudoColor;
 		private Material terrain;
+		private const int maxCleanupCount = 64;
 
 		List<List<Patch>> patches;
 		GameObject patchRoot;
@@ -31,7 +32,7 @@ namespace Geodesy.Controllers
 			this.texture = (Material)Resources.Load ("Patch");
 			this.pseudoColor = (Material)Resources.Load ("Solid");
 			this.terrain = (Material)Resources.Load ("Terrain");
-			this.globe.Tree.Changed += Update;
+			this.globe.Tree.NodeChanged += OnNodeChanged;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
 			patches = new List<List<Patch>> (QuadTree.MaxDepth);
@@ -188,21 +189,16 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		public void Update (object sender, EventArgs args)
+		private Patch Get (Node node)
 		{
-			HideAllPatches ();
-			foreach (var item in globe.Tree.GetVisibleNodes())
-			{
-				Get (item.Coordinate.I, item.Coordinate.J, item.Coordinate.Depth).Visible = true;
-			}
+			return Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
 		}
 
-		public void UpdateDepth (object sender, EventArgs args)
+		public void OnNodeChanged (object sender, EventArgs args)
 		{
-			if (args is DepthChangedEventArgs)
-			{
-				ChangeDepth ((args as DepthChangedEventArgs).NewDepth);
-			}
+			Node node = (args as NodeBecameVisibleEventArgs).Node;
+			Patch patch = Get (node);
+			patch.Visible = node.Visible;
 		}
 
 		/// <summary>
@@ -210,25 +206,27 @@ namespace Geodesy.Controllers
 		/// </summary>
 		public void Cleanup ()
 		{
-			List<Patch> toRemove = new List<Patch> (256);
+			List<Patch> toRemove = new List<Patch> (maxCleanupCount);
 			var now = DateTime.Now;
+			int i = 0;
 			foreach (Patch p in Traverse ())
 			{
 				if (p.Visible)
 					continue;
 
-				if ((now - p.BecameInvisible).TotalSeconds > DurationToTriggerCleanup)
+				if ((now - p.InvisibleSince).TotalSeconds > DurationToTriggerCleanup)
 				{
 					toRemove.Add (p);
 				}
+
+				if (i++ == maxCleanupCount)
+					break;
 			}
 
 			foreach (var item in toRemove)
 			{
 				RemovePatch (item);
 			}
-
-			Debug.Log (string.Format ("PatchManager: cleaned {0} patches", toRemove.Count));
 		}
 
 		#region Console commands

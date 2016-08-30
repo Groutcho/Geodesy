@@ -75,7 +75,6 @@ namespace Geodesy.Controllers
 
 			this.tree = new QuadTree (this);
 			patchManager = new PatchManager (this, terrainGradient);
-			this.tree.DepthChanged += patchManager.UpdateDepth;
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");
 			float atmosphereHeight = 100;
