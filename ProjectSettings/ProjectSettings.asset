@@ -9,8 +9,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: DefaultCompany
-  productName: Geodesy
+  companyName: "S\xE9bastien Guimmara"
+  productName: Terra
   defaultCursor: {fileID: 2800000, guid: dbf7ca3fc9133644389e54ffddb98787, type: 3}
   cursorHotspot: {x: 0, y: 0}
   m_ShowUnitySplashScreen: 1
@@ -175,7 +175,7 @@ PlayerSettings:
   - m_BuildTarget: 
     m_Icons:
     - serializedVersion: 2
-      m_Icon: {fileID: 0}
+      m_Icon: {fileID: 2800000, guid: 556d000513092eb438c8b64f93e92c6a, type: 3}
       m_Width: 128
       m_Height: 128
   m_BuildTargetBatching: []
