@@ -12,7 +12,16 @@ namespace Geodesy.Controllers
 	{
 		private static TerrainManager instance;
 
+		public enum TileStatus
+		{
+			Missing = 0,
+			Available = 1,
+			Loaded = 2
+		}
+
 		SrtmTile[,] tileGrid = new SrtmTile[360, 180];
+
+		public byte[,] Status = new byte[360, 180];
 
 		public static TerrainManager Instance
 		{
@@ -38,6 +47,7 @@ namespace Geodesy.Controllers
 				{
 					SrtmTile tile = Load (new Uri (files [i].FullName));
 					tileGrid [tile.Easting, tile.Northing] = tile;
+					Status [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
 				}
 			}).Start ();
 		}
