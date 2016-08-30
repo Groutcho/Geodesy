@@ -66,6 +66,7 @@ namespace Geodesy.Models
 			verts [3] = new Vector3 (minX, 0, maxY);
 
 			mesh.vertices = verts;
+			mesh.RecalculateBounds ();
 
 			mf.sharedMesh =	mesh;
 			var r = node.AddComponent<MeshRenderer> ();
