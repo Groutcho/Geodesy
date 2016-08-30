@@ -21,12 +21,15 @@ namespace Geodesy.Views
 		/// The subdivisions of a patch are constant.
 		/// If a patch is reduced in size, then its resolution will increase.
 		/// </summary>
-		public const int Subdivisions = 8;
-		public const int SharpSubdivisions = 64;
+		public const int Normal = 8;
+		public const int Sharp = 32;
+		public const int Crisp = 64;
 		public const int TextureSize = 256;
 
+		private const int MaxAltitude = 9000;
+
 		// don't sample terrain data before this depth
-		private const int SampleTerrainDepth = 7;
+		private const int SampleTerrainDepth = 6;
 
 		public Mesh Mesh { get; private set; }
 
@@ -86,7 +89,18 @@ namespace Geodesy.Views
 			pseudocolorMaterial = pseudoColor;
 			terrainMaterial = terrain;
 
-			int subdivisions = depth < SampleTerrainDepth ? Subdivisions : SharpSubdivisions;
+			int subdivisions;
+			if (depth < SampleTerrainDepth)
+			{
+				subdivisions = Normal;
+			} else if (depth < SampleTerrainDepth + 5)
+			{
+				subdivisions = Sharp;
+			} else
+			{
+				subdivisions = Crisp;
+			}
+
 			CreateMesh (subdivisions);
 
 			this.i = i;
@@ -118,7 +132,7 @@ namespace Geodesy.Views
 
 					int index = x + y * subdivs;
 					vertices [index] = globe.Project (lat, lon, alt);
-					colors [index] = PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, 4000) / 4000);
+					colors [index] = PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, MaxAltitude) / MaxAltitude);
 					lon += sarcW;
 				}
 				lat += sarcH;

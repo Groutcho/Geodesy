@@ -695,44 +695,44 @@ MonoBehaviour:
   Gradient:
     key0:
       serializedVersion: 2
-      rgba: 4294923520
+      rgba: 4284634691
     key1:
       serializedVersion: 2
-      rgba: 4278941696
+      rgba: 4278215959
     key2:
       serializedVersion: 2
-      rgba: 25367
+      rgba: 4278232879
     key3:
       serializedVersion: 2
-      rgba: 41262
+      rgba: 4278238207
     key4:
       serializedVersion: 2
-      rgba: 48127
+      rgba: 4278210434
     key5:
       serializedVersion: 2
-      rgba: 20354
+      rgba: 4278190189
     key6:
       serializedVersion: 2
-      rgba: 109
+      rgba: 4294967295
     key7:
       serializedVersion: 2
-      rgba: 16777215
+      rgba: 4286216826
     ctime0: 0
-    ctime1: 149
-    ctime2: 771
-    ctime3: 14071
-    ctime4: 26985
-    ctime5: 42020
-    ctime6: 55127
+    ctime1: 223
+    ctime2: 8373
+    ctime3: 21547
+    ctime4: 34907
+    ctime5: 45104
+    ctime6: 58315
     ctime7: 65535
     atime0: 0
     atime1: 65535
-    atime2: 0
-    atime3: 0
-    atime4: 0
-    atime5: 0
-    atime6: 0
-    atime7: 0
+    atime2: 65535
+    atime3: 65535
+    atime4: 65535
+    atime5: 65535
+    atime6: 65535
+    atime7: 65535
     m_NumColorKeys: 8
     m_NumAlphaKeys: 2
 --- !u!1 &1388966890
