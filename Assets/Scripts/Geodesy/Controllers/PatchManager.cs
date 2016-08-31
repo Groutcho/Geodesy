@@ -267,6 +267,8 @@ namespace Geodesy.Controllers
 				return new CommandResult (mode);
 			}
 
+			string usage = "patch mode [texture|depth|terrain]";
+
 			if (command.TokenCount == 2)
 			{
 				string value = command.Tokens [1].Id;
@@ -282,14 +284,14 @@ namespace Geodesy.Controllers
 						mode = RenderingMode.Terrain;
 						break;
 					default:
-						throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
+						throw new CommandException (usage);
 				}
 
 				UpdatePatchModes (mode);
 				return new CommandResult (mode);
 			}
 
-			throw new NotImplementedException ();
+			throw new CommandException (usage);
 		}
 
 		#endregion

@@ -133,7 +133,7 @@ namespace Geodesy.Controllers
 				return new CommandResult (ShowFrustum);
 			} else
 			{
-				throw new ArgumentException ("usage: 'frustum [BOOL]'");
+				throw new CommandException ("frustum [bool]");
 			}
 		}
 

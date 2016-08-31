@@ -244,7 +244,7 @@ namespace Geodesy.Controllers
 				return new CommandResult (BackgroundVisible);
 			} else
 			{
-				throw new ArgumentException ("usage: 'bg [BOOL]'");
+				throw new CommandException ("bg [bool]");
 			}
 		}
 
@@ -258,7 +258,7 @@ namespace Geodesy.Controllers
 				created = new RasterLayer (uri, "NASA BlueMarble", 2);
 			} else
 			{
-				throw new FormatException ("usage: 'addlayer bm' to show the BlueMarble tileset");
+				throw new CommandException ("addlayer bm (to show the BlueMarble tileset)");
 			}
 
 			AddLayer (created);
@@ -276,7 +276,7 @@ namespace Geodesy.Controllers
 				return new CommandResult (grid.Visible);
 			} else
 			{
-				throw new ArgumentException ("usage: 'grid [BOOL]'");
+				throw new CommandException ("grid [bool]");
 			}
 		}
 

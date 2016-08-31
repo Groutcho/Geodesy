@@ -27,6 +27,7 @@ namespace Geodesy.Views.Debugging
 		private const string Error = "ff0000ff";
 		private const string Normal = "ffffffff";
 		private const string Success = "00ff00ff";
+		private const string Exception = "ffcc00ff";
 
 		public static bool? GetThruthValue (string value)
 		{
@@ -107,11 +108,6 @@ namespace Geodesy.Views.Debugging
 		public void LateUpdate ()
 		{
 			userHasPressedReturn = false;
-		}
-
-		public static string ExpectedGot (object expected, object got)
-		{
-			return string.Format ("Expected {0}, got: {1}", expected, got);
 		}
 
 		public void OnGUI ()
@@ -208,9 +204,12 @@ namespace Geodesy.Views.Debugging
 
 					var response = handlers [keyword] (command);
 					AddResponse (response.Result, Success);
-				} catch (Exception e)
+				} catch (CommandException e)
 				{
 					AddResponse (e.Message, Error);
+				} catch (Exception e)
+				{
+					AddResponse (e, Exception);
 				}
 			} else
 			{
