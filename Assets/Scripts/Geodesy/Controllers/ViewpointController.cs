@@ -50,6 +50,11 @@ namespace Geodesy.Controllers
 			}
 		}
 
+		public Camera CurrentCamera
+		{
+			get { return viewpoint.Camera; }
+		}
+
 		public void Initialize (Viewpoint viewpoint)
 		{
 			ShowFrustum = true;
