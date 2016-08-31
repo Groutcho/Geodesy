@@ -65,15 +65,16 @@ namespace Geodesy.Controllers
 
 		public Camera CompositerCamera;
 
-		// Set to true when a render is necessary.
-		private QuadTree tree;
-		private PatchManager patchManager;
 		private int compositingLayer;
 		private int NodeBatchCount = 64;
-
-		GameObject background;
 		private bool backgroundVisible = true;
 
+		private QuadTree tree;
+		private PatchManager patchManager;
+		private GameObject background;
+		private Grid grid;
+
+		private List<Layer> layers = new List<Layer> (10);
 		private Queue<Node> renderQueue = new Queue<Node> (128);
 
 		public bool BackgroundVisible
@@ -91,10 +92,6 @@ namespace Geodesy.Controllers
 				}
 			}
 		}
-
-		private Grid grid;
-
-		private List<Layer> layers = new List<Layer> (10);
 
 		public void Start ()
 		{
@@ -129,7 +126,7 @@ namespace Geodesy.Controllers
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
 		{
-			float dist = Vector3.Distance (Vector3.zero, arg.Position) - 6300;
+			float dist = arg.Position.magnitude - 6300;
 			grid.Resolution = (int)(dist / 800);
 		}
 
@@ -195,7 +192,7 @@ namespace Geodesy.Controllers
 
 		private void OnNodeChanged (object sender, EventArgs e)
 		{
-			Node node = (e as NodeBecameVisibleEventArgs).Node;
+			Node node = (e as NodeUpdatedEventArgs).Node;
 			if (node.Visible)
 			{
 				renderQueue.Enqueue (node);

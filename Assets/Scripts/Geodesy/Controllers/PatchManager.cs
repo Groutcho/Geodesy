@@ -196,7 +196,7 @@ namespace Geodesy.Controllers
 
 		public void OnNodeChanged (object sender, EventArgs args)
 		{
-			Node node = (args as NodeBecameVisibleEventArgs).Node;
+			Node node = (args as NodeUpdatedEventArgs).Node;
 			Patch patch = Get (node);
 			patch.Visible = node.Visible;
 		}

@@ -73,7 +73,7 @@ namespace Geodesy.Controllers
 			this.viewpoint = viewpoint;
 			this.datum = datum;
 
-			this.tree = new QuadTree (this);
+			this.tree = new QuadTree ();
 			patchManager = new PatchManager (this, terrainGradient);
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");
@@ -88,7 +88,6 @@ namespace Geodesy.Controllers
 			approximateCollider = gameObject.AddComponent<SphereCollider> ();
 			approximateCollider.radius = (float)(datum.SemimajorAxis * reductionFactor) * 0.995f;
 
-			patchManager.ChangeDepth (tree.CurrentDepth);
 			StartCoroutine (PatchManagerGarbageCollector ());
 
 			Console.Instance.Register ("point", ExecutePointCommand);

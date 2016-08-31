@@ -6,11 +6,11 @@ using Geodesy.Views;
 
 namespace Geodesy.Models.QuadTree
 {
-	public class NodeBecameVisibleEventArgs : EventArgs
+	public class NodeUpdatedEventArgs : EventArgs
 	{
 		public Node Node { get; set; }
 
-		public NodeBecameVisibleEventArgs (Node node)
+		public NodeUpdatedEventArgs (Node node)
 		{
 			this.Node = node;
 		}
@@ -18,22 +18,15 @@ namespace Geodesy.Models.QuadTree
 
 	public class QuadTree
 	{
-		Node root;
-		int currentDepth;
-		Globe globe;
-
 		public const int MinDepth = 3;
 		public const int MaxDepth = 19;
 
-		public int CurrentDepth { get { return currentDepth; } }
+		private Node root;
 
-		public event EventHandler Changed;
 		public event EventHandler NodeChanged;
 
-		public QuadTree (Globe globe)
+		public QuadTree ()
 		{
-			this.globe = globe;
-
 			root = new Node (this, null, new Coordinate (0, 0, 0));
 			Divide (); // 4 nodes
 			Divide (); // 16 nodes
@@ -48,7 +41,6 @@ namespace Geodesy.Models.QuadTree
 		public void Divide ()
 		{
 			root.Divide ();
-			currentDepth++;
 		}
 
 		public Node Find (int i, int j, int depth)
@@ -66,17 +58,13 @@ namespace Geodesy.Models.QuadTree
 			return null;
 		}
 
-		public IList<Node> GetVisibleNodes ()
+		public IEnumerable<Node> GetVisibleNodes ()
 		{
-			List<Node> result = new List<Node> ();
-
 			foreach (var item in Traverse(true))
 			{
 				if (item.Visible)
-					result.Add (item);
+					yield return item;
 			}
-
-			return result;
 		}
 
 		public void Update ()
@@ -170,13 +158,7 @@ namespace Geodesy.Models.QuadTree
 		private void RaiseChangedEvent (Node node)
 		{
 			if (NodeChanged != null)
-				NodeChanged (this, new NodeBecameVisibleEventArgs (node));
-		}
-
-		private void RaiseChangedEvent ()
-		{
-			if (Changed != null)
-				Changed (this, null);
+				NodeChanged (this, new NodeUpdatedEventArgs (node));
 		}
 	}
 }
