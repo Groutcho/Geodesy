@@ -27,24 +27,6 @@ namespace Geodesy.Models.QuadTree
 
 		public int CurrentDepth { get { return currentDepth; } }
 
-		private bool culling = true;
-
-		public bool Culling
-		{
-			get { return culling; }
-			set
-			{
-				if (culling != value)
-				{
-					culling = value;
-					if (value)
-						UpdateVisibleNodes ();
-					else
-						ShowAllNodes ();
-				}
-			}
-		}
-
 		public event EventHandler Changed;
 		public event EventHandler NodeChanged;
 
@@ -99,9 +81,6 @@ namespace Geodesy.Models.QuadTree
 
 		public void Update ()
 		{
-			if (culling)
-				UpdateVisibleNodes ();
-
 			ComputeNodes ();
 		}
 
@@ -150,80 +129,35 @@ namespace Geodesy.Models.QuadTree
 				}
 			}
 
-			UpdateVisibleNodes ();
+			UpdateNodeVisibility ();
 		}
 
-		private void ShowAllNodes ()
+		/// <summary>
+		/// For each leaf node, determine if is is visible 
+		/// from the current camera and update its state.
+		/// If a state changes, an event is raised.
+		/// </summary>
+		private void UpdateNodeVisibility ()
 		{
-			bool needsRefresh = false;
-			foreach (var item in Traverse(true))
-			{
-				if (!item.Visible && !needsRefresh)
-					needsRefresh = true;
+			Camera cam = ViewpointController.Instance.CurrentCamera;
+			Vector3 cameraForward = cam.transform.forward;
+			Plane[] frustum = GeometryUtility.CalculateFrustumPlanes (cam);
 
-				item.Visible = true;
-			}
-
-			if (needsRefresh)
-				RaiseChangedEvent ();
-		}
-
-		private void UpdateVisibleNodes ()
-		{
-			List<Node> visibleNodes = new List<Node> (64);
-			Vector3 cameraForward = ViewpointController.Instance.transform.forward;
-			Vector3 origin = globe.transform.position;
-
-			Camera cam = ViewpointController.Instance.GetComponent<Camera> ();
-			float originalNearPlane = cam.nearClipPlane;
-			cam.nearClipPlane = 1;
-			var frustum = GeometryUtility.CalculateFrustumPlanes (cam);
-			cam.nearClipPlane = originalNearPlane;
-
-			// step 1 backface culling.
-			// Take advantage of the fact that node surfaces are convex,
-			// so we only need to test orientation of the
-			// vectors at the 4 corners of the patch.
-			// If any of those 4 vectors points to the camera, then this node is facing the camera.
 			foreach (var node in Traverse (onlyLeaves: true))
 			{
-				double subdivs = Math.Pow (2, node.Coordinate.Depth);
-				double width = 360 / subdivs;
-				double height = 180 / subdivs;
-				int s = (int)subdivs;
-
-				double minLat = (s - node.Coordinate.J) * height - 90;
-				double minLon = node.Coordinate.I * width - 180;
-				double maxLat = minLat - height;
-				double maxLon = minLon + width;
-
-				LatLon bottomLeft = new LatLon (minLat, minLon, 0);
-				Vector3 vBottomLeft = globe.Project (bottomLeft);
-
-				LatLon bottomRight = new LatLon (minLat, maxLon, 0);
-				Vector3 vbottomRight = globe.Project (bottomRight);
-
-				LatLon topRight = new LatLon (maxLat, maxLon, 0);
-				Vector3 vtopRight = globe.Project (topRight);
-
-				LatLon topLeft = new LatLon (maxLat, minLon, 0);
-				Vector3 vtopLeft = globe.Project (topLeft);
-
-				var dot0 = Vector3.Dot (cameraForward, vBottomLeft);
-				var dot1 = Vector3.Dot (cameraForward, vbottomRight);
-				var dot2 = Vector3.Dot (cameraForward, vtopLeft);
-				var dot3 = Vector3.Dot (cameraForward, vtopRight);
-
-				// If any of those 4 vectors crosses the camera forward, then we consider
-				// this patch is pointing toward us.
-				bool visible = (dot0 < 0 || dot1 < 0 || dot2 < 0 || dot3 < 0);
-
-				if (visible)
-				{
-					// step 2 frustum culling
-					Patch p = globe.PatchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-					visible = GeometryUtility.TestPlanesAABB (frustum, p.Mesh.bounds);
-				}
+				// step 1 backface culling.
+				// Take advantage of the fact that node surfaces are convex,
+				// so we only need to test orientation of the
+				// vectors at the 4 corners of the patch.
+				// If any of those 4 vectors points to the camera, then this node is facing the camera.
+				//
+				// Step 2 frustum culling.
+				bool visible =
+					(Vector3.Dot (cameraForward, node.Corners [0]) < 0
+					|| Vector3.Dot (cameraForward, node.Corners [1]) < 0
+					|| Vector3.Dot (cameraForward, node.Corners [2]) < 0
+					|| Vector3.Dot (cameraForward, node.Corners [3]) < 0)
+					&&	GeometryUtility.TestPlanesAABB (frustum, node.Bounds);
 
 				if (node.Visible != visible)
 				{

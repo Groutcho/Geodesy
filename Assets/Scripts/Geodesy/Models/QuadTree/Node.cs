@@ -22,6 +22,11 @@ namespace Geodesy.Models.QuadTree
 
 		private Vector3[] corners = new Vector3[4];
 
+		public Vector3[] Corners
+		{
+			get { return corners; }
+		}
+
 		private bool visible;
 
 		public bool Visible
@@ -37,6 +42,8 @@ namespace Geodesy.Models.QuadTree
 				}
 			}
 		}
+
+		public Bounds Bounds { get; private set; }
 
 		public DateTime LastRefresh { get; set; }
 
@@ -84,8 +91,32 @@ namespace Geodesy.Models.QuadTree
 
 			corners [0] = Globe.Instance.Project (lat, lon);
 			corners [1] = Globe.Instance.Project (lat, lon + w);
-			corners [2] = Globe.Instance.Project (lat + h, lon);
-			corners [3] = Globe.Instance.Project (lat + h, lon + w);
+			corners [2] = Globe.Instance.Project (lat - h, lon);
+			corners [3] = Globe.Instance.Project (lat - h, lon + w);
+
+			ComputeBounds ();
+		}
+
+		private void ComputeBounds ()
+		{
+			float minY = Mathf.Min (corners [0].y, corners [1].y, corners [2].y, corners [3].y);
+			float maxY = Mathf.Max (corners [0].y, corners [1].y, corners [2].y, corners [3].y);
+			float height = Mathf.Abs (maxY - minY);
+
+			float minX = Mathf.Min (corners [0].x, corners [1].x, corners [2].x, corners [3].x);
+			float maxX = Mathf.Max (corners [0].x, corners [1].x, corners [2].x, corners [3].x);
+			float width = Mathf.Abs (maxX - minX);
+
+			float minZ = Mathf.Min (corners [0].z, corners [1].z, corners [2].z, corners [3].z);
+			float maxZ = Mathf.Max (corners [0].z, corners [1].z, corners [2].z, corners [3].z);
+			float depth = Mathf.Abs (maxZ - minZ);
+
+			Bounds = new Bounds {
+				center = (corners [0] + corners [1] + corners [2] + corners [3]) / 4f,
+				// Take into account variation in relief and
+				// other artefacts with a conservative margin
+				size = new Vector3 (width, height, depth) * 1.1f
+			};
 		}
 
 		public void Reduce ()
