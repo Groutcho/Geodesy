@@ -19,6 +19,7 @@ namespace Geodesy.Controllers
 		Datum datum;
 		Globe globe;
 		MeshBuilder meshBuilder;
+		BookmarkManager bookmarkManager;
 
 		void Log (string text)
 		{
@@ -39,6 +40,7 @@ namespace Geodesy.Controllers
 			CreateCompositer ();
 			CreateTerrainManager ();
 			CreateUiController ();
+			CreateBookmarkManager ();
 
 			globe.Tree.Update ();
 		}
@@ -53,6 +55,11 @@ namespace Geodesy.Controllers
 			new TerrainManager ();
 		}
 
+		void CreateBookmarkManager ()
+		{
+			bookmarkManager = new BookmarkManager ();
+		}
+
 		void CreateDatum ()
 		{
 			Log ("Creating datum: WGS84");
@@ -64,7 +71,7 @@ namespace Geodesy.Controllers
 			globe = GameObject.Find ("Globe").AddComponent<Globe> ();
 			globe.Initialize (
 				datum: datum,
-				reductionFactor: 0.001f, 
+				reductionFactor: 0.001f,
 				viewpoint: viewpoint,
 				terrainGradient: Gradient);
 		}
