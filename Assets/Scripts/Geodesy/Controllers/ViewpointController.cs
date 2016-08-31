@@ -3,6 +3,7 @@ using UnityEngine;
 using Geodesy.Views;
 using Geodesy.Views.Debugging;
 using Console = Geodesy.Views.Debugging.Console;
+using Geodesy.Models;
 
 namespace Geodesy.Controllers
 {
@@ -49,6 +50,8 @@ namespace Geodesy.Controllers
 				Instance = this;
 			}
 		}
+
+		public LatLon CurrentPosition { get; private set; }
 
 		public Camera CurrentCamera
 		{
