@@ -65,6 +65,8 @@ namespace Geodesy.Controllers
 
 		public Camera CompositerCamera;
 
+		public static Compositer Instance { get; private set; }
+
 		private int compositingLayer;
 		private int NodeBatchCount = 64;
 		private bool backgroundVisible = true;
@@ -91,6 +93,11 @@ namespace Geodesy.Controllers
 					background.SetActive (value);
 				}
 			}
+		}
+
+		private void Awake ()
+		{
+			Instance = this;
 		}
 
 		public void Start ()
