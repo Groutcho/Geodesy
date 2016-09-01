@@ -1,98 +1,198 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Geodesy.Models
 {
 	/// <summary>
 	/// Represents a point given by geographic coordinates
 	/// </summary>
-	public struct LatLon
+	[DataContract]
+	public struct LatLon : IEquatable<LatLon>, IComparable<LatLon>
 	{
-		char northingChar;
-		char eastingChar;
+		#region fields
 
 		private double longitude;
-
-		public double Longitude { get { return longitude; } }
-
+		private double latitude;
 		private double altitude;
 
+		#endregion
+
+		#region properties
+
+		[DataMember]
+		public double Longitude { get { return longitude; } }
+
+		[DataMember]
 		public double Altitude { get { return altitude; } }
 
-		private double latitude;
-
+		[DataMember]
 		public double Latitude { get { return latitude; } }
 
-		private double latDegrees;
+		public double LatDegrees
+		{
+			get
+			{
+				return Math.Floor (Math.Abs (latitude));
+			}
+		}
 
-		public double LatDegrees { get { return latDegrees; } }
+		public double LonDegrees
+		{
+			get
+			{
+				return Math.Floor (Math.Abs (longitude));
+			}
+		}
 
-		private double lonDegrees;
+		public double LatMinutes
+		{
+			get
+			{
+				double abslatMinusDeg = Math.Abs (latitude) - LatDegrees;
+				return Math.Floor (60 * abslatMinusDeg);
+			}
+		}
 
-		public double LonDegrees { get { return lonDegrees; } }
+		public double LonMinutes
+		{
+			get
+			{
+				double abslonMinusDeg = Math.Abs (longitude) - LonDegrees;
+				return Math.Floor (60 * abslonMinusDeg);
+			}
+		}
 
-		private double latMinutes;
+		public double LatSeconds
+		{
+			get
+			{
+				double abslatMinusDeg = Math.Abs (latitude) - LatDegrees;
+				return 3600 * abslatMinusDeg - 60 * LatMinutes;
+			}
+		}
 
-		public double LatMinutes { get { return latMinutes; } }
+		public double LonSeconds
+		{
+			get
+			{
+				double abslonMinusDeg = Math.Abs (longitude) - LonDegrees;
+				return  3600 * abslonMinusDeg - 60 * LonMinutes;
+			}
+		}
 
-		private double lonMinutes;
+		#endregion
 
-		public double LonMinutes { get { return lonMinutes; } }
+		#region constructors
 
-		private double latSeconds;
+		public LatLon (double latitude, double longitude)
+			: this (latitude, longitude, 0)
+		{
 
-		public double LatSeconds { get { return latSeconds; } }
-
-		private double lonSeconds;
-
-		public double LonSeconds { get { return lonSeconds; } }
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Geodesy.Models.LatLon"/> using decimal angles.
 		/// </summary>
-		/// <param name="decimalLat">Decimal latitude.</param>
-		/// <param name="decimalLon">Decimal longitude.</param>
-		/// <param name="altitude">Altitude.</param>
-		public LatLon (double decimalLat, double decimalLon, double alt)
+		/// <param name="decimalLat">Decimal latitude in degrees.</param>
+		/// <param name="decimalLon">Decimal longitude in degrees.</param>
+		/// <param name="altitude">Altitude in meters.</param>
+		public LatLon (double latitude, double longitude, double altitude)
 		{
-			if (decimalLon > 180 || decimalLon < -180)
-				throw new FormatException ("Invalid longitude: " + decimalLon.ToString ());
+			if (longitude > 180 || longitude < -180)
+				throw new FormatException ("Invalid longitude: " + longitude.ToString ());
 
-			if (decimalLat > 90 || decimalLat < -90)
-				throw new FormatException ("Invalid latitude: " + decimalLat.ToString ());
+			if (latitude > 90 || latitude < -90)
+				throw new FormatException ("Invalid latitude: " + latitude.ToString ());
 
-			longitude = decimalLon;
-			latitude = decimalLat;
-			altitude = alt;
-
-			northingChar = latitude >= 0 ? 'N' : 'S';
-			eastingChar = longitude >= 0 ? 'E' : 'W';
-
-			double abslat = Math.Abs (latitude);
-			double abslon = Math.Abs (longitude);
-
-			latDegrees = (int)Math.Floor (abslat);
-			lonDegrees = (int)Math.Floor (abslon);
-
-			double abslatMinusDeg = abslat - latDegrees;
-			double abslonMinusDeg = abslon - lonDegrees;
-
-			latMinutes = (int)Math.Floor (60 * abslatMinusDeg);
-			lonMinutes = (int)Math.Floor (60 * abslonMinusDeg);
-
-			latSeconds = 3600 * abslatMinusDeg - 60 * latMinutes;
-			lonSeconds = 3600 * abslonMinusDeg - 60 * lonMinutes;
+			this.longitude = longitude;
+			this.latitude = latitude;
+			this.altitude = altitude;
 		}
+
+		#endregion
 
 		public override string ToString ()
 		{
+			char northing = latitude >= 0 ? 'N' : 'S';
+			char easting = longitude >= 0 ? 'E' : 'W';
+
 			return string.Format (
 				"{0} {1:00}° {2:00}' {3:F4}\" " +
 				"{4} {5:00}° {6:00}' {7:F4}\", " +
-				"{8:0}m", 
-				northingChar, latDegrees, latMinutes, latSeconds,
-				eastingChar, lonDegrees, lonMinutes, lonSeconds,
+				"{8:0}m",
+				northing, LatDegrees, LatMinutes, LatSeconds,
+				easting, LonDegrees, LonMinutes, LonSeconds,
 				Altitude);
 		}
+
+		public override bool Equals (object obj)
+		{
+			if (obj is LatLon)
+				return Equals ((LatLon)obj);
+
+			return false;
+		}
+
+		public override int GetHashCode ()
+		{
+			unchecked
+			{
+				int hash = 17;
+				hash = hash * 23 + latitude.GetHashCode ();
+				hash = hash * 23 + longitude.GetHashCode ();
+				hash = hash * 23 + altitude.GetHashCode ();
+				return hash;
+			}
+		}
+
+		#region IEquatable implementation
+
+		public bool Equals (LatLon other)
+		{
+			return (other.Altitude.Equals (altitude) &&
+			other.latitude.Equals (latitude) &&
+			other.longitude.Equals (longitude));
+		}
+
+		#endregion
+
+		#region IComparable implementation
+
+		public int CompareTo (LatLon other)
+		{
+			if (this.Equals (other))
+				return 0;
+
+			if (this.latitude == other.latitude)
+			{
+				if (this.longitude == other.longitude)
+				{
+					if (this.altitude > other.altitude)
+						return -1;
+					else
+					{
+						return 1;
+					}
+				} else
+				{
+					if (this.longitude > other.longitude)
+					{
+						return -1;
+					} else
+					{
+						return 1;
+					}
+				}
+			} else if (this.latitude > other.latitude)
+			{
+				return -1;
+			} else
+			{
+				return 1;
+			}
+		}
+
+		#endregion
 	}
 }
 
