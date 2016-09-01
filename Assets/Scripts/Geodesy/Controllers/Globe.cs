@@ -138,7 +138,6 @@ namespace Geodesy.Controllers
 
 			float redY = (float)((datum.SemiminorAxis + alt) * reductionFactor);
 			float redX = (float)((datum.SemimajorAxis + alt) * reductionFactor);
-			float hRadius = (float)(Mathf.Cos (lat) * redY);
 			float wRadius = (float)(Mathf.Cos (lat) * redX);
 
 			x = Mathf.Cos (lon) * wRadius;
