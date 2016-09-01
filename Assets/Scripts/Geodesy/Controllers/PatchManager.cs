@@ -274,19 +274,19 @@ namespace Geodesy.Controllers
 				{
 					case "texture":
 						mode = RenderingMode.Texture;
-						UpdatePatchModes (mode);
-						return new CommandResult (mode);
+						break;
 					case "depth":
 						mode = RenderingMode.Depth;
-						UpdatePatchModes (mode);
-						return new CommandResult (mode);
+						break;
 					case "terrain":
 						mode = RenderingMode.Terrain;
-						UpdatePatchModes (mode);
-						return new CommandResult (mode);
+						break;
 					default:
 						throw new FormatException (Console.ExpectedGot ("patch mode", command.Tokens [1].Value));
 				}
+
+				UpdatePatchModes (mode);
+				return new CommandResult (mode);
 			}
 
 			throw new NotImplementedException ();
