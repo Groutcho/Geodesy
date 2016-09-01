@@ -67,7 +67,6 @@ namespace Geodesy.Controllers
 
 		public static Compositer Instance { get; private set; }
 
-		private int compositingLayer;
 		private int NodeBatchCount = 64;
 		private bool backgroundVisible = true;
 
@@ -103,7 +102,6 @@ namespace Geodesy.Controllers
 		public void Start ()
 		{
 			background = GameObject.Find ("Compositer/_background");
-			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			grid = new Grid ();
 			grid.Visible = false;
 			AddLayer (grid);
