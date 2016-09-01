@@ -23,7 +23,6 @@ namespace Geodesy.Views
 		/// </summary>
 		public const int Normal = 8;
 		public const int Sharp = 32;
-		public const int Crisp = 64;
 		public const int TextureSize = 256;
 
 		private const int MaxAltitude = 9000;
@@ -93,12 +92,9 @@ namespace Geodesy.Views
 			if (depth < SampleTerrainDepth)
 			{
 				subdivisions = Normal;
-			} else if (depth < SampleTerrainDepth + 5)
-			{
-				subdivisions = Sharp;
 			} else
 			{
-				subdivisions = Crisp;
+				subdivisions = Sharp;
 			}
 
 			CreateMesh (subdivisions);
