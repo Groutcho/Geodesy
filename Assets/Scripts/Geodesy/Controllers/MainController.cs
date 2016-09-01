@@ -71,12 +71,6 @@ namespace Geodesy.Controllers
 			viewpoint = new Viewpoint (cameraNode);
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
 			controller.Initialize (viewpoint);
-			controller.HasMoved += Controller_HasMoved;
-		}
-
-		void Controller_HasMoved (object sender, CameraMovedEventArgs args)
-		{
-			globe.Tree.Update ();
 		}
 
 		void CreateCompositer ()

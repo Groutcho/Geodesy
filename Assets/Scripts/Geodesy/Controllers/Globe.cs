@@ -158,6 +158,8 @@ namespace Geodesy.Controllers
 
 		void Update ()
 		{
+			tree.Update ();
+
 			// Hide atmosphere if we get close to the globe to avoid the blue veil effect
 			AtmosphereVisible = ViewpointController.Instance.DistanceFromView (Vector3.zero) > 12000;
 		}
