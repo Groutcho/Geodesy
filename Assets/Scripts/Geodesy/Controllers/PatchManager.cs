@@ -143,7 +143,12 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		public Patch Get (int i, int j, int depth)
+		private Patch Find (Node node)
+		{
+			return Find (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+		}
+
+		private Patch Find (int i, int j, int depth)
 		{
 			if (depth < QuadTree.MinDepth || depth > QuadTree.MaxDepth)
 				return null;
@@ -162,12 +167,27 @@ namespace Geodesy.Controllers
 				}
 			}
 
-			// the patch doesn't exist, create it.
-			AddPatch (i, j, depth);
-			return Get (i, j, depth);
+			return null;
 		}
 
-		public void AddPatch (int i, int j, int depth)
+		private Patch Get (Node node)
+		{
+			return Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+		}
+
+		/// <summary>
+		/// Return the patch with the specified coordinates.
+		/// </summary>
+		public Patch Get (int i, int j, int depth)
+		{
+			Patch found = Find (i, j, depth);
+			if (found == null)
+				return AddPatch (i, j, depth);
+
+			return found;
+		}
+
+		private Patch AddPatch (int i, int j, int depth)
 		{
 			if (patches [depth] == null)
 			{
@@ -178,9 +198,11 @@ namespace Geodesy.Controllers
 			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, texture, pseudoColor, terrain);
 			patch.Mode = mode;
 			patches [patch.Depth].Add (patch);
+
+			return patch;
 		}
 
-		public void RemovePatch (Patch p)
+		private void RemovePatch (Patch p)
 		{
 			if (patches [p.Depth] != null)
 			{
@@ -189,15 +211,22 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		private Patch Get (Node node)
-		{
-			return Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-		}
-
-		public void OnNodeChanged (object sender, EventArgs args)
+		private void OnNodeChanged (object sender, EventArgs args)
 		{
 			Node node = (args as NodeUpdatedEventArgs).Node;
-			Patch patch = Get (node);
+			Patch patch = Find (node);
+
+			if (patch == null)
+			{
+				// Don't create a patch just to hide it afterwards !
+				if (!node.Visible)
+				{
+					return;
+				}
+
+				patch = AddPatch (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+			}
+
 			patch.Visible = node.Visible;
 		}
 
