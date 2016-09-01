@@ -194,7 +194,6 @@ namespace Geodesy.Controllers
 				RefreshLevel (depth);
 			}
 
-			int width = GetWidth (depth);
 			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, texture, pseudoColor, terrain);
 			patch.Mode = mode;
 			patches [patch.Depth].Add (patch);
