@@ -9,6 +9,7 @@ namespace Geodesy.Controllers.Workers
 	/// </summary>
 	public class MeshObject
 	{
+		public Vector3 Position;
 		public Vector3[] vertices;
 		public Vector3[] normals;
 		public Color32[] colors32;

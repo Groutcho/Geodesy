@@ -132,7 +132,7 @@ namespace Geodesy.Controllers.Workers
 			float height = 180 / subs;
 			float width = 360 / subs;
 			float lat = 180 - (j * height) - 90 - height;
-			float lon;
+			float lon = i * width - 180;
 			float alt = 0;
 			float sarcH = height / subdivisions;
 			float sarcW = width / subdivisions;
@@ -144,6 +144,9 @@ namespace Geodesy.Controllers.Workers
 
 			Vector3 pos;
 			Vector3 norm;
+
+			Vector3 origin = globe.Project (lat, lon, alt);
+			meshObject.Position = origin;
 
 			Plane normalPlane = new Plane ();
 
@@ -158,7 +161,7 @@ namespace Geodesy.Controllers.Workers
 					if (depth >= Patch.TerrainDisplayedDepth)
 					{
 						alt = terrain.GetElevation (lat, lon, Filtering.Bilinear);
-						pos = globe.Project (lat, lon, alt);
+						pos = globe.Project (lat, lon, alt) - origin;
 
 						// The sampling radius decreases the higher the terrain resolution.
 						float latK1 = lat + samplingRadius;
@@ -186,6 +189,7 @@ namespace Geodesy.Controllers.Workers
 						// fact that any point on an ellipsoid with its origin
 						// at the center of the ellipsoid is its own normal.
 						norm = pos;
+						pos -= origin;
 					}
 
 					meshObject.normals [index] = norm;

@@ -100,11 +100,12 @@ namespace Geodesy.Views
 				subdivisions = SubdivisionsWithTerrain;
 			}
 
-			Mesh = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions).Mesh;
+			MeshObject result = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions);
+			Mesh = result.Mesh;
 
 			Mesh.RecalculateBounds ();
 
-			CreateGameObject (material, root);
+			CreateGameObject (material, result.Position, root);
 		}
 
 		private void UpdateRenderingMode ()
@@ -126,7 +127,7 @@ namespace Geodesy.Views
 			}
 		}
 
-		private void CreateGameObject (Material material, Transform root)
+		private void CreateGameObject (Material material, Vector3 position, Transform root)
 		{
 			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
 			gameObject.transform.parent = root;
@@ -142,6 +143,8 @@ namespace Geodesy.Views
 
 			var mf = gameObject.AddComponent<MeshFilter> ();
 			mf.mesh = Mesh;
+
+			gameObject.transform.position = position;
 		}
 
 		public void Destroy ()
