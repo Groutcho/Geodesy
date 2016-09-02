@@ -6,7 +6,7 @@ namespace Geodesy.Models
 	/// <summary>
 	/// Represents a point given by geographic coordinates
 	/// </summary>
-	[DataContract]
+	//	[DataContract]
 	public struct LatLon : IEquatable<LatLon>, IComparable<LatLon>
 	{
 		#region fields
@@ -19,13 +19,13 @@ namespace Geodesy.Models
 
 		#region properties
 
-		[DataMember]
+		//		[DataMember]
 		public double Longitude { get { return longitude; } }
 
-		[DataMember]
+		//		[DataMember]
 		public double Altitude { get { return altitude; } }
 
-		[DataMember]
+		//		[DataMember]
 		public double Latitude { get { return latitude; } }
 
 		public double LatDegrees
