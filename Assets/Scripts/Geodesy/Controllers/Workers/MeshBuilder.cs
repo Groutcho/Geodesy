@@ -34,9 +34,11 @@ namespace Geodesy.Controllers.Workers
 		/// </summary>
 		public event MeshGeneratedEventHandler MeshReady;
 
+		public static MeshBuilder Instance { get; private set; }
+
 		public MeshBuilder ()
 		{
-			
+			Instance = this;
 		}
 
 		public void Start ()
