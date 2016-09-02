@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Geodesy.Controllers;
+using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Views
 {
@@ -97,7 +98,7 @@ namespace Geodesy.Views
 				subdivisions = Sharp;
 			}
 
-			CreateMesh (subdivisions);
+			Mesh = MeshBuilder.Instance.CreateGridMesh (subdivisions).Mesh;
 
 			this.i = i;
 			this.j = j;
@@ -177,54 +178,6 @@ namespace Geodesy.Views
 
 			var mf = gameObject.AddComponent<MeshFilter> ();
 			mf.mesh = Mesh;
-		}
-
-		/// <summary>
-		/// Creates the mesh on the interval [0, 1].
-		/// </summary>
-		/// <returns>The mesh.</returns>
-		private void CreateMesh (int subdivs)
-		{
-			Mesh = new Mesh ();
-			Vector3[] vertices = new Vector3[(subdivs + 1) * (subdivs + 1)];
-			Vector2[] uv = new Vector2[vertices.Length];
-			var triangles = new List<int> (subdivs * subdivs * 2 * 3);
-			float stride = 1 / (float)subdivs;
-
-			int v = 0;
-			for (int j = 0; j <= subdivs; j++)
-			{
-				for (int i = 0; i <= subdivs; i++)
-				{
-					uv [v] = new Vector2 (i * stride, j * stride);
-					v++;
-				}
-			}
-
-			for (int j = 0; j < subdivs; j++)
-			{
-				for (int i = 0; i < subdivs; i++)
-				{
-					int k = i + j * (subdivs + 1);
-
-					int A = k;
-					int B = A + 1;
-					int C = B + subdivs;
-					int E = C + 1;
-
-					triangles.Add (C);
-					triangles.Add (B);
-					triangles.Add (A);
-					triangles.Add (E);
-					triangles.Add (B);
-					triangles.Add (C);
-				}
-			}
-
-			Mesh.vertices = vertices;
-			Mesh.uv = uv;
-			Mesh.triangles = triangles.ToArray ();
-			Mesh.Optimize ();
 		}
 
 		public void Destroy ()

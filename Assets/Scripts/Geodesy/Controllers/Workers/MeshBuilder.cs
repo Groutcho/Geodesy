@@ -119,7 +119,7 @@ namespace Geodesy.Controllers.Workers
 		/// <summary>
 		/// Generate a flat, rectangular grid-shaped mesh with the specified subdivisions.
 		/// </summary>
-		private MeshObject CreateGridMesh (int subdivisions)
+		public MeshObject CreateGridMesh (int subdivisions)
 		{
 			MeshObject mesh = new MeshObject ();
 			Vector3[] vertices = new Vector3[(subdivisions + 1) * (subdivisions + 1)];
