@@ -116,14 +116,53 @@ namespace Geodesy.Controllers.Workers
 			}
 		}
 
+		public MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
+		{
+			MeshObject meshObject = MeshBuilder.Instance.CreateGridMesh (subdivisions);
+			Globe globe = Globe.Instance;
+
+			float subs = Mathf.Pow (2, depth);
+			float height = 180 / subs;
+			float width = 360 / subs;
+			float lat = 180 - (j * height) - 90 - height;
+			float lon;
+			float sarcH = height / subdivisions;
+			float sarcW = width / subdivisions;
+			int subdivs = subdivisions + 1;
+			for (int y = 0; y < subdivs; y++)
+			{
+				lon = i * width - 180;
+				for (int x = 0; x < subdivs; x++)
+				{
+					float alt = 0;
+					if (depth >= Patch.SampleTerrainDepth)
+					{
+						alt = TerrainManager.Instance.GetElevation (lat, lon, depth);
+					}
+					int index = x + y * subdivs;
+					Vector3 pos = globe.Project (lat, lon, alt);
+					meshObject.vertices [index] = pos;
+					meshObject.normals [index] = pos;
+					meshObject.colors32 [index] = (Color32)PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, Patch.MaxAltitude) / Patch.MaxAltitude);
+					lon += sarcW;
+				}
+				lat += sarcH;
+			}
+			return meshObject;
+		}
+
 		/// <summary>
 		/// Generate a flat, rectangular grid-shaped mesh with the specified subdivisions.
 		/// </summary>
 		public MeshObject CreateGridMesh (int subdivisions)
 		{
 			MeshObject mesh = new MeshObject ();
-			Vector3[] vertices = new Vector3[(subdivisions + 1) * (subdivisions + 1)];
-			Vector2[] uv = new Vector2[vertices.Length];
+			int vertexCount = (subdivisions + 1) * (subdivisions + 1);
+
+			Vector3[] vertices = new Vector3[vertexCount];
+			Vector3[] normals = new Vector3[vertexCount];
+			Vector2[] uv = new Vector2[vertexCount];
+			Color32[] colors = new Color32[vertexCount];
 			var triangles = new List<int> (subdivisions * subdivisions * 2 * 3);
 			float stride = 1 / (float)subdivisions;
 
@@ -157,7 +196,9 @@ namespace Geodesy.Controllers.Workers
 				}
 			}
 
+			mesh.colors32 = colors;
 			mesh.vertices = vertices;
+			mesh.normals = normals;
 			mesh.uv = uv;
 			mesh.triangles = triangles.ToArray ();
 

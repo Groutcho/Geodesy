@@ -26,10 +26,12 @@ namespace Geodesy.Views
 		public const int Sharp = 32;
 		public const int TextureSize = 256;
 
-		private const int MaxAltitude = 9000;
-
 		// don't sample terrain data before this depth
-		private const int SampleTerrainDepth = 6;
+		public const int SampleTerrainDepth = 6;
+
+		public const int MaxAltitude = 9000;
+
+		private GameObject gameObject;
 
 		public Mesh Mesh { get; private set; }
 
@@ -82,12 +84,14 @@ namespace Geodesy.Views
 			}
 		}
 
-		private GameObject gameObject;
-
 		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material, Material pseudoColor, Material terrain)
 		{
 			pseudocolorMaterial = pseudoColor;
 			terrainMaterial = terrain;
+
+			this.i = i;
+			this.j = j;
+			this.Depth = depth;
 
 			int subdivisions;
 			if (depth < SampleTerrainDepth)
@@ -98,45 +102,7 @@ namespace Geodesy.Views
 				subdivisions = Sharp;
 			}
 
-			Mesh = MeshBuilder.Instance.CreateGridMesh (subdivisions).Mesh;
-
-			this.i = i;
-			this.j = j;
-			this.Depth = depth;
-
-			float subs = Mathf.Pow (2, depth);
-
-			var vertices = Mesh.vertices;
-			float height = 180 / subs;
-			float width = 360 / subs;
-			float lat = 180 - (j * height) - 90 - height;
-			float lon;
-			float sarcH = height / subdivisions;
-			float sarcW = width / subdivisions;
-			int subdivs = subdivisions + 1;
-			Color[] colors = new Color[vertices.Length];
-
-			for (int y = 0; y < subdivs; y++)
-			{
-				lon = i * width - 180;
-				for (int x = 0; x < subdivs; x++)
-				{
-					float alt = 0;
-					if (depth >= SampleTerrainDepth)
-					{
-						alt = TerrainManager.Instance.GetElevation (lat, lon, depth);
-					}
-
-					int index = x + y * subdivs;
-					vertices [index] = globe.Project (lat, lon, alt);
-					colors [index] = PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, MaxAltitude) / MaxAltitude);
-					lon += sarcW;
-				}
-				lat += sarcH;
-			}
-
-			Mesh.vertices = vertices;
-			Mesh.colors = colors;
+			Mesh = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions).Mesh;
 			Mesh.RecalculateBounds ();
 			Mesh.RecalculateNormals ();
 
