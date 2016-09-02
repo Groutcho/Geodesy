@@ -18,16 +18,14 @@ namespace Geodesy.Views
 	/// </summary>
 	public class Patch
 	{
-		/// <summary>
-		/// The subdivisions of a patch are constant.
-		/// If a patch is reduced in size, then its resolution will increase.
-		/// </summary>
-		public const int Normal = 8;
-		public const int Sharp = 32;
+		public const int SubdivisionsWithoutTerrain = 8;
+		public const int SubdivisionsWithTerrain = 32;
 		public const int TextureSize = 256;
 
-		// don't sample terrain data before this depth
-		public const int SampleTerrainDepth = 6;
+		/// <summary>
+		/// The depth at which the terrain will be displayed.
+		/// </summary>
+		public const int TerrainDisplayedDepth = 6;
 
 		public const int MaxAltitude = 9000;
 
@@ -94,12 +92,12 @@ namespace Geodesy.Views
 			this.Depth = depth;
 
 			int subdivisions;
-			if (depth < SampleTerrainDepth)
+			if (depth < TerrainDisplayedDepth)
 			{
-				subdivisions = Normal;
+				subdivisions = SubdivisionsWithoutTerrain;
 			} else
 			{
-				subdivisions = Sharp;
+				subdivisions = SubdivisionsWithTerrain;
 			}
 
 			Mesh = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions).Mesh;

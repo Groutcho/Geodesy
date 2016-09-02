@@ -24,6 +24,8 @@ namespace Geodesy.Controllers.Workers
 		private List<Thread> workers = new List<Thread> ();
 		public const int MaxThreadCount = 1;
 
+		private static MeshObject[] gridCache = new MeshObject[128];
+
 		/// <summary>
 		/// Gets a value indicating whether this instance is running.
 		/// </summary>
@@ -119,12 +121,11 @@ namespace Geodesy.Controllers.Workers
 
 		public MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
 		{
-			Profiler.BeginSample ("MeshBuilder: patch mesh generation");
-
-			// Create the base grid
-			MeshObject meshObject = MeshBuilder.Instance.CreateGridMesh (subdivisions);
 			Globe globe = Globe.Instance;
 			TerrainManager terrain = TerrainManager.Instance;
+
+			// Create the base grid
+			MeshObject meshObject = MeshBuilder.Instance.GetGridPrimitive (subdivisions);
 
 			float subs = Mathf.Pow (2, depth);
 			float samplingRadius = 10 / subs;
@@ -132,29 +133,32 @@ namespace Geodesy.Controllers.Workers
 			float width = 360 / subs;
 			float lat = 180 - (j * height) - 90 - height;
 			float lon;
+			float alt = 0;
 			float sarcH = height / subdivisions;
 			float sarcW = width / subdivisions;
 			int iterations = subdivisions + 1;
+
+			// Define a triangle of sampling points located
+			// around pos, to approximate its normals.
+			Vector3 k0, k1, k2;
+
+			Vector3 pos;
+			Vector3 norm;
+
+			Plane normalPlane = new Plane ();
 
 			for (int y = 0; y < iterations; y++)
 			{
 				lon = i * width - 180;
 				for (int x = 0; x < iterations; x++)
 				{
-					float alt = 0;
 					int index = x + y * iterations;
-					Vector3 pos;
-					Vector3 norm;
 
 					// Compute position and normal according to local elevation of the terrain.
-					if (depth >= Patch.SampleTerrainDepth)
+					if (depth >= Patch.TerrainDisplayedDepth)
 					{
 						alt = terrain.GetElevation (lat, lon, Filtering.Bilinear);
 						pos = globe.Project (lat, lon, alt);
-
-						// Define a triangle of sampling points located
-						// around pos, to approximate its normals.
-						Vector3 k0, k1, k2;
 
 						// The sampling radius decreases the higher the terrain resolution.
 						float latK1 = lat + samplingRadius;
@@ -163,13 +167,13 @@ namespace Geodesy.Controllers.Workers
 						float lonK0 = lon - samplingRadius;
 
 						// Compute the position of the sampling points
-						k0 = globe.Project (latK0, lonK0, terrain.GetElevation (latK0, lonK0, Filtering.Bilinear));
-						k1 = globe.Project (latK1, lonK0, terrain.GetElevation (latK1, lonK0, Filtering.Bilinear));
-						k2 = globe.Project (lat, lonK2, terrain.GetElevation (lat, lonK2, Filtering.Bilinear));
+						k0 = globe.Project (latK0, lonK0, terrain.GetElevation (latK0, lonK0, Filtering.Point));
+						k1 = globe.Project (latK1, lonK0, terrain.GetElevation (latK1, lonK0, Filtering.Point));
+						k2 = globe.Project (lat, lonK2, terrain.GetElevation (lat, lonK2, Filtering.Point));
 
 						// The approximate normal of pos is the normal of the plane k0, k1, k2
-						Plane p = new Plane (k0, k1, k2);
-						norm = p.normal;
+						normalPlane.Set3Points (k0, k1, k2);
+						norm = normalPlane.normal;
 
 						// Finally, store the elevation in the vertex itself
 						// to be used by a Hillshading shader.
@@ -192,16 +196,17 @@ namespace Geodesy.Controllers.Workers
 				lat += sarcH;
 			}
 
-			Profiler.EndSample ();
-
 			return meshObject;
 		}
 
 		/// <summary>
-		/// Generate a flat, rectangular grid-shaped mesh with the specified subdivisions.
+		/// Returns a flat, rectangular grid-shaped mesh with the specified subdivisions.
 		/// </summary>
-		public MeshObject CreateGridMesh (int subdivisions)
+		public MeshObject GetGridPrimitive (int subdivisions)
 		{
+			if (gridCache [subdivisions] != null)
+				return gridCache [subdivisions];
+
 			MeshObject mesh = new MeshObject ();
 			int vertexCount = (subdivisions + 1) * (subdivisions + 1);
 
@@ -247,6 +252,8 @@ namespace Geodesy.Controllers.Workers
 			mesh.normals = normals;
 			mesh.uv = uv;
 			mesh.triangles = triangles.ToArray ();
+
+			gridCache [subdivisions] = mesh;
 
 			return mesh;
 		}
