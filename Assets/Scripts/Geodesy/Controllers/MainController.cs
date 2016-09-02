@@ -4,6 +4,7 @@ using System.Text;
 using Geodesy.Models;
 using Geodesy.Views;
 using System;
+using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Controllers
 {
@@ -32,12 +33,18 @@ namespace Geodesy.Controllers
 
 			CreateView ();
 			CreateDatum ();
+			CreateMeshBuilder ();
 			CreateGlobe ();
 			CreateCompositer ();
 			CreateTerrainManager ();
 			CreateUiController ();
 
 			globe.Tree.Update ();
+		}
+
+		void CreateMeshBuilder ()
+		{
+			new MeshBuilder ();
 		}
 
 		void CreateTerrainManager ()
