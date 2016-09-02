@@ -3,6 +3,7 @@ using System.Threading;
 using UnityEngine;
 using Geodesy.Views;
 using System.Collections.Generic;
+using Geodesy.Models;
 
 namespace Geodesy.Controllers.Workers
 {
@@ -118,36 +119,81 @@ namespace Geodesy.Controllers.Workers
 
 		public MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
 		{
+			Profiler.BeginSample ("MeshBuilder: patch mesh generation");
+
+			// Create the base grid
 			MeshObject meshObject = MeshBuilder.Instance.CreateGridMesh (subdivisions);
 			Globe globe = Globe.Instance;
+			TerrainManager terrain = TerrainManager.Instance;
 
 			float subs = Mathf.Pow (2, depth);
+			float samplingRadius = 10 / subs;
 			float height = 180 / subs;
 			float width = 360 / subs;
 			float lat = 180 - (j * height) - 90 - height;
 			float lon;
 			float sarcH = height / subdivisions;
 			float sarcW = width / subdivisions;
-			int subdivs = subdivisions + 1;
-			for (int y = 0; y < subdivs; y++)
+			int iterations = subdivisions + 1;
+
+			for (int y = 0; y < iterations; y++)
 			{
 				lon = i * width - 180;
-				for (int x = 0; x < subdivs; x++)
+				for (int x = 0; x < iterations; x++)
 				{
 					float alt = 0;
+					int index = x + y * iterations;
+					Vector3 pos;
+					Vector3 norm;
+
+					// Compute position and normal according to local elevation of the terrain.
 					if (depth >= Patch.SampleTerrainDepth)
 					{
-						alt = TerrainManager.Instance.GetElevation (lat, lon, depth);
+						alt = terrain.GetElevation (lat, lon, Filtering.Bilinear);
+						pos = globe.Project (lat, lon, alt);
+
+						// Define a triangle of sampling points located
+						// around pos, to approximate its normals.
+						Vector3 k0, k1, k2;
+
+						// The sampling radius decreases the higher the terrain resolution.
+						float latK1 = lat + samplingRadius;
+						float latK0 = lat - samplingRadius;
+						float lonK2 = lon + samplingRadius;
+						float lonK0 = lon - samplingRadius;
+
+						// Compute the position of the sampling points
+						k0 = globe.Project (latK0, lonK0, terrain.GetElevation (latK0, lonK0, Filtering.Bilinear));
+						k1 = globe.Project (latK1, lonK0, terrain.GetElevation (latK1, lonK0, Filtering.Bilinear));
+						k2 = globe.Project (lat, lonK2, terrain.GetElevation (lat, lonK2, Filtering.Bilinear));
+
+						// The approximate normal of pos is the normal of the plane k0, k1, k2
+						Plane p = new Plane (k0, k1, k2);
+						norm = p.normal;
+
+						// Finally, store the elevation in the vertex itself
+						// to be used by a Hillshading shader.
+						meshObject.colors32 [index] = (Color32)PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, Patch.MaxAltitude) / Patch.MaxAltitude);
+					} else
+					{
+						pos = globe.Project (lat, lon, 0);
+
+						// If no terrain is available, make use of the
+						// fact that any point on an ellipsoid with its origin
+						// at the center of the ellipsoid is its own normal.
+						norm = pos;
 					}
-					int index = x + y * subdivs;
-					Vector3 pos = globe.Project (lat, lon, alt);
+
+					meshObject.normals [index] = norm;
 					meshObject.vertices [index] = pos;
-					meshObject.normals [index] = pos;
-					meshObject.colors32 [index] = (Color32)PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, Patch.MaxAltitude) / Patch.MaxAltitude);
+
 					lon += sarcW;
 				}
 				lat += sarcH;
 			}
+
+			Profiler.EndSample ();
+
 			return meshObject;
 		}
 

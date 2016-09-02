@@ -75,7 +75,7 @@ namespace Geodesy.Controllers
 		/// Return the elevation in metres of the point at specified coordinates.
 		/// If no elevation data is available, return zero.
 		/// </summary>
-		public float GetElevation (float lat, float lon, int depth)
+		public float GetElevation (float lat, float lon, Filtering filtering)
 		{
 			float easting = lon + 180;
 			float northing = lat + 90;
@@ -85,7 +85,7 @@ namespace Geodesy.Controllers
 			{
 				double i = easting - (int)easting;
 				double j = northing - (int)northing;
-				return tile.Sample ((float)j, (float)i, depth > 11 ? Filtering.Bilinear : Filtering.Point);
+				return tile.Sample ((float)j, (float)i, filtering);
 			}
 
 			// No data available

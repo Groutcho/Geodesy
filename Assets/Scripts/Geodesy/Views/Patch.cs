@@ -103,8 +103,8 @@ namespace Geodesy.Views
 			}
 
 			Mesh = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions).Mesh;
+
 			Mesh.RecalculateBounds ();
-			Mesh.RecalculateNormals ();
 
 			CreateGameObject (material, root);
 		}
