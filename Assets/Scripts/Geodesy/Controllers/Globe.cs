@@ -21,6 +21,8 @@ namespace Geodesy.Controllers
 		List<Vector3> debugPoints = new List<Vector3> (10);
 		GameObject atmosphere;
 
+		const double deg2rad = Math.PI / 180;
+
 		public static Globe Instance { get; private set; }
 
 		private bool atmosphereEnabled = true;
@@ -94,11 +96,6 @@ namespace Geodesy.Controllers
 			Console.Instance.Register ("atmosphere", ExecuteAtmosphereCommand);
 		}
 
-		public Vector3 Project (LatLon point)
-		{
-			return Project ((float)point.Latitude, (float)point.Longitude);
-		}
-
 		/// <summary>
 		/// Return the geographic coordinates of the point under the cursor.
 		/// If the cursor is not over the globe, return 0, 0, 0;
@@ -121,29 +118,30 @@ namespace Geodesy.Controllers
 			}
 		}
 
+		public Vector3 Project (LatLon point)
+		{
+			return Project (point.Latitude, point.Longitude, point.Altitude);
+		}
+
 		/// <summary>
 		/// Project the point at the surface of the datum and return
 		/// its cartesian coordinates.
 		/// </summary>
 		/// <param name="lat">Latitude of the point to project.</param>
 		/// <param name="lon">Longitude of the point to project.</param>
-		public Vector3 Project (float lat, float lon, float alt = 0)
+		public Vector3 Project (double lat, double lon, double alt = 0)
 		{
-			lat = Mathf.Deg2Rad * lat;
-			lon = Mathf.Deg2Rad * lon;
+			lat = deg2rad * lat;
+			lon = deg2rad * lon;
 
-			float x = 0;
-			float y = 0;
-			float z = 0;
+			double redY = ((datum.SemiminorAxis + alt) * reductionFactor);
+			double redX = ((datum.SemimajorAxis + alt) * reductionFactor);
+			double wRadius = (Math.Cos (lat) * redX);
 
-			float redY = (float)((datum.SemiminorAxis + alt) * reductionFactor);
-			float redX = (float)((datum.SemimajorAxis + alt) * reductionFactor);
-			float wRadius = (float)(Mathf.Cos (lat) * redX);
-
-			x = Mathf.Cos (lon) * wRadius;
-			y = Mathf.Sin (lat) * redY;
-			z = Mathf.Sin (lon) * wRadius;
-			return new Vector3 (x, y, z);
+			double x = Math.Cos (lon) * wRadius;
+			double y = Math.Sin (lat) * redY;
+			double z = Math.Sin (lon) * wRadius;
+			return new Vector3 ((float)x, (float)y, (float)z);
 		}
 
 		private IEnumerator PatchManagerGarbageCollector ()
