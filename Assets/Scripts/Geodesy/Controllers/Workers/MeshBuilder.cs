@@ -88,7 +88,13 @@ namespace Geodesy.Controllers.Workers
 			// process it in the background.
 			if (depth >= Patch.TerrainDisplayedDepth)
 			{
-				newRequests.Enqueue (new PatchRequest (i, j, depth) { subdivisions = Patch.SubdivisionsWithTerrain });
+				int subdivs = Patch.SubdivisionsWithTerrainMedium;
+				if (depth >= 7)
+				{
+					subdivs = Patch.SubdivisionsWithTerrain;
+				}
+
+				newRequests.Enqueue (new PatchRequest (i, j, depth) { subdivisions = subdivs });
 			}
 
 			// In any case, return immediately with a low resolution patch.

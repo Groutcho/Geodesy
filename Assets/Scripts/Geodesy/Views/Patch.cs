@@ -19,13 +19,14 @@ namespace Geodesy.Views
 	public class Patch
 	{
 		public const int SubdivisionsWithoutTerrain = 8;
-		public const int SubdivisionsWithTerrain = 32;
+		public const int SubdivisionsWithTerrainMedium = 32;
+		public const int SubdivisionsWithTerrain = 64;
 		public const int TextureSize = 256;
 
 		/// <summary>
 		/// The depth at which the terrain will be displayed.
 		/// </summary>
-		public const int TerrainDisplayedDepth = 6;
+		public const int TerrainDisplayedDepth = 5;
 
 		public const int MaxAltitude = 9000;
 
