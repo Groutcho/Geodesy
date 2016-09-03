@@ -45,7 +45,7 @@ namespace Geodesy.Controllers.Workers
 			if (newRequests.Count == 0)
 				return;
 
-			for (int i = 0; i < (MaxThreadCount - threadCount); i++)
+			for (int i = 0; i < (MaxThreadCount - threadCount) && i < newRequests.Count; i++)
 			{
 				PatchRequest request = newRequests.Dequeue ();
 
