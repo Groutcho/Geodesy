@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Models
 {
@@ -79,9 +80,9 @@ namespace Geodesy.Models
 			
 		}
 
-		public virtual bool RequestTileForArea (int i, int j, int depth)
+		public virtual void RequestTileForLocation (Location location)
 		{
-			return false;
+			
 		}
 
 		public virtual void Update ()

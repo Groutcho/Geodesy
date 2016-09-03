@@ -6,22 +6,25 @@ using Geodesy.Views.Debugging;
 using System.Collections.Generic;
 using Geodesy.Views;
 using System.Linq;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Models
 {
-	public delegate void NewDataAvailableHandler (QuadTree.Coordinate coord);
+	public delegate void NewDataAvailableHandler (QuadTree.Location coord);
 
 	public class RasterLayer : Layer
 	{
 		private class Download
 		{
+			public Uri DownloadUri { get; set; }
+
 			public Uri Uri { get; set; }
 
 			public Uri CacheUri { get; set; }
 
 			public byte[] Data { get; set; }
 
-			public QuadTree.Coordinate Coords { get; set; }
+			public Location Location { get; set; }
 		}
 
 		public Uri Uri { get; private set; }
@@ -31,12 +34,16 @@ namespace Geodesy.Models
 		// The maximum number of tile objects that can be maintained.
 		private const int MaxTileCount = 256;
 
-		List<Tile> tiles = new List<Tile> (MaxTileCount);
+		private Dictionary<Location, Tile> immediateCache = new Dictionary<Location, Tile> (MaxTileCount);
 
-		private string cacheDirectory = @"c:\ImageCache";
+		private string secondaryCacheDirectory = @"c:\ImageCache";
 
-		object pendingTilesMonitor = new object ();
-		Queue<Download> pendingDownloads = new Queue<Download> (128);
+		private object pendingRequestMonitor = new object ();
+		private object finishedDownloadMonitor = new object ();
+		private Stack<Download> pendingRequests = new Stack<Download> (128);
+		private Stack<Download> finishedDownloads = new Stack<Download> (128);
+
+		private WebClient downloader;
 
 		public event NewDataAvailableHandler DataAvailable;
 
@@ -44,10 +51,13 @@ namespace Geodesy.Models
 		{
 			Uri = uri;
 
-			if (!Directory.Exists (cacheDirectory))
+			if (!Directory.Exists (secondaryCacheDirectory))
 			{
-				Directory.CreateDirectory (cacheDirectory);
+				Directory.CreateDirectory (secondaryCacheDirectory);
 			}
+
+			downloader = new WebClient ();
+			downloader.DownloadDataCompleted += OnDownloadDataCompleted;
 
 			Surface = new Rect (-180, 90, 360, 180);
 
@@ -60,17 +70,48 @@ namespace Geodesy.Models
 
 		public override void Update ()
 		{
-			lock (pendingTilesMonitor)
+			ProcessDownloadRequests ();
+			ProcessFinishedDownloads ();
+		}
+
+		private void ProcessFinishedDownloads ()
+		{
+			Download request = null;
+			lock (finishedDownloadMonitor)
 			{
-				while (pendingDownloads.Count > 0)
+				if (finishedDownloads.Count > 0)
 				{
-					var toCreate = pendingDownloads.Dequeue ();
-					AddTile (toCreate.Coords.I, toCreate.Coords.J, toCreate.Coords.Depth, toCreate.Data);
-					if (DataAvailable != null)
-					{
-						DataAvailable (toCreate.Coords);
-					}
+					request = finishedDownloads.Pop ();
 				}
+			}
+
+			if (request != null && !immediateCache.ContainsKey (request.Location))
+			{
+				AddTile (request.Location, request.Data);
+				if (DataAvailable != null)
+				{
+					DataAvailable (request.Location);
+				}
+			}
+		}
+
+		private void ProcessDownloadRequests ()
+		{
+			if (downloader.IsBusy)
+				return;
+
+			Download request = null;
+			lock (pendingRequestMonitor)
+			{
+				if (pendingRequests.Count > 0)
+				{
+					request = pendingRequests.Pop ();
+				}
+			}
+
+			if (request != null)
+			{
+				downloader.DownloadDataAsync (request.DownloadUri, request);
 			}
 		}
 
@@ -82,57 +123,55 @@ namespace Geodesy.Models
 			Download token = (Download)arg.UserState;
 			FileInfo cacheFile = new FileInfo (token.CacheUri.AbsolutePath);
 
-			if (!cacheFile.Directory.Exists)
+			if (!cacheFile.Exists)
 			{
-				cacheFile.Directory.Create ();
+				if (!cacheFile.Directory.Exists)
+				{
+					cacheFile.Directory.Create ();
+				}
+				File.WriteAllBytes (cacheFile.FullName, arg.Result);
 			}
-			File.WriteAllBytes (cacheFile.FullName, arg.Result);
+
 			token.Data = arg.Result;
 
-			lock (pendingTilesMonitor)
+			lock (finishedDownloadMonitor)
 			{
-				pendingDownloads.Enqueue (token);
+				finishedDownloads.Push (token);
 			}
 		}
 
-		public override bool RequestTileForArea (int i, int j, int depth)
+		public override void RequestTileForLocation (Location location)
 		{
-			byte[] data;
-
-			Tile cached = tiles.FirstOrDefault (t => t.Coords.I == i && t.Coords.J == j && t.Coords.Depth == depth);
-			if (cached != null)
+			if (immediateCache.ContainsKey (location))
 			{
-				cached.Visible = true;
-				return true;
+				immediateCache [location].Visible = true;
+				return;
 			}
 
-			string path = string.Format (@"{0}\{1}\{2}.jpg", depth, i, j);
+			string path = string.Format (@"{0}\{1}\{2}.jpg", location.depth, location.i, location.j);
 			Uri tileUri = new Uri (Uri, path);
-			Uri cacheUri = new Uri (Path.Combine (cacheDirectory, path));
+			Uri cacheUri = new Uri (Path.Combine (secondaryCacheDirectory, path));
+
+			Uri toDownload;
 
 			if (File.Exists (cacheUri.AbsolutePath))
 			{
-				data = File.ReadAllBytes (cacheUri.AbsolutePath);
-				AddTile (i, j, depth, data);
-				return true;
+				toDownload = cacheUri;
 			} else
 			{
-				try
-				{
-					Download download = new Download {
-						Uri = tileUri,
-						CacheUri = cacheUri,
-						Coords = new QuadTree.Coordinate (i, j, depth)
-					};
-					WebClient client = new WebClient ();
-					client.DownloadDataAsync (tileUri, download);
-					client.DownloadDataCompleted += OnDownloadDataCompleted;
-					return true;
-				} catch (Exception ex)
-				{
-					Debug.Log (ex);
-					return false;
-				}
+				toDownload = tileUri;
+			}
+
+			Download request = new Download {
+				Uri = tileUri,
+				DownloadUri = toDownload,
+				CacheUri = cacheUri,
+				Location = location
+			};
+
+			lock (pendingRequestMonitor)
+			{
+				pendingRequests.Push (request);
 			}
 		}
 
@@ -141,7 +180,7 @@ namespace Geodesy.Models
 			return string.Format ("[RasterLayer <{2}> {1}\nUri={0}]", Uri, Surface, Name);
 		}
 
-		private void AddTile (int i, int j, int depth, byte[] data)
+		private void AddTile (Location location, byte[] data)
 		{
 			Texture2D tex = new Texture2D (Patch.TextureSize, Patch.TextureSize);
 			tex.LoadImage (data);
@@ -150,8 +189,8 @@ namespace Geodesy.Models
 			tex.Compress (false);
 			tex.Apply (false, true);
 
-			Tile tile = new Tile (this, i, j, depth, tex);
-			tiles.Add (tile);
+			Tile tile = new Tile (this, location, tex);
+			immediateCache.Add (location, tile);
 		}
 	}
 }

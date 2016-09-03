@@ -76,7 +76,9 @@ namespace Geodesy.Controllers
 		private Grid grid;
 
 		private List<Layer> layers = new List<Layer> (10);
-		private Queue<Node> renderQueue = new Queue<Node> (128);
+		private Stack<Location> renderStack = new Stack<Location> (128);
+		List<Node> toRender = new List<Node> (100);
+		private object renderQueueMonitor = new object ();
 
 		public bool BackgroundVisible
 		{
@@ -115,18 +117,25 @@ namespace Geodesy.Controllers
 				item.Update ();
 			}
 
-			for (int i = 0; i < NodeBatchCount && i < renderQueue.Count; i++)
+			for (int i = 0; i < NodeBatchCount && i < renderStack.Count; i++)
 			{
-				Node node = renderQueue.Dequeue ();
-				if (node.Visible)
+				Location location = renderStack.Pop ();
+				Node node = tree.Find (location);
+				if (node != null && node.Visible)
 				{
-					RequestDataForNode (node);
-					RenderNode (node);
+					toRender.Add (node);
 				} else
 				{
 					i--;
 				}
 			}
+
+			foreach (var node in toRender)
+			{
+				RequestDataForLocation (node.Location);
+				RenderNode (node);
+			}
+			toRender.Clear ();
 		}
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
@@ -168,11 +177,11 @@ namespace Geodesy.Controllers
 			grid.Visible = show;
 		}
 
-		private void RequestDataForNode (Node node)
+		private void RequestDataForLocation (Location location)
 		{
 			foreach (var layer in layers)
 			{
-				layer.RequestTileForArea (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth - 1);
+				layer.RequestTileForLocation (location);
 			}
 		}
 
@@ -180,7 +189,7 @@ namespace Geodesy.Controllers
 		{
 			node.LastRefresh = DateTime.Now;
 
-			Zone zone = Zone.FromCoordinates (node.Coordinate);
+			Zone zone = Zone.FromLocation (node.Location);
 
 			float x = zone.Longitude + zone.Width / 2;
 			float y = zone.Latitude - zone.Height / 2;
@@ -189,7 +198,7 @@ namespace Geodesy.Controllers
 			CompositerCamera.orthographicSize = zone.Width / 4;
 			CompositerCamera.aspect = 2f;
 
-			Patch patch = patchManager.Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+			Patch patch = patchManager.Get (node.Location);
 			CompositerCamera.targetTexture = patch.Texture;
 
 			CompositerCamera.Render ();
@@ -198,9 +207,9 @@ namespace Geodesy.Controllers
 		private void OnNodeChanged (object sender, EventArgs e)
 		{
 			Node node = (e as NodeUpdatedEventArgs).Node;
-			if (node.Visible)
+			if (node != null && node.Visible)
 			{
-				renderQueue.Enqueue (node);
+				renderStack.Push (node.Location);
 			}
 		}
 
@@ -213,23 +222,23 @@ namespace Geodesy.Controllers
 			if (layer is RasterLayer)
 			{
 				(layer as RasterLayer).DataAvailable += OnLayerDataAvailable;
+				foreach (Node node in tree.GetVisibleNodes())
+				{
+					RequestDataForLocation (node.Location);
+				}
 			}
 		}
 
-		void OnLayerDataAvailable (Coordinate coord)
+		private void OnLayerDataAvailable (Location coord)
 		{
-			Node node = tree.Find (coord.I, coord.J, coord.Depth);
-			if (node != null && node.Visible)
-			{
-				renderQueue.Enqueue (node);
-			}
+			renderStack.Push (coord);
 		}
 
 		private void RequestRenderForAllNodes ()
 		{
 			foreach (Node node in tree.GetVisibleNodes())
 			{
-				renderQueue.Enqueue (node);
+				renderStack.Push (node.Location);
 			}
 		}
 
