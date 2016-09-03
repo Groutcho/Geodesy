@@ -9,19 +9,16 @@ namespace Geodesy.Models
 	/// </summary>
 	public abstract class Datum
 	{
-		protected double semimajorAxis;
-		protected double semiminorAxis;
+		public readonly double SemimajorAxis;
 
-		public double SemimajorAxis { get { return semimajorAxis; } }
-
-		public double SemiminorAxis { get { return semiminorAxis; } }
+		public readonly double SemiminorAxis;
 
 		public GeoMatrix Transform { get ; set; }
 
 		public Datum (double semimajorAxis, double semiminorAxis, GeoMatrix transform)
 		{
-			this.semimajorAxis = semimajorAxis;
-			this.semiminorAxis = semiminorAxis;
+			this.SemimajorAxis = semimajorAxis;
+			this.SemiminorAxis = semiminorAxis;
 			this.Transform = transform;
 		}
 
@@ -37,7 +34,7 @@ namespace Geodesy.Models
 			m.Rotate (90, 90, 0);
 			m.Rotate (longitude, 0, 0);
 
-			return new Ellipse (semimajorAxis, semiminorAxis, Transform * m);
+			return new Ellipse (SemimajorAxis, SemiminorAxis, Transform * m);
 		}
 
 		/// <summary>
@@ -51,9 +48,9 @@ namespace Geodesy.Models
 
 			GeoMatrix m = GeoMatrix.Identity;
 
-			double radius = Math.Cos (latitude) * semimajorAxis;
+			double radius = Math.Cos (latitude) * SemimajorAxis;
 			var sinlat = Math.Sin (latitude);
-			m.Position = GeoVector3.Up * semiminorAxis * sinlat;
+			m.Position = GeoVector3.Up * SemiminorAxis * sinlat;
 			m = Transform * m;
 			return new Circle (radius, m);
 		}
