@@ -21,8 +21,9 @@ namespace Geodesy.Controllers
 		private Material pseudoColor;
 		private Material terrain;
 		private const int maxCleanupCount = 64;
+		private const int MaxPatchCount = 1024;
 
-		List<List<Patch>> patches;
+		Dictionary<Location, Patch> patches;
 		GameObject patchRoot;
 		RenderingMode mode;
 		public static Gradient TerrainGradient;
@@ -37,13 +38,8 @@ namespace Geodesy.Controllers
 			MeshBuilder.Instance.PatchRequestReady += OnPatchRequestReady;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
-			patches = new List<List<Patch>> (QuadTree.MaxDepth);
+			patches = new Dictionary<Location, Patch> (MaxPatchCount);
 			TerrainGradient = terrainGradient;
-
-			for (int i = 0; i < QuadTree.MaxDepth; i++)
-			{
-				patches.Add (null);
-			}
 
 			Views.Debugging.Console.Instance.Register ("patch", HandlePatchCommand);
 		}
@@ -52,7 +48,7 @@ namespace Geodesy.Controllers
 		{
 			foreach (PatchRequest request in args.Requests)
 			{
-				Patch patch = Find (request.i, request.j, request.depth);
+				Patch patch = Find (request.Location);
 				if (patch == null)
 				{
 					// discard the request
@@ -60,62 +56,6 @@ namespace Geodesy.Controllers
 				{
 					patch.UpdateMesh (request.Data.Mesh);
 				}
-			}
-		}
-
-		/// <summary>
-		/// Fill the spheroid with patches at the specified depth.
-		/// </summary>
-		/// <param name="depth">Depth.</param>
-		public void ChangeDepth (int depth)
-		{
-			HideAllPatches ();
-
-			// No patches have been created at this depth yet
-			if (patches [depth] == null)
-			{
-				RefreshLevel (depth);
-				int width = GetWidth (depth);
-				for (int i = 0; i < width; i++)
-				{
-					for (int j = 0; j < width; j++)
-					{
-						AddPatch (i, j, depth);
-					}
-				}
-			} else
-			{
-				foreach (var p in patches[depth])
-				{
-					p.Visible = false;
-				}
-			}
-		}
-
-		private void HideAllPatches ()
-		{
-			for (int i = 0; i < patches.Count; i++)
-			{
-				if (patches [i] == null)
-				{
-					continue;
-				}
-				foreach (var p in patches[i])
-				{
-					if (p != null)
-					{
-						p.Visible = false;
-					}
-				}
-			}
-		}
-
-		private void RefreshLevel (int depth)
-		{
-			if (patches [depth] == null)
-			{
-				int width = GetWidth (depth);
-				patches [depth] = new List<Patch> (width * 4);
 			}
 		}
 
@@ -128,119 +68,63 @@ namespace Geodesy.Controllers
 		{
 			this.mode = mode;
 
-			foreach (var list in patches)
+			foreach (Patch patch in patches.Values)
 			{
-				if (list == null)
-					continue;
-
-				foreach (var item in list)
+				if (patch != null)
 				{
-					if (item != null)
-					{
-						item.Mode = mode;
-					}
+					patch.Mode = mode;
 				}
 			}
 		}
 
-		private IEnumerable<Patch> Traverse ()
+		private Patch Find (Location location)
 		{
-			foreach (var list in patches)
-			{
-				if (list == null)
-					continue;
-
-				foreach (var item in list)
-				{
-					if (item != null)
-					{
-						yield return item;
-					}
-				}
-			}
-		}
-
-		private Patch Find (Node node)
-		{
-			return Find (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
-		}
-
-		private Patch Find (int i, int j, int depth)
-		{
-			if (depth < QuadTree.MinDepth || depth > QuadTree.MaxDepth)
+			if (location.depth < QuadTree.MinDepth || location.depth > QuadTree.MaxDepth)
 				return null;
 
-			if (patches [depth] != null)
-			{
-				foreach (var item in patches[depth])
-				{
-					if (item == null)
-						continue;
+			Patch result;
+			patches.TryGetValue (location, out result);
 
-					if (item.i == i && item.j == j)
-					{
-						return item;
-					}
-				}
-			}
-
-			return null;
-		}
-
-		private Patch Get (Node node)
-		{
-			return Get (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+			return result;
 		}
 
 		/// <summary>
 		/// Return the patch with the specified coordinates.
 		/// </summary>
-		public Patch Get (int i, int j, int depth)
+		public Patch Get (Location location)
 		{
-			Patch found = Find (i, j, depth);
+			Patch found = Find (location);
 			if (found == null)
-				return AddPatch (i, j, depth);
+				return AddPatch (location);
 
 			return found;
 		}
 
-		private Patch AddPatch (int i, int j, int depth)
+		private Patch AddPatch (Location location)
 		{
-			if (patches [depth] == null)
-			{
-				RefreshLevel (depth);
-			}
-
-			Patch patch = new Patch (globe, patchRoot.transform, i, j, depth, texture, pseudoColor, terrain);
+			Patch patch = new Patch (globe, patchRoot.transform, location, texture, pseudoColor, terrain);
 			patch.Mode = mode;
-			patches [patch.Depth].Add (patch);
+			patches.Add (location, patch);
 
 			return patch;
 		}
 
 		private void RemovePatch (Patch p)
 		{
-			if (patches [p.Depth] != null)
+			if (patches.ContainsKey (p.Location))
 			{
-				p.Destroy ();
-				patches [p.Depth].Remove (p);
+				patches.Remove (p.Location);
 			}
 		}
 
 		private void OnNodeChanged (object sender, EventArgs args)
 		{
 			Node node = (args as NodeUpdatedEventArgs).Node;
-			Patch patch = Find (node);
+			Patch patch;
 
-			if (patch == null)
+			if (!patches.TryGetValue (node.Location, out patch))
 			{
-				// Don't create a patch just to hide it afterwards !
-				if (!node.Visible)
-				{
-					return;
-				}
-
-				patch = AddPatch (node.Coordinate.I, node.Coordinate.J, node.Coordinate.Depth);
+				patch = AddPatch (node.Location);
 			}
 
 			patch.Visible = node.Visible;
@@ -254,7 +138,7 @@ namespace Geodesy.Controllers
 			List<Patch> toRemove = new List<Patch> (maxCleanupCount);
 			var now = DateTime.Now;
 			int i = 0;
-			foreach (Patch p in Traverse ())
+			foreach (Patch p in patches.Values)
 			{
 				if (p.Visible)
 					continue;
