@@ -4,6 +4,7 @@ using UnityEngine;
 using Geodesy.Views;
 using System.Collections.Generic;
 using Geodesy.Models;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Controllers.Workers
 {
@@ -12,23 +13,14 @@ namespace Geodesy.Controllers.Workers
 	/// </summary>
 	public class MeshBuilder
 	{
+		public const int MaxThreadCount = 3;
+
 		private object monitor = new object ();
 		private Queue<PatchRequest> processedRequests = new Queue<PatchRequest> (128);
 		private Queue<PatchRequest> newRequests = new Queue<PatchRequest> (128);
-		private List<Thread> workers = new List<Thread> ();
-		public const int MaxThreadCount = 1;
+		private List<PatchRequest> processed = new List<PatchRequest> (64);
 		private int threadCount;
-
-		private static MeshObject[] gridCache = new MeshObject[128];
-		List<PatchRequest> processed = new List<PatchRequest> (64);
-
 		private bool dataAvailable;
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is running.
-		/// </summary>
-		/// <value><c>true</c> if this instance is running; otherwise, <c>false</c>.</value>
-		public bool IsRunning { get; private set; }
 
 		/// <summary>
 		/// Occurs when a new mesh is ready for consumption.
@@ -55,9 +47,14 @@ namespace Geodesy.Controllers.Workers
 
 			for (int i = 0; i < (MaxThreadCount - threadCount); i++)
 			{
-				Debug.Log ("starting thread");
 				PatchRequest request = newRequests.Dequeue ();
-				GeneratePatchMeshAsync (request);
+
+				// If the node has disappeared, discard the request.
+				Node node = Globe.Instance.Tree.Find (request.i, request.j, request.depth);
+				if (node != null && node.Visible)
+				{
+					GeneratePatchMeshAsync (request);
+				}
 			}
 		}
 
@@ -66,11 +63,11 @@ namespace Geodesy.Controllers.Workers
 			if (!dataAvailable)
 				return;
 
-			lock (processedRequests)
+			lock (monitor)
 			{
 				if (processedRequests.Count > 0)
 				{
-					for (int i = 0; i < 10 && i < processedRequests.Count; i++)
+					for (int i = 0; i < 100 && i < processedRequests.Count; i++)
 					{
 						processed.Add (processedRequests.Dequeue ());
 					}
@@ -236,9 +233,6 @@ namespace Geodesy.Controllers.Workers
 		/// </summary>
 		private MeshObject GetGridPrimitive (int subdivisions)
 		{
-			if (gridCache [subdivisions] != null)
-				return gridCache [subdivisions];
-
 			MeshObject mesh = new MeshObject ();
 			int vertexCount = (subdivisions + 1) * (subdivisions + 1);
 
@@ -284,8 +278,6 @@ namespace Geodesy.Controllers.Workers
 			mesh.normals = normals;
 			mesh.uv = uv;
 			mesh.triangles = triangles.ToArray ();
-
-			gridCache [subdivisions] = mesh;
 
 			return mesh;
 		}
