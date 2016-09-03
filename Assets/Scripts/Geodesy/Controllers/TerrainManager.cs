@@ -12,16 +12,20 @@ namespace Geodesy.Controllers
 	{
 		private static TerrainManager instance;
 
-		public enum TileStatus
+		private enum TileStatus
 		{
+			// No data available for this tile
 			Missing = 0,
-			Available = 1,
+
+			// Data available but not loaded
+			Existing = 1,
+
+			// The data is ready to be consumed
 			Loaded = 2
 		}
 
-		SrtmTile[,] tileGrid = new SrtmTile[360, 180];
-
-		public byte[,] Status = new byte[360, 180];
+		private SrtmTile[,] grid = new SrtmTile[360, 180];
+		private byte[,] gridStatus = new byte[360, 180];
 
 		public static TerrainManager Instance
 		{
@@ -46,8 +50,8 @@ namespace Geodesy.Controllers
 				for (int i = 0; i < files.Length; i++)
 				{
 					SrtmTile tile = Load (new Uri (files [i].FullName));
-					tileGrid [tile.Easting, tile.Northing] = tile;
-					Status [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
+					grid [tile.Easting, tile.Northing] = tile;
+					gridStatus [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
 				}
 			}).Start ();
 		}
@@ -77,19 +81,18 @@ namespace Geodesy.Controllers
 		/// </summary>
 		public float GetElevation (float lat, float lon, Filtering filtering)
 		{
-			float easting = lon + 180;
-			float northing = lat + 90;
+			double easting = lon + 180;
+			double northing = lat + 90;
+			int i = (int)easting;
+			int j = (int)northing;
 
-			SrtmTile tile = tileGrid [(int)easting, (int)northing];
-			if (tile != null)
-			{
-				double i = easting - (int)easting;
-				double j = northing - (int)northing;
-				return tile.Sample ((float)j, (float)i, filtering);
-			}
+			if (gridStatus [i, j] == (byte)TileStatus.Missing)
+				return 0;
 
-			// No data available
-			return 0f;
+			SrtmTile tile = grid [i, j];
+			double x = easting - i;
+			double y = northing - j;
+			return (float)tile.Sample (y, x, filtering);
 		}
 	}
 }

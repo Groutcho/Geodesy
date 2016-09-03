@@ -75,10 +75,10 @@ namespace Geodesy.Models
 		/// </summary>
 		/// <returns>The elevation.</returns>
 		/// <param name="point">Point.</param>
-		public int Sample (float lat, float lon, Filtering filtering)
+		public double Sample (double lat, double lon, Filtering filtering)
 		{
-			float yratio = size - (size * lat);
-			float xratio = size * lon;
+			double yratio = size - (size * lat);
+			double xratio = size * lon;
 
 			int x = (int)xratio;
 			int y = (int)yratio;
@@ -89,18 +89,18 @@ namespace Geodesy.Models
 				return a;
 			}
 
-			float tx = xratio - x;
-			float ty = yratio - y;
+			double tx = xratio - x;
+			double ty = yratio - y;
 
 			short b = Sample (x + 1, y);
 			short c = Sample (x, y + 1);
 			short d = Sample (x + 1, y + 1);
 
-			float ab = a + (b - a) * tx;
-			float cd = c + (d - c) * tx;
+			double ab = a + (b - a) * tx;
+			double cd = c + (d - c) * tx;
 
-			float r = ab + (cd - ab) * ty;
-			return (short)r;
+			double r = ab + (cd - ab) * ty;
+			return r;
 		}
 
 		private short Sample (int i, int j)
