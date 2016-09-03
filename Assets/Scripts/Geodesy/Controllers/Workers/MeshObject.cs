@@ -36,6 +36,8 @@ namespace Geodesy.Controllers.Workers
 
 				result.bounds = bounds;
 
+				result.RecalculateBounds ();
+
 				return result;
 			}
 		}

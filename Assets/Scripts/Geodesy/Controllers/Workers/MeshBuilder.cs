@@ -12,19 +12,17 @@ namespace Geodesy.Controllers.Workers
 	/// </summary>
 	public class MeshBuilder
 	{
-		private class PatchRequest
-		{
-			public int i;
-			public int j;
-			public int depth;
-		}
-
 		private object monitor = new object ();
-		private Queue<PatchRequest> patchRequests = new Queue<PatchRequest> (128);
+		private Queue<PatchRequest> processedRequests = new Queue<PatchRequest> (128);
+		private Queue<PatchRequest> newRequests = new Queue<PatchRequest> (128);
 		private List<Thread> workers = new List<Thread> ();
 		public const int MaxThreadCount = 1;
+		private int threadCount;
 
 		private static MeshObject[] gridCache = new MeshObject[128];
+		List<PatchRequest> processed = new List<PatchRequest> (64);
+
+		private bool dataAvailable;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is running.
@@ -35,7 +33,7 @@ namespace Geodesy.Controllers.Workers
 		/// <summary>
 		/// Occurs when a new mesh is ready for consumption.
 		/// </summary>
-		public event MeshGeneratedEventHandler MeshReady;
+		public event MeshGeneratedEventHandler PatchRequestReady;
 
 		public static MeshBuilder Instance { get; private set; }
 
@@ -44,82 +42,81 @@ namespace Geodesy.Controllers.Workers
 			Instance = this;
 		}
 
-		public void Start ()
+		public void Update ()
 		{
-			if (IsRunning)
+			ProcessFinishedRequests ();
+			ProcessNewRequests ();
+		}
+
+		private void ProcessNewRequests ()
+		{
+			if (newRequests.Count == 0)
 				return;
 
-			IsRunning = true;
-			for (int i = 0; i < MaxThreadCount; i++)
+			for (int i = 0; i < (MaxThreadCount - threadCount); i++)
 			{
-				Thread pump = new Thread (Work);
-				workers.Add (pump);
-				pump.Start ();
+				Debug.Log ("starting thread");
+				PatchRequest request = newRequests.Dequeue ();
+				GeneratePatchMeshAsync (request);
 			}
 		}
 
-		public void Stop ()
+		private void ProcessFinishedRequests ()
 		{
-			if (!IsRunning)
+			if (!dataAvailable)
 				return;
 
-			lock (monitor)
+			lock (processedRequests)
 			{
-				foreach (Thread thread in workers)
+				if (processedRequests.Count > 0)
 				{
-					thread.Abort ();
-				}
-
-				workers.Clear ();
-				patchRequests.Clear ();
-			}
-
-			IsRunning = false;
-
-		}
-
-		private void Work ()
-		{
-			while (true)
-			{
-				PatchRequest request = null;
-				lock (monitor)
-				{
-					if (patchRequests.Count > 0)
+					for (int i = 0; i < 10 && i < processedRequests.Count; i++)
 					{
-						request = patchRequests.Dequeue ();
+						processed.Add (processedRequests.Dequeue ());
 					}
-				}
-
-				if (request != null)
-				{
-					ProcessRequest (request);
+					if (processedRequests.Count == 0)
+						dataAvailable = false;
+					if (PatchRequestReady != null)
+					{
+						PatchRequestReady (this, new MeshGeneratedEventArgs (processed));
+					}
+					processed.Clear ();
 				}
 			}
 		}
 
-		private void ProcessRequest (PatchRequest request)
+		public MeshObject RequestPatchMesh (int i, int j, int depth)
 		{
+			// If the request is too heavy to be served real time,
+			// process it in the background.
+			if (depth >= Patch.TerrainDisplayedDepth)
+			{
+				newRequests.Enqueue (new PatchRequest (i, j, depth) { subdivisions = Patch.SubdivisionsWithTerrain });
+			}
 
+			// In any case, return immediately with a low resolution patch.
+			return GeneratePatchMesh (i, j, depth, Patch.SubdivisionsWithoutTerrain);
 		}
 
-		public void RequestPatchMesh (int i, int j, int depth)
+		private void GeneratePatchMeshAsync (PatchRequest request)
 		{
-			PatchRequest request = new PatchRequest {
-				i = i,
-				j = j,
-				depth = depth
+			threadCount++;
+
+			MeshObject result = GeneratePatchMesh (request.i, request.j, request.depth, request.subdivisions);
+			PatchRequest processedRequest = new PatchRequest (request.i, request.j, request.depth) {
+				Data = result
 			};
 
-			ProcessRequest (request);
-
 			lock (monitor)
 			{
-				patchRequests.Enqueue (request);
+				processedRequests.Enqueue (processedRequest);
 			}
+
+			dataAvailable = true;
+			threadCount--;
 		}
 
-		public MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
+		private MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
 		{
 			Globe globe = Globe.Instance;
 			TerrainManager terrain = TerrainManager.Instance;
@@ -206,7 +203,7 @@ namespace Geodesy.Controllers.Workers
 		/// <summary>
 		/// Returns a flat, rectangular grid-shaped mesh with the specified subdivisions.
 		/// </summary>
-		public MeshObject GetGridPrimitive (int subdivisions)
+		private MeshObject GetGridPrimitive (int subdivisions)
 		{
 			if (gridCache [subdivisions] != null)
 				return gridCache [subdivisions];

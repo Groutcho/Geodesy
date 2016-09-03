@@ -31,7 +31,7 @@ namespace Geodesy.Views
 
 		private GameObject gameObject;
 
-		public Mesh Mesh { get; private set; }
+		private MeshFilter meshFilter;
 
 		public int i { get; private set; }
 
@@ -91,21 +91,11 @@ namespace Geodesy.Views
 			this.j = j;
 			this.Depth = depth;
 
-			int subdivisions;
-			if (depth < TerrainDisplayedDepth)
-			{
-				subdivisions = SubdivisionsWithoutTerrain;
-			} else
-			{
-				subdivisions = SubdivisionsWithTerrain;
-			}
+			MeshObject meshObject = MeshBuilder.Instance.RequestPatchMesh (i, j, depth);
+			Mesh mesh = meshObject.Mesh;
+			mesh.RecalculateBounds ();
 
-			MeshObject result = MeshBuilder.Instance.GeneratePatchMesh (i, j, depth, subdivisions);
-			Mesh = result.Mesh;
-
-			Mesh.RecalculateBounds ();
-
-			CreateGameObject (material, result.Position, root);
+			CreateGameObject (mesh, material, meshObject.Position, root);
 		}
 
 		private void UpdateRenderingMode ()
@@ -127,7 +117,7 @@ namespace Geodesy.Views
 			}
 		}
 
-		private void CreateGameObject (Material material, Vector3 position, Transform root)
+		private void CreateGameObject (Mesh mesh, Material material, Vector3 position, Transform root)
 		{
 			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
 			gameObject.transform.parent = root;
@@ -141,15 +131,24 @@ namespace Geodesy.Views
 			renderer.material.SetTexture ("_EmissionMap", tex);
 			Texture = tex;
 
-			var mf = gameObject.AddComponent<MeshFilter> ();
-			mf.mesh = Mesh;
+			meshFilter = gameObject.AddComponent<MeshFilter> ();
+			meshFilter.sharedMesh = mesh;
 
 			gameObject.transform.position = position;
 		}
 
+		public void UpdateMesh (Mesh newMesh)
+		{
+			if (meshFilter == null)
+			{
+				throw new NullReferenceException ("Trying to update the mesh of on a null mesh filter.");
+			}
+
+			meshFilter.sharedMesh = newMesh;
+		}
+
 		public void Destroy ()
 		{
-			GameObject.Destroy (Mesh);
 			GameObject.Destroy (textureMaterial);
 			GameObject.Destroy (gameObject);
 		}

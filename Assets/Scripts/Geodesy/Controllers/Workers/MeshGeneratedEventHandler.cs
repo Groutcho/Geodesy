@@ -1,15 +1,16 @@
 ﻿using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Geodesy.Controllers.Workers
 {
 	public class MeshGeneratedEventArgs : EventArgs
 	{
-		public readonly Mesh Mesh;
+		public readonly IEnumerable<PatchRequest> Requests;
 
-		public MeshGeneratedEventArgs (Mesh result)
+		public MeshGeneratedEventArgs (IEnumerable<PatchRequest> requests)
 		{
-			this.Mesh = result;
+			this.Requests = requests;
 		}
 	}
 

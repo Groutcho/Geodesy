@@ -18,6 +18,7 @@ namespace Geodesy.Controllers
 		StringBuilder logger;
 		Datum datum;
 		Globe globe;
+		MeshBuilder meshBuilder;
 
 		void Log (string text)
 		{
@@ -44,7 +45,7 @@ namespace Geodesy.Controllers
 
 		void CreateMeshBuilder ()
 		{
-			new MeshBuilder ();
+			meshBuilder = new MeshBuilder ();
 		}
 
 		void CreateTerrainManager ()
@@ -90,6 +91,11 @@ namespace Geodesy.Controllers
 		{
 			var ui = GameObject.Find ("_UI").AddComponent<UiController> ();
 			ui.Initialize (globe);
+		}
+
+		void Update ()
+		{
+			meshBuilder.Update ();
 		}
 	}
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 using Geodesy.Models.QuadTree;
 using Geodesy.Views.Debugging;
 using Console = Geodesy.Views.Debugging.Console;
+using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Controllers
 {
@@ -33,6 +34,7 @@ namespace Geodesy.Controllers
 			this.pseudoColor = (Material)Resources.Load ("Solid");
 			this.terrain = (Material)Resources.Load ("Terrain");
 			this.globe.Tree.NodeChanged += OnNodeChanged;
+			MeshBuilder.Instance.PatchRequestReady += OnPatchRequestReady;
 			patchRoot = new GameObject ("_patches");
 			patchRoot.transform.parent = globe.transform;
 			patches = new List<List<Patch>> (QuadTree.MaxDepth);
@@ -44,6 +46,21 @@ namespace Geodesy.Controllers
 			}
 
 			Views.Debugging.Console.Instance.Register ("patch", HandlePatchCommand);
+		}
+
+		private void OnPatchRequestReady (object sender, MeshGeneratedEventArgs args)
+		{
+			foreach (PatchRequest request in args.Requests)
+			{
+				Patch patch = Find (request.i, request.j, request.depth);
+				if (patch == null)
+				{
+					// discard the request
+				} else
+				{
+					patch.UpdateMesh (request.Data.Mesh);
+				}
+			}
 		}
 
 		/// <summary>
