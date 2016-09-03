@@ -1,51 +1,33 @@
-Shader "Geodesy/Terrain" {
+ Shader "Geodesy/Terrain" {
     Properties {
     }
+    SubShader {
+      Tags { "RenderType" = "Opaque" }
+      CGPROGRAM
+      #pragma surface surf SimpleSpecular
 
-SubShader {
-    Pass {
-        CGPROGRAM // here begins the part in Unity's Cg
+      half4 LightingSimpleSpecular (SurfaceOutput s, half3 lightDir, half3 viewDir, half atten) {
+              half3 h = normalize (lightDir + viewDir);
 
-        #pragma vertex vert
-        #pragma fragment frag
-        #include "UnityCG.cginc"
+              half diff = max (0, dot (s.Normal, lightDir));
 
-        struct vIn
-        {
-            float4 position : POSITION;
-            float3 normal : NORMAL;
-            float4 color : COLOR;
-        };
+              float nh = max (0, dot (s.Normal, h));
+              float spec = pow (nh, 100.0);
 
-        struct vOut
-        {
-            float4 position : POSITION;
-            float3 normal : NORMAL;
-            float4 color : COLOR;
-        };
+              half4 c;
+              c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * spec) * atten;
+              c.a = s.Alpha;
+              return c;
+          }
 
-        vOut vert(vIn input)
-        {
-            vOut output;
-            output.position = mul(UNITY_MATRIX_MVP, input.position);
-            output.normal = input.normal;
-            output.color = input.color;
-            return output;
-        }
+      struct Input {
+          float4 color : COLOR;
+      };
 
-        struct fragment
-        {
-            float4 color : COLOR;
-        };
-
-        fragment frag(vOut input)
-        {
-            fragment output;
-            output.color = input.color * input.normal[1];
-            return output;
-        }
-
-        ENDCG
+      void surf (Input IN, inout SurfaceOutput o) {
+          o.Albedo = IN.color.rgb;
+      }
+      ENDCG
     }
-}
+    Fallback "Diffuse"
 }

@@ -124,7 +124,6 @@ namespace Geodesy.Views
 			RenderTexture tex = new RenderTexture (TextureSize, TextureSize, 16);
 			tex.name = gameObject.name;
 			renderer.material.mainTexture = tex;
-			renderer.material.SetTexture ("_EmissionMap", tex);
 			Texture = tex;
 
 			meshFilter = gameObject.AddComponent<MeshFilter> ();
