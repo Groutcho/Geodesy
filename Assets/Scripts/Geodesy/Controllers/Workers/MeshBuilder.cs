@@ -98,6 +98,37 @@ namespace Geodesy.Controllers.Workers
 			return GeneratePatchMesh (i, j, depth, Patch.SubdivisionsWithoutTerrain);
 		}
 
+		/// <summary>
+		/// Produce a rectangular mesh with the following vertex indices:
+		///
+		/// 	0	1
+		///
+		/// 	3	2
+		///
+		/// </summary>
+		/// <value>The quad.</value>
+		public static Mesh GetQuad ()
+		{
+			Mesh quad = new Mesh ();
+			quad.vertices = new [] {
+				Vector3.zero,
+				new Vector3 (1, 0),
+				new Vector3 (1, 1),
+				new Vector3 (0, 1)
+			};
+			quad.uv = new [] {
+				Vector2.zero,
+				new Vector2 (1, 0),
+				new Vector2 (1, 1),
+				new Vector2 (0, 1)
+			};
+
+			quad.triangles = new [] { 0, 2, 1, 0, 3, 2 };
+			quad.RecalculateNormals ();
+
+			return quad;
+		}
+
 		private void GeneratePatchMeshAsync (PatchRequest request)
 		{
 			threadCount++;

@@ -3,6 +3,7 @@ using UnityEngine;
 using Geodesy.Views;
 using System.Collections.Generic;
 using Geodesy.Models;
+using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Controllers
 {
@@ -107,7 +108,7 @@ namespace Geodesy.Controllers
 		/// <param name="color">Color of the line.</param>
 		private void AddGridLine (GridLineOrientation orientation, float value, Color color, bool addToList = true)
 		{
-			var lineMesh = MeshProvider.Quad;
+			var lineMesh = MeshBuilder.GetQuad ();
 
 			var line = new GameObject ("_grid_line");
 

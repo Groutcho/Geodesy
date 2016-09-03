@@ -2,6 +2,7 @@
 using UnityEngine;
 using Geodesy.Views.Debugging;
 using Geodesy.Models.QuadTree;
+using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Models
 {
@@ -52,7 +53,7 @@ namespace Geodesy.Models
 			node.transform.localPosition = new Vector3 (x, tileDepth, y);
 
 			var mf = node.AddComponent<MeshFilter> ();
-			Mesh mesh = MeshProvider.Quad;
+			Mesh mesh = MeshBuilder.GetQuad ();
 
 			float minX = 0;
 			float maxX = width;
