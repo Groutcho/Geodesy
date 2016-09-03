@@ -47,17 +47,17 @@ namespace Geodesy.Controllers
 			/// </summary>
 			/// <returns>The coordinates.</returns>
 			/// <param name="coord">Coordinate.</param>
-			public static Zone FromCoordinates (Coordinate coord)
+			public static Zone FromLocation (Location location)
 			{
 				float lat, lon, width, height;
 
-				int d = (int)Mathf.Pow (2, coord.Depth);
+				int d = (int)Mathf.Pow (2, location.depth);
 
-				float subdivs = (float)Math.Pow (2, coord.Depth);
+				float subdivs = (float)Math.Pow (2, location.depth);
 				width = 360f / subdivs;
 				height = 180f / subdivs;
-				lat = ((d - coord.J) * height) - 90;
-				lon = (coord.I * width) - 180;
+				lat = ((d - location.j) * height) - 90;
+				lon = (location.i * width) - 180;
 
 				return new Zone (lat, lon, width, height);
 			}

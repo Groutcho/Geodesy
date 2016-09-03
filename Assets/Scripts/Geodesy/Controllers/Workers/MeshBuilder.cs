@@ -50,7 +50,7 @@ namespace Geodesy.Controllers.Workers
 				PatchRequest request = newRequests.Dequeue ();
 
 				// If the node has disappeared, discard the request.
-				Node node = Globe.Instance.Tree.Find (request.i, request.j, request.depth);
+				Node node = Globe.Instance.Tree.Find (request.Location);
 				if (node != null && node.Visible)
 				{
 					GeneratePatchMeshAsync (request);
@@ -82,23 +82,23 @@ namespace Geodesy.Controllers.Workers
 			}
 		}
 
-		public MeshObject RequestPatchMesh (int i, int j, int depth)
+		public MeshObject RequestPatchMesh (Location location)
 		{
 			// If the request is too heavy to be served real time,
 			// process it in the background.
-			if (depth >= Patch.TerrainDisplayedDepth)
+			if (location.depth >= Patch.TerrainDisplayedDepth)
 			{
 				int subdivs = Patch.SubdivisionsWithTerrainMedium;
-				if (depth >= 7)
+				if (location.depth >= 7)
 				{
 					subdivs = Patch.SubdivisionsWithTerrain;
 				}
 
-				newRequests.Enqueue (new PatchRequest (i, j, depth) { subdivisions = subdivs });
+				newRequests.Enqueue (new PatchRequest (location, subdivs));
 			}
 
 			// In any case, return immediately with a low resolution patch.
-			return GeneratePatchMesh (i, j, depth, Patch.SubdivisionsWithoutTerrain);
+			return GeneratePatchMesh (location, Patch.SubdivisionsWithoutTerrain);
 		}
 
 		/// <summary>
@@ -136,8 +136,8 @@ namespace Geodesy.Controllers.Workers
 		{
 			threadCount++;
 
-			MeshObject result = GeneratePatchMesh (request.i, request.j, request.depth, request.subdivisions);
-			PatchRequest processedRequest = new PatchRequest (request.i, request.j, request.depth) {
+			MeshObject result = GeneratePatchMesh (request.Location, request.Subdivisions);
+			PatchRequest processedRequest = new PatchRequest (request.Location, request.Subdivisions) {
 				Data = result
 			};
 
@@ -150,7 +150,7 @@ namespace Geodesy.Controllers.Workers
 			threadCount--;
 		}
 
-		private MeshObject GeneratePatchMesh (int i, int j, int depth, int subdivisions)
+		private MeshObject GeneratePatchMesh (Location location, int subdivisions)
 		{
 			Globe globe = Globe.Instance;
 			TerrainManager terrain = TerrainManager.Instance;
@@ -158,12 +158,12 @@ namespace Geodesy.Controllers.Workers
 			// Create the base grid
 			MeshObject meshObject = MeshBuilder.Instance.GetGridPrimitive (subdivisions);
 
-			float subs = Mathf.Pow (2, depth);
+			float subs = Mathf.Pow (2, location.depth);
 			float samplingRadius = 10 / subs;
 			float height = 180 / subs;
 			float width = 360 / subs;
-			float lat = 180 - (j * height) - 90 - height;
-			float lon = i * width - 180;
+			float lat = 180 - (location.j * height) - 90 - height;
+			float lon = location.i * width - 180;
 			float alt = 0;
 			float sarcH = height / subdivisions;
 			float sarcW = width / subdivisions;
@@ -183,13 +183,13 @@ namespace Geodesy.Controllers.Workers
 
 			for (int y = 0; y < iterations; y++)
 			{
-				lon = i * width - 180;
+				lon = location.i * width - 180;
 				for (int x = 0; x < iterations; x++)
 				{
 					int index = x + y * iterations;
 
 					// Compute position and normal according to local elevation of the terrain.
-					if (depth >= Patch.TerrainDisplayedDepth)
+					if (location.depth >= Patch.TerrainDisplayedDepth)
 					{
 						alt = terrain.GetElevation (lat, lon, Filtering.Bilinear);
 						pos = globe.Project (lat, lon, alt) - origin;

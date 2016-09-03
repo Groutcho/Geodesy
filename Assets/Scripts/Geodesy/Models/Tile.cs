@@ -8,9 +8,8 @@ namespace Geodesy.Models
 {
 	public class Tile : IDisposable
 	{
-		public Rect Surface { get; private set; }
-
-		public Coordinate Coords { get; set; }
+		public readonly Rect Surface;
+		public readonly Location Location;
 
 		private static Material surfaceMaterial = null;
 
@@ -32,22 +31,22 @@ namespace Geodesy.Models
 			}
 		}
 
-		public Tile (RasterLayer raster, int i, int j, int depth, Texture2D image)
+		public Tile (RasterLayer raster, Location location, Texture2D image)
 		{
-			Coords = new Coordinate (i, j, depth);
+			Location = location;
 
-			double subdiv = Math.Pow (2, depth + 1);
+			double subdiv = Math.Pow (2, location.depth);
 			float width = (float)(raster.Surface.width / subdiv);
 			float height = (float)(raster.Surface.height / subdiv);
-			float x = raster.Surface.x + i * width;
-			float y = raster.Surface.y - j * height;
+			float x = raster.Surface.x + location.i * width;
+			float y = raster.Surface.y - location.j * height;
 
 			Surface = new Rect (x, y, width, height);
-			node = new GameObject (string.Format ("{0}/{1}/{2}", depth, i, j));
+			node = new GameObject (location.ToString ());
 
 			node.layer = LayerMask.NameToLayer ("Compositing");
 
-			float tileDepth = depth / 10f;
+			float tileDepth = location.depth / 10f;
 
 			node.transform.parent = raster.Node.transform;
 			node.transform.localPosition = new Vector3 (x, tileDepth, y);

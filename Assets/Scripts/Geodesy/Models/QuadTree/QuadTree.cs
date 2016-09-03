@@ -27,7 +27,7 @@ namespace Geodesy.Models.QuadTree
 
 		public QuadTree ()
 		{
-			root = new Node (this, null, new Coordinate (0, 0, 0));
+			root = new Node (this, null, new Location (0, 0, 0));
 			Divide (); // 4 nodes
 			Divide (); // 16 nodes
 			Divide (); // 64 nodes
@@ -43,13 +43,13 @@ namespace Geodesy.Models.QuadTree
 			root.Divide ();
 		}
 
-		public Node Find (int i, int j, int depth)
+		public Node Find (Location location)
 		{
 			foreach (var node in Traverse(onlyLeaves: true))
 			{
-				if (node.Coordinate.Depth == depth)
+				if (node.Location.depth == location.depth)
 				{
-					if (node.Coordinate.I == i && node.Coordinate.J == j)
+					if (node.Location.i == location.i && node.Location.j == location.j)
 					{
 						return node;
 					}

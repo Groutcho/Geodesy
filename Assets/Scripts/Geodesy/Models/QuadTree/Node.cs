@@ -8,9 +8,8 @@ namespace Geodesy.Models.QuadTree
 	public class Node
 	{
 		private QuadTree tree;
-		private Coordinate coordinate;
 
-		public Coordinate Coordinate { get { return coordinate; } }
+		public readonly Location Location;
 
 		private Node[] children = new Node[4];
 
@@ -77,17 +76,17 @@ namespace Geodesy.Models.QuadTree
 			return Mathf.Abs ((maxX - minX) * (maxY - minY));
 		}
 
-		public Node (QuadTree tree, Node parent, Coordinate coordinate)
+		public Node (QuadTree tree, Node parent, Location location)
 		{
 			this.tree = tree;
-			this.coordinate = coordinate;
+			this.Location = location;
 			this.Parent = parent;
 
-			int subdivs = (int)Math.Pow (2, coordinate.Depth);
+			int subdivs = (int)Math.Pow (2, location.depth);
 			float w = 360f / subdivs;
 			float h = 180f / subdivs;
-			float lat = (subdivs - coordinate.J) * h - 90;
-			float lon = coordinate.I * w - 180;
+			float lat = (subdivs - location.j) * h - 90;
+			float lon = location.i * w - 180;
 
 			corners [0] = Globe.Instance.Project (lat, lon);
 			corners [1] = Globe.Instance.Project (lat, lon + w);
@@ -124,7 +123,7 @@ namespace Geodesy.Models.QuadTree
 			if (isLeaf)
 				return;
 
-			if (coordinate.Depth <= QuadTree.MinDepth - 1)
+			if (Location.depth <= QuadTree.MinDepth - 1)
 				return;
 
 			children = new Node[4];
@@ -135,17 +134,17 @@ namespace Geodesy.Models.QuadTree
 		{
 			if (IsLeaf)
 			{
-				if (coordinate.Depth == QuadTree.MaxDepth)
+				if (Location.depth == QuadTree.MaxDepth)
 					return;
 
-				int childrenDepth = coordinate.Depth + 1;
-				int i = coordinate.I * 2;
-				int j = coordinate.J * 2;
+				int childrenDepth = Location.depth + 1;
+				int i = Location.i * 2;
+				int j = Location.j * 2;
 
-				children [0] = new Node (tree, this, new Coordinate (i, j, childrenDepth));
-				children [1] = new Node (tree, this, new Coordinate (i + 1, j, childrenDepth));
-				children [2] = new Node (tree, this, new Coordinate (i, j + 1, childrenDepth));
-				children [3] = new Node (tree, this, new Coordinate (i + 1, j + 1, childrenDepth));
+				children [0] = new Node (tree, this, new Location (i, j, childrenDepth));
+				children [1] = new Node (tree, this, new Location (i + 1, j, childrenDepth));
+				children [2] = new Node (tree, this, new Location (i, j + 1, childrenDepth));
+				children [3] = new Node (tree, this, new Location (i + 1, j + 1, childrenDepth));
 				isLeaf = false;
 				Visible = false;
 			} else
@@ -159,7 +158,7 @@ namespace Geodesy.Models.QuadTree
 
 		public override string ToString ()
 		{
-			return string.Format ("{3}[Node: ({0}, {1}, {2})]", coordinate.I, coordinate.J, coordinate.Depth, new string (' ', coordinate.Depth));
+			return string.Format ("[Node: {0}]", Location);
 		}
 
 		public IEnumerable<Node> Traverse (bool onlyLeaves)

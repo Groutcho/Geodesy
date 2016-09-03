@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Geodesy.Controllers;
 using Geodesy.Controllers.Workers;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Views
 {
@@ -34,11 +35,7 @@ namespace Geodesy.Views
 
 		private MeshFilter meshFilter;
 
-		public int i { get; private set; }
-
-		public int j { get; private set; }
-
-		public int Depth { get; private set; }
+		public readonly Location Location;
 
 		public RenderTexture Texture { get; private set; }
 
@@ -83,16 +80,14 @@ namespace Geodesy.Views
 			}
 		}
 
-		public Patch (Globe globe, Transform root, int i, int j, int depth, Material material, Material pseudoColor, Material terrain)
+		public Patch (Globe globe, Transform root, Location location, Material material, Material pseudoColor, Material terrain)
 		{
 			pseudocolorMaterial = pseudoColor;
 			terrainMaterial = terrain;
 
-			this.i = i;
-			this.j = j;
-			this.Depth = depth;
+			this.Location = location;
 
-			MeshObject meshObject = MeshBuilder.Instance.RequestPatchMesh (i, j, depth);
+			MeshObject meshObject = MeshBuilder.Instance.RequestPatchMesh (location);
 			Mesh mesh = meshObject.Mesh;
 			mesh.RecalculateBounds ();
 
@@ -111,7 +106,7 @@ namespace Geodesy.Views
 					break;
 				case RenderingMode.Depth:
 					renderer.material = pseudocolorMaterial;
-					renderer.material.color = Colors.MakeCheckered (Colors.GetDepthColor (Depth), 0.15f, i, j);
+					renderer.material.color = Colors.MakeCheckered (Colors.GetDepthColor (Location.depth), 0.15f, Location.i, Location.j);
 					break;
 				default:
 					throw new ArgumentException ("Unknown mode: " + mode);
@@ -120,7 +115,7 @@ namespace Geodesy.Views
 
 		private void CreateGameObject (Mesh mesh, Material material, Vector3 position, Transform root)
 		{
-			gameObject = new GameObject (string.Format ("[{0}] {1}, {2}", Depth, i, j));
+			gameObject = new GameObject (Location.ToString ());
 			gameObject.transform.parent = root;
 
 			renderer = gameObject.AddComponent<MeshRenderer> ();

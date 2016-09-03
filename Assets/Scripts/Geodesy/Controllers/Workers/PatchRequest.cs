@@ -1,21 +1,19 @@
 ﻿using System;
+using Geodesy.Models.QuadTree;
 
 namespace Geodesy.Controllers.Workers
 {
 	public class PatchRequest
 	{
-		public int i;
-		public int j;
-		public int depth;
-		public int subdivisions;
+		public readonly Location Location;
+		public readonly int Subdivisions;
 
 		public MeshObject Data;
 
-		public PatchRequest (int i, int j, int depth)
+		public PatchRequest (Location location, int subdivisions)
 		{
-			this.i = i;
-			this.j = j;
-			this.depth = depth;
+			this.Location = location;
+			this.Subdivisions = subdivisions;
 		}
 	}
 }
