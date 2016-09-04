@@ -150,8 +150,8 @@ namespace Geodesy.Models.QuadTree
 				if (node.Visible != visible)
 				{
 					node.Visible = visible;
-					RaiseChangedEvent (node);
 				}
+				RaiseChangedEvent (node);
 			}
 		}
 
