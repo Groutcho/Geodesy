@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Geodesy.Controllers;
+using System.Collections;
 
 namespace Geodesy.Views
 {
@@ -17,6 +18,18 @@ namespace Geodesy.Views
 
 		Text cursorCoordinates;
 		Image progressBar;
+		Image introBg;
+		RawImage introTitle;
+
+		private void CollectUIElements ()
+		{
+			cursorCoordinates = transform.Find ("topBar/cursorCoords").GetComponent<Text> ();
+			progressBar = transform.Find ("progressBar").GetComponent<Image> ();
+			introTitle = transform.Find ("introScreen/terra").GetComponent<RawImage> ();
+			introBg = transform.Find ("introScreen").GetComponent<Image> ();
+		}
+
+		#endregion
 
 		public bool ShowCursorCoordinates
 		{
@@ -50,20 +63,39 @@ namespace Geodesy.Views
 			}
 		}
 
-		private void CollectUIElements ()
-		{
-			cursorCoordinates = transform.Find ("topBar/cursorCoords").GetComponent<Text> ();
-			progressBar = transform.Find ("progressBar").GetComponent<Image> ();
-		}
-
-		#endregion
-
 		private void Awake ()
 		{
 			instance = this;
 			CollectUIElements ();
 			ShowCursorCoordinates = true;
 			Progress = 0;
+		}
+
+		private void Start ()
+		{
+			#if !UNITY_EDITOR
+			StartCoroutine (HideIntroScreen ());
+			#endif
+		}
+
+		private IEnumerator HideIntroScreen ()
+		{
+			introTitle.enabled = true;
+			introBg.enabled = true;
+
+			yield return new WaitForSeconds (1);
+
+			float t = 1;
+
+			while (t > 0)
+			{
+				Color w = Color.white;
+				w.a = t;
+				introTitle.color = w;
+				introBg.color = w;
+				yield return new WaitForEndOfFrame ();
+				t -= Time.deltaTime;
+			}
 		}
 
 		public void Initialize (Globe globe)
@@ -82,4 +114,3 @@ namespace Geodesy.Views
 		}
 	}
 }
-
