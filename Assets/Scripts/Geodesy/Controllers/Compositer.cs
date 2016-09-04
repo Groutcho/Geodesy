@@ -101,15 +101,6 @@ namespace Geodesy.Controllers
 			Instance = this;
 		}
 
-		public void Start ()
-		{
-			background = GameObject.Find ("Compositer/_background");
-			grid = new Grid ();
-			grid.Visible = false;
-			AddLayer (grid);
-			grid.Changed += OnGridChanged;
-		}
-
 		private void Update ()
 		{
 			foreach (var item in layers)
@@ -152,6 +143,12 @@ namespace Geodesy.Controllers
 		public void Initialize (Globe globe)
 		{
 			Debug.Log ("Initializing compositer.");
+
+			background = GameObject.Find ("Compositer/_background");
+			grid = new Grid ();
+			AddLayer (grid);
+			grid.Changed += OnGridChanged;
+
 			this.tree = globe.Tree;
 			this.tree.NodeChanged += OnNodeChanged;
 			this.patchManager = globe.PatchManager;
@@ -165,16 +162,6 @@ namespace Geodesy.Controllers
 			Console.Instance.Register ("grid", ExecuteGridCommand);
 			Console.Instance.Register ("addlayer", ExecuteLayerCommands);
 			Console.Instance.Register ("bg", ExecuteBackgroundCommand);
-		}
-
-		/// <summary>
-		/// Display an adaptive grid.
-		/// </summary>
-		/// <param name="show">If set to <c>true</c> show the grid.</param>
-		public void ShowGrid (bool show)
-		{
-			// Initialize grid if needed
-			grid.Visible = show;
 		}
 
 		private void RequestDataForLocation (Location location)

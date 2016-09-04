@@ -57,7 +57,6 @@ namespace Geodesy.Models
 			compositingLayer = LayerMask.NameToLayer ("Compositing");
 			this.node = new GameObject (name);
 			var compositer = GameObject.Find ("Compositer/layers");
-			Visible = true;
 			node.layer = compositingLayer;
 			node.transform.parent = compositer.transform;
 			this.Name = name;

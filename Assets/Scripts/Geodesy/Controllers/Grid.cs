@@ -4,6 +4,7 @@ using Geodesy.Views;
 using System.Collections.Generic;
 using Geodesy.Models;
 using Geodesy.Controllers.Workers;
+using Geodesy.Controllers.Settings;
 
 namespace Geodesy.Controllers
 {
@@ -45,6 +46,7 @@ namespace Geodesy.Controllers
 
 		public Grid () : base ("grid", Layer.MaxDepth)
 		{
+			Visible = SettingProvider.Get (false, "Grid", "Visible");
 			gridMaterial = Resources.Load ("TransparentSolid") as Material;
 			resolution = MAX_RESOLUTION;
 			CreateGrid ();
