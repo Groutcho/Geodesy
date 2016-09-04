@@ -86,7 +86,7 @@ namespace Geodesy.Controllers
 			int i = (int)easting;
 			int j = (int)northing;
 
-			if (gridStatus [i, j] == (byte)TileStatus.Missing)
+			if (gridStatus [i % 360, j % 180] == (byte)TileStatus.Missing)
 				return 0;
 
 			SrtmTile tile = grid [i, j];
