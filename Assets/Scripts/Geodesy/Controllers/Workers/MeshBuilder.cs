@@ -3,6 +3,7 @@ using System.Threading;
 using UnityEngine;
 using Geodesy.Views;
 using System.Collections.Generic;
+using Geodesy.Controllers.Settings;
 using Geodesy.Models;
 using Geodesy.Models.QuadTree;
 
@@ -13,13 +14,12 @@ namespace Geodesy.Controllers.Workers
 	/// </summary>
 	public class MeshBuilder
 	{
-		public const int MaxThreadCount = 3;
-
 		private object monitor = new object ();
 		private Queue<PatchRequest> processedRequests = new Queue<PatchRequest> (128);
 		private Queue<PatchRequest> newRequests = new Queue<PatchRequest> (128);
 		private List<PatchRequest> processed = new List<PatchRequest> (64);
-		private int threadCount;
+		private int maxThreadCount;
+		private int runningThreads;
 		private bool dataAvailable;
 
 		/// <summary>
@@ -31,7 +31,15 @@ namespace Geodesy.Controllers.Workers
 
 		public MeshBuilder ()
 		{
+			SettingProvider.Changed += (object sender, EventArgs e) => UpdateSettings ();
+			UpdateSettings ();
+
 			Instance = this;
+		}
+
+		private void UpdateSettings ()
+		{
+			maxThreadCount = SettingProvider.Get<int> (3, "Mesh builder", "Max threads");
 		}
 
 		public void Update ()
@@ -45,7 +53,7 @@ namespace Geodesy.Controllers.Workers
 			if (newRequests.Count == 0)
 				return;
 
-			for (int i = 0; i < (MaxThreadCount - threadCount) && i < newRequests.Count; i++)
+			for (int i = 0; i < (maxThreadCount - runningThreads) && i < newRequests.Count; i++)
 			{
 				PatchRequest request = newRequests.Dequeue ();
 
@@ -134,7 +142,7 @@ namespace Geodesy.Controllers.Workers
 
 		private void GeneratePatchMeshAsync (PatchRequest request)
 		{
-			threadCount++;
+			runningThreads++;
 
 			MeshObject result = GeneratePatchMesh (request.Location, request.Subdivisions);
 			PatchRequest processedRequest = new PatchRequest (request.Location, request.Subdivisions) {
@@ -147,7 +155,7 @@ namespace Geodesy.Controllers.Workers
 			}
 
 			dataAvailable = true;
-			threadCount--;
+			runningThreads--;
 		}
 
 		private MeshObject GeneratePatchMesh (Location location, int subdivisions)
