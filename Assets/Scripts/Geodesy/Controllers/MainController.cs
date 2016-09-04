@@ -5,6 +5,7 @@ using Geodesy.Models;
 using Geodesy.Views;
 using System;
 using Geodesy.Controllers.Workers;
+using Geodesy.Controllers.Settings;
 
 namespace Geodesy.Controllers
 {
@@ -32,6 +33,8 @@ namespace Geodesy.Controllers
 		{
 			logger = new StringBuilder ();
 			Log ("Starting...");
+
+			SettingProvider.Load ();
 
 			CreateView ();
 			CreateDatum ();
