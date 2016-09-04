@@ -5,11 +5,13 @@ namespace Geodesy.Controllers.Settings
 	/// <summary>
 	/// Contains a single value associated to a setting name.
 	/// </summary>
-	public class Setting<T> : SettingElement
+	public class Setting : SettingElement
 	{
-		public T Value { get; private set; }
+		public string Type = "Setting";
 
-		public Setting (string name, T value) : base (name)
+		public object Value { get; private set; }
+
+		public Setting (string name, object value) : base (name)
 		{
 			this.Value = value;
 		}

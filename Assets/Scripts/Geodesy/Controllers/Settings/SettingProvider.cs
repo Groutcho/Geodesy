@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Geodesy.Controllers.Settings
 {
@@ -26,14 +27,14 @@ namespace Geodesy.Controllers.Settings
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static T Get<T> (T defaultValue, params string[] path)
 		{
-			Setting<T> setting = Root.Get<T> (path);
+			Setting setting = Root.Get (path);
 			if (setting == null)
 			{
 				return defaultValue;
 			}
-			if (setting is Setting<T>)
+			if (setting is Setting && setting.Value is T)
 			{
-				return (setting as Setting<T>).Value;
+				return (T)setting.Value;
 			}
 			return defaultValue;
 		}
@@ -43,8 +44,10 @@ namespace Geodesy.Controllers.Settings
 			Root =
 				new Section ("Settings", 
 				new Section ("Mesh builder", 
-					new Setting<int> ("Max threads", 3)),
-				new Section ("Grid", new Setting<bool> ("Visible", false)));
+					new Setting ("Max threads", 3)),
+				new Section ("Grid", new Setting ("Visible", false)));
+
+			Save ();
 		}
 
 		/// <summary>
@@ -58,14 +61,35 @@ namespace Geodesy.Controllers.Settings
 				LoadDefaultSettings ();
 			} else
 			{
-				
+				Root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
+			}
+		}
+
+		public static void Save ()
+		{
+			string settingFile = GetSettingFilename ();
+
+			JsonSerializer serializer = new JsonSerializer ();
+			serializer.Formatting = Formatting.Indented;
+
+			using (TextWriter textWriter = new StreamWriter (settingFile))
+			{
+				using (JsonWriter jsonWriter = new JsonTextWriter (textWriter))
+				{
+					serializer.Serialize (jsonWriter, Root);
+				}
 			}
 		}
 
 		private static string GetSettingFilename ()
 		{
 			string userPath = Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData);
-			string settingFile = Path.Combine (userPath, "settings.json");
+			string applicationDirectory = Path.Combine (userPath, "Terra");
+			if (!Directory.Exists (applicationDirectory))
+			{
+				Directory.CreateDirectory (applicationDirectory);
+			}
+			string settingFile = Path.Combine (applicationDirectory, "settings.json");
 			return settingFile;
 		}
 
