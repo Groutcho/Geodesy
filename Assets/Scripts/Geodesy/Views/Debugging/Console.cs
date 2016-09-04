@@ -161,6 +161,16 @@ namespace Geodesy.Views.Debugging
 			content.Add (string.Format ("<color=#{1}>{0}</color>", response, color));
 		}
 
+		public void Log (string line)
+		{
+			if (line == null)
+			{
+				throw new ArgumentNullException ("line");
+			}
+
+			AddResponse (line, Success);
+		}
+
 		private void AddLine (string line)
 		{
 			content.Add (string.Format ("{0}<i>{1}</i>", Prompt, line));
