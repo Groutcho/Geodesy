@@ -6,6 +6,7 @@ using Geodesy.Views;
 using System;
 using Geodesy.Controllers.Workers;
 using Geodesy.Controllers.Settings;
+using Geodesy.Controllers.Caching;
 
 namespace Geodesy.Controllers
 {
@@ -21,6 +22,7 @@ namespace Geodesy.Controllers
 		Globe globe;
 		MeshBuilder meshBuilder;
 		BookmarkManager bookmarkManager;
+		Cache cache;
 
 		void Log (string text)
 		{
@@ -38,6 +40,7 @@ namespace Geodesy.Controllers
 
 			CreateView ();
 			CreateDatum ();
+			CreateCache ();
 			CreateMeshBuilder ();
 			CreateGlobe ();
 			CreateCompositer ();
@@ -46,6 +49,12 @@ namespace Geodesy.Controllers
 			CreateBookmarkManager ();
 
 			globe.Tree.Update ();
+		}
+
+		void CreateCache ()
+		{
+			// 256 MB of in-memory cache
+			cache = new Cache (1024 * 1024 * 256);
 		}
 
 		void CreateMeshBuilder ()
@@ -105,6 +114,7 @@ namespace Geodesy.Controllers
 
 		void Update ()
 		{
+			cache.Update ();
 			meshBuilder.Update ();
 		}
 	}
