@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Geodesy.Controllers.Settings
 {
@@ -9,8 +10,10 @@ namespace Geodesy.Controllers.Settings
 	/// </summary>
 	public class Section : SettingElement
 	{
+		[JsonProperty (Order = 1)]
 		public string Type = "Section";
 
+		[JsonProperty (Order = 2)]
 		public IList<SettingElement> Elements { get; set; }
 
 		public Setting Get (IList<string> path)
