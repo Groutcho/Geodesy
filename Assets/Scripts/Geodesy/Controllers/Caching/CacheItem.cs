@@ -2,7 +2,7 @@
 
 namespace Geodesy.Controllers.Caching
 {
-	class CacheItem : IEquatable<CacheItem>
+	public class CacheItem : IEquatable<CacheItem>
 	{
 		public byte[] Data { get; private set; }
 

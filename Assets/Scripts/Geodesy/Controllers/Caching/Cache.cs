@@ -14,7 +14,8 @@ namespace Geodesy.Controllers.Caching
 	public class Cache
 	{
 		private DirectoryInfo cacheRoot;
-		private IDictionary<string, CacheItem> inMemoryCache;
+
+		HashTree inMemoryCache = new HashTree ();
 		private WebClient downloader = new WebClient ();
 
 		private object monitor = new object ();
@@ -55,8 +56,6 @@ namespace Geodesy.Controllers.Caching
 			cacheRoot = new DirectoryInfo (Path.Combine (terraDir, "cache"));
 			if (!cacheRoot.Exists)
 				cacheRoot.Create ();
-
-			inMemoryCache = new Dictionary<string, CacheItem> (1024);
 
 			if (Console.Instance != null)
 			{
@@ -132,7 +131,7 @@ namespace Geodesy.Controllers.Caching
 			}
 
 			Size += item.Data.Length;
-			inMemoryCache.Add (hash, item);
+			inMemoryCache.Add (new KeyValuePair<string, CacheItem> (hash, item));
 		}
 
 		private void GC ()
