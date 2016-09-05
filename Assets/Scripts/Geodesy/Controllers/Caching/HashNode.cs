@@ -31,7 +31,7 @@ namespace Geodesy.Controllers.Caching
 			{
 				foreach (var item in items)
 				{
-					if (item.Hash == hash)
+					if (item != null && item.Hash == hash)
 						return true;
 				}
 
@@ -40,7 +40,7 @@ namespace Geodesy.Controllers.Caching
 
 			foreach (var item in children)
 			{
-				if (item.Key == GetPrefix (hash, level))
+				if (item != null && item.Key == GetPrefix (hash, level))
 				{
 					return item.Contains (hash);
 				}
@@ -71,7 +71,7 @@ namespace Geodesy.Controllers.Caching
 			{
 				foreach (var item in items)
 				{
-					if (item.Hash == hash)
+					if (item != null && item.Hash == hash)
 						return item;
 				}
 
@@ -95,7 +95,7 @@ namespace Geodesy.Controllers.Caching
 				int index = -1;
 				for (int i = 0; i < items.Count; i++)
 				{
-					if (items [i].Hash == hash)
+					if (items [i] != null && items [i].Hash == hash)
 					{
 						index = i;
 						break;
@@ -129,7 +129,7 @@ namespace Geodesy.Controllers.Caching
 			{
 				foreach (CacheItem cachedItem in items)
 				{
-					if (cachedItem.Hash == hash)
+					if (item != null && cachedItem.Hash == hash)
 					{
 						throw new ArgumentException (string.Format ("The cache item {0} is already present in the tree.", hash));
 					}

@@ -27,6 +27,8 @@ namespace Geodesy.Controllers.Caching
 
 		public int SizeLimit { get; set; }
 
+		public static Cache Instance { get; private set; }
+
 		public void Update ()
 		{
 			lock (monitor)
@@ -50,6 +52,8 @@ namespace Geodesy.Controllers.Caching
 
 		public Cache (int initialSizeLimitBytes)
 		{
+			Instance = this;
+
 			SizeLimit = initialSizeLimitBytes;
 			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
 			string terraDir = Path.Combine (commonAppData, "Terra");
@@ -146,7 +150,18 @@ namespace Geodesy.Controllers.Caching
 		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs e)
 		{
 			UriRequest request = (UriRequest)e.UserState;
+			if (e.Result == null)
+			{
+				return;
+			}
+			if (request.Hash == null)
+			{
+				UnityEngine.Debug.LogWarning ("Request has null hash: " + request.Uri.ToString ());
+				return;
+			}
+
 			request.Data = e.Result;
+
 			lock (monitor)
 			{
 				completedRequests.Push (request);
