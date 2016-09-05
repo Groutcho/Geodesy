@@ -12,7 +12,9 @@ namespace Geodesy.Views
 
 		public static UiController Instance { get { return instance; } }
 
-		Globe globe;
+		private Globe globe;
+
+		private bool initialized;
 
 		#region UI elements
 
@@ -98,9 +100,14 @@ namespace Geodesy.Views
 			}
 		}
 
+		/// <summary>
+		/// The UI controller remains inactive until it initialized.
+		/// </summary>
+		/// <param name="globe">The globe instance.</param>
 		public void Initialize (Globe globe)
 		{
 			this.globe = globe;
+			initialized = true;
 		}
 
 		private void UpdateCursorCoordinates ()
@@ -110,6 +117,9 @@ namespace Geodesy.Views
 
 		private void Update ()
 		{
+			if (!initialized)
+				return;
+
 			UpdateCursorCoordinates ();
 		}
 	}

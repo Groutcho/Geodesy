@@ -3,70 +3,52 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using System.IO;
+using UnityEngine.UI;
 
 namespace Geodesy.Views.Debugging
 {
 	public class Console : MonoBehaviour
 	{
-		public GUISkin Skin;
-
 		public static Console Instance;
 		private bool visible;
-		private Rect area;
-		private string currentLine;
-		private const string Prompt = "$ ";
-		private bool userHasPressedReturn;
-		private bool hasJustAppeared;
-		private Vector2 scroll;
+		private const string Prompt = "$";
 
 		public delegate CommandResult CommandHandler (Command cmd);
 
 		private Dictionary<string, CommandHandler> handlers = new Dictionary<string, CommandHandler> (8);
 		private List<string> content = new List<string> (256);
+		private GameObject stackItemTemplate;
+		private Transform buffer;
+		private GameObject root;
 
 		private const string Error = "ff0000ff";
 		private const string Normal = "ffffffff";
 		private const string Success = "00ff00ff";
 		private const string Exception = "ffcc00ff";
 
-		public static bool? GetThruthValue (string value)
-		{
-			if (value.Length == 1)
-			{
-				if (value [0] == '1')
-					return true;
-				if (value [0] == '0')
-					return false;
-			} else
-			{
-				if (value == "on")
-					return true;
-				if (value == "off")
-					return false;
-				if (value == "true")
-					return true;
-				if (value == "false")
-					return false;
-			}
-
-			return null;
-		}
-
 		public void Awake ()
 		{
-			Debug.Log ("Initializing console...");
 			Instance = this;
-			area = new Rect (0, 0, Screen.width, Screen.height / 2);
-			currentLine = string.Empty;
+		}
+
+		public void Start ()
+		{
+			root = transform.Find ("console").gameObject;
+
+			stackItemTemplate = transform.Find ("console/template").gameObject;
+			stackItemTemplate.SetActive (false);
+
+			buffer = transform.Find ("console/Scroll View/Viewport/Content");
+
+			root.SetActive (false);
 		}
 
 		public void Update ()
 		{
 			if (Input.GetKeyUp (KeyCode.F12))
 			{
-				Debug.Log ("Showing console...");
 				visible = !visible;
-				hasJustAppeared = true;
+				root.SetActive (visible);
 			}
 		}
 
@@ -105,60 +87,25 @@ namespace Geodesy.Views.Debugging
 			handlers.Add (keyword, handler);
 		}
 
-		public void LateUpdate ()
+		public void SubmitInput (string input)
 		{
-			userHasPressedReturn = false;
-		}
-
-		public void OnGUI ()
-		{
-			if (!visible)
+			if (string.IsNullOrEmpty (input))
 				return;
 
-			Event e = Event.current;
-			if (e.type != EventType.Repaint && e.keyCode == KeyCode.Return && !userHasPressedReturn)
-			{
-				userHasPressedReturn = true;
-				ProcessLine (currentLine);
-				currentLine = string.Empty;
-				return;
-			} else if (e.keyCode == KeyCode.F12)
-			{
-				visible = false;
-			}
-
-			GUI.skin = Skin;
-
-			GUILayout.BeginArea (area, GUI.skin.GetStyle ("box"));
-			{
-				GUILayout.BeginScrollView (scroll);
-				{
-					foreach (var item in content)
-					{
-						GUILayout.Label (item);
-					}
-				}
-				GUILayout.EndScrollView ();
-
-				GUI.SetNextControlName ("prompt");
-				GUILayout.BeginHorizontal ();
-				{
-					GUILayout.Label (Prompt, GUILayout.Width (15));
-					currentLine = GUILayout.TextField (currentLine);
-				}
-				GUILayout.EndHorizontal ();
-				if (hasJustAppeared)
-				{
-					GUI.FocusControl ("prompt");
-					hasJustAppeared = false;
-				}
-			}
-			GUILayout.EndArea ();
+			ProcessLine (input);
 		}
 
 		private void AddResponse (object response, string color)
 		{
-			content.Add (string.Format ("<color=#{1}>{0}</color>", response, color));
+			string value = string.Format ("<color=#{1}>{0}</color>", response, color);
+			GameObject newItem = GameObject.Instantiate (stackItemTemplate);
+			Text text = newItem.GetComponent<Text> ();
+			text.text = value;
+
+			newItem.SetActive (true);
+			newItem.transform.SetParent (buffer);
+
+			content.Add (value);
 		}
 
 		public void Log (string line)
@@ -173,7 +120,7 @@ namespace Geodesy.Views.Debugging
 
 		private void AddLine (string line)
 		{
-			content.Add (string.Format ("{0}<i>{1}</i>", Prompt, line));
+			AddResponse (string.Format ("{0} <i>{1}</i>", Prompt, line), Normal);
 		}
 
 		private IList<Token> Tokenize (string[] words)
@@ -224,6 +171,7 @@ namespace Geodesy.Views.Debugging
 			} else
 			{
 				AddResponse (string.Format ("Unknown command '{0}'", args [0]), Error);
+				Debug.LogWarning ("No handler found for: " + args [0]);
 			}
 		}
 	}

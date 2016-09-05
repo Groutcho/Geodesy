@@ -7,6 +7,7 @@ using System;
 using Geodesy.Controllers.Workers;
 using Geodesy.Controllers.Settings;
 using Geodesy.Controllers.Caching;
+using UnityEngine.SceneManagement;
 
 namespace Geodesy.Controllers
 {
@@ -17,26 +18,19 @@ namespace Geodesy.Controllers
 		public Material LineMaterial;
 		public Gradient Gradient;
 
-		StringBuilder logger;
 		Datum datum;
 		Globe globe;
 		MeshBuilder meshBuilder;
 		BookmarkManager bookmarkManager;
 		Cache cache;
+		bool ready;
 
-		void Log (string text)
+		private IEnumerator StartRoutine ()
 		{
-			logger.AppendLine (text);
-			Debug.Log (text);
-		}
-
-		// Use this for initialization
-		void Start ()
-		{
-			logger = new StringBuilder ();
-			Log ("Starting...");
-
 			SettingProvider.Load ();
+
+			SceneManager.LoadScene ("UI", LoadSceneMode.Additive);
+			yield return new WaitForEndOfFrame ();
 
 			CreateView ();
 			CreateDatum ();
@@ -49,6 +43,16 @@ namespace Geodesy.Controllers
 			CreateBookmarkManager ();
 
 			globe.Tree.Update ();
+
+			yield return new WaitForEndOfFrame ();
+
+			ready = true;
+		}
+
+		// Use this for initialization
+		void Start ()
+		{
+			StartCoroutine (StartRoutine ());
 		}
 
 		void CreateCache ()
@@ -74,7 +78,6 @@ namespace Geodesy.Controllers
 
 		void CreateDatum ()
 		{
-			Log ("Creating datum: WGS84");
 			datum = new WGS84 ();
 		}
 
@@ -92,8 +95,7 @@ namespace Geodesy.Controllers
 		{
 			if (cameraNode == null)
 			{
-				Log ("No viewpoint selected. Aborting.");
-				throw new NullReferenceException ("No viewpoint selected.");
+				throw new NullReferenceException ("No viewpoint selected. Aborting.");
 			}
 			viewpoint = new Viewpoint (cameraNode);
 			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
@@ -108,12 +110,15 @@ namespace Geodesy.Controllers
 
 		void CreateUiController ()
 		{
-			var ui = GameObject.Find ("_UI").AddComponent<UiController> ();
+			var ui = GameObject.Find ("UI").GetComponent<UiController> ();
 			ui.Initialize (globe);
 		}
 
 		void Update ()
 		{
+			if (!ready)
+				return;
+
 			cache.Update ();
 			meshBuilder.Update ();
 		}
