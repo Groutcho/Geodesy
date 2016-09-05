@@ -4,18 +4,19 @@ namespace Geodesy.Controllers.Caching
 {
 	internal class CacheItem
 	{
-		private byte[] data;
+		public byte[] Data { get; private set; }
 
-		public byte[] Data { get { return data; } }
+		public string Hash { get; private set; }
 
-		public CacheItem (byte[] data)
+		public CacheItem (string hash, byte[] data)
 		{
 			if (data == null)
 			{
 				throw new ArgumentNullException ("data");
 			}
 
-			this.data = data;
+			this.Data = data;
+			this.Hash = hash;
 		}
 	}
 }

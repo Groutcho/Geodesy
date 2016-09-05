@@ -119,13 +119,25 @@ namespace Geodesy.Controllers.Caching
 			return Path.Combine (cacheRoot.FullName, Path.Combine (hash.Substring (0, 2), hash));
 		}
 
+		/// <summary>
+		/// Stores the cache item in the in-memory immediate cache for fast access.
+		/// </summary>
+		/// <param name="hash">Hash.</param>
+		/// <param name="item">Item.</param>
 		private void StoreInMemory (string hash, CacheItem item)
 		{
 			if (Size + item.Data.Length > SizeLimit)
-				return;
+			{
+				GC ();
+			}
 
 			Size += item.Data.Length;
 			inMemoryCache.Add (hash, item);
+		}
+
+		private void GC ()
+		{
+			// TODO: free memory
 		}
 
 		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs e)
@@ -144,7 +156,7 @@ namespace Geodesy.Controllers.Caching
 			}
 
 			File.WriteAllBytes (Path.Combine (itemDirectory, request.Hash), e.Result);
-			StoreInMemory (request.Hash, new CacheItem (e.Result));
+			StoreInMemory (request.Hash, new CacheItem (request.Hash, e.Result));
 		}
 
 		#endregion
