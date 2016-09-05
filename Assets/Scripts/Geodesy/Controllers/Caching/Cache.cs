@@ -85,7 +85,13 @@ namespace Geodesy.Controllers.Caching
 
 		private string Hash (string s)
 		{
-			return s.GetHashCode ().ToString ("x");
+			byte[] hash;
+			using (SHA1 sha1 = SHA1.Create ())
+			{
+				hash = sha1.ComputeHash (Encoding.UTF8.GetBytes (s));
+			}
+
+			return BitConverter.ToString (hash).Replace ("-", string.Empty);
 		}
 
 		private void Download (UriRequest request)
