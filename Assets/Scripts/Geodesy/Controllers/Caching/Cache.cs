@@ -134,9 +134,13 @@ namespace Geodesy.Controllers.Caching
 			inMemoryCache.Add (new KeyValuePair<string, CacheItem> (hash, item));
 		}
 
+		/// <summary>
+		/// Calls the garbage collector to partially free the immediate cache.
+		/// </summary>
 		private void GC ()
 		{
-			// TODO: free memory
+			int bytesToFree = (int)(Size * 0.2f);
+			//TODO: implement freeing the leaf-level nodes based on number of accesses.
 		}
 
 		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs e)
