@@ -131,8 +131,16 @@ namespace Geodesy.Controllers
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
 		{
-			float dist = arg.Position.magnitude - 6300;
-			grid.Resolution = (int)(dist / 800);
+			float altitude = (float)Globe.Instance.Project (arg.Position).Altitude;
+			float minAlt = 1000000;
+			float maxAlt = 40000000;
+
+			altitude = Mathf.Clamp (altitude, minAlt, maxAlt);
+			float t = (float)((altitude - minAlt) / maxAlt);
+
+			grid.Resolution = (int)(t * 40);
+
+			grid.Thickness = t * 4;
 		}
 
 		private void OnGridChanged (object sender, EventArgs args)

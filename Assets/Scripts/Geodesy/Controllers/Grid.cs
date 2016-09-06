@@ -24,8 +24,10 @@ namespace Geodesy.Controllers
 
 		private Material gridMaterial;
 		private int resolution;
+		private float thickness;
 
-		private List<GameObject> gridLines = new List<GameObject> (128);
+		private List<GameObject> horizontalGridLines = new List<GameObject> (128);
+		private List<GameObject> verticalGridLines = new List<GameObject> (128);
 
 		/// <summary>
 		/// How many degrees are between each grid line ?
@@ -44,6 +46,27 @@ namespace Geodesy.Controllers
 			}
 		}
 
+		public float Thickness
+		{
+			get { return thickness; }
+			set
+			{
+				thickness = Mathf.Clamp (MAX_LINE_WIDTH * value, MIN_LINE_WIDTH, MAX_LINE_WIDTH);
+				foreach (var line in verticalGridLines)
+				{
+					Vector3 scale = line.transform.localScale;
+					scale.x = thickness;
+					line.transform.localScale = scale;
+				}
+				foreach (var line in horizontalGridLines)
+				{
+					Vector3 scale = line.transform.localScale;
+					scale.y = thickness;
+					line.transform.localScale = scale;
+				}
+			}
+		}
+
 		public Grid () : base ("grid", Layer.MaxDepth)
 		{
 			Visible = SettingProvider.Get (false, "Grid", "Visible");
@@ -55,28 +78,22 @@ namespace Geodesy.Controllers
 		// Create a basic grid.
 		private void CreateGrid ()
 		{
-			// Create permanent lines
-
-			// equator
-			AddGridLine (GridLineOrientation.Horizontal, 0, Colors.DarkRed, false);
-
-			// tropics
-			AddGridLine (GridLineOrientation.Horizontal, 23.43713f, Colors.Cyan, false);
-			AddGridLine (GridLineOrientation.Horizontal, -23.43713f, Colors.Cyan, false);
-
-			// prime meridian
-			AddGridLine (GridLineOrientation.Vertical, 0, Colors.DarkBlue, false);
-
-			// Create secondary lines
 			CreateGridLines (resolution);
 		}
 
 		private void DestroyGridLines ()
 		{
-			foreach (GameObject line in gridLines)
+			foreach (GameObject line in horizontalGridLines)
 			{
 				GameObject.Destroy (line);
 			}
+			foreach (GameObject line in verticalGridLines)
+			{
+				GameObject.Destroy (line);
+			}
+
+			verticalGridLines.Clear ();
+			horizontalGridLines.Clear ();
 		}
 
 		private void CreateGridLines (int resolution)
@@ -86,7 +103,7 @@ namespace Geodesy.Controllers
 			for (int i = -180; i < 180; i += resolution)
 			{
 				if (i == 0)
-					continue;
+					AddGridLine (GridLineOrientation.Vertical, 0, Colors.DarkBlue);
 
 				AddGridLine (GridLineOrientation.Vertical, i, Colors.LightGrey);
 			}
@@ -94,10 +111,13 @@ namespace Geodesy.Controllers
 			for (int i = -90; i < 90; i += resolution)
 			{
 				if (i == 0)
-					continue;
+					AddGridLine (GridLineOrientation.Horizontal, 0, Colors.DarkRed);
 
 				AddGridLine (GridLineOrientation.Horizontal, i, Colors.LightGrey);
 			}
+
+			AddGridLine (GridLineOrientation.Horizontal, 23.43713f, Colors.Cyan);
+			AddGridLine (GridLineOrientation.Horizontal, -23.43713f, Colors.Cyan);
 
 			RaiseChanged ();
 		}
@@ -108,16 +128,16 @@ namespace Geodesy.Controllers
 		/// <param name="orientation">Orientation (Horizonal/Vertical).</param>
 		/// <param name="value">The position of the line: latitude if horizonal, longitude if vertical.</param>
 		/// <param name="color">Color of the line.</param>
-		private void AddGridLine (GridLineOrientation orientation, float value, Color color, bool addToList = true)
+		private void AddGridLine (GridLineOrientation orientation, float value, Color color)
 		{
 			var lineMesh = MeshBuilder.GetQuad ();
 
 			var line = new GameObject ("_grid_line");
 
-			if (addToList)
-			{
-				gridLines.Add (line);
-			}
+			if (orientation == GridLineOrientation.Horizontal)
+				horizontalGridLines.Add (line);
+			else
+				verticalGridLines.Add (line);
 
 			line.layer = compositingLayer;
 			line.transform.parent = node.transform;
