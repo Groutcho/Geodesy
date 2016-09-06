@@ -11,6 +11,12 @@ namespace Geodesy.Controllers.Settings
 	{
 		public static Section Root { get; private set; }
 
+		private enum SettingFile
+		{
+			User,
+			Default
+		}
+
 		/// <summary>
 		/// Loads the default settings.
 		/// </summary>
@@ -39,35 +45,23 @@ namespace Geodesy.Controllers.Settings
 			return defaultValue;
 		}
 
-		private static void LoadDefaultSettings ()
-		{
-			Root =
-				new Section ("Settings", 
-				new Section ("Mesh builder", 
-					new Setting ("Max threads", 3)),
-				new Section ("Grid", new Setting ("Visible", false)));
-
-			Save ();
-		}
-
 		/// <summary>
 		/// Load the settings from the settings.json file.
 		/// </summary>
 		public static void Load ()
 		{
-			string settingFile = GetSettingFilename ();
+			string settingFile = GetSettingFilename (SettingFile.User);
 			if (!File.Exists (settingFile))
 			{
-				LoadDefaultSettings ();
-			} else
-			{
-				Root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
+				settingFile = GetSettingFilename (SettingFile.Default);
 			}
+
+			Root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
 		}
 
 		public static void Save ()
 		{
-			string settingFile = GetSettingFilename ();
+			string settingFile = GetSettingFilename (SettingFile.User);
 
 			JsonSerializer serializer = new JsonSerializer ();
 			serializer.Formatting = Formatting.Indented;
@@ -81,15 +75,25 @@ namespace Geodesy.Controllers.Settings
 			}
 		}
 
-		private static string GetSettingFilename ()
+		private static string GetSettingFilename (SettingFile type)
 		{
-			string userPath = Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData);
-			string applicationDirectory = Path.Combine (userPath, "Terra");
-			if (!Directory.Exists (applicationDirectory))
+			string settingFile;
+			if (type == SettingFile.User)
 			{
-				Directory.CreateDirectory (applicationDirectory);
+				string userPath = Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData);
+				string applicationDirectory = Path.Combine (userPath, "Terra");
+				if (!Directory.Exists (applicationDirectory))
+				{
+					Directory.CreateDirectory (applicationDirectory);
+				}
+				settingFile = Path.Combine (applicationDirectory, "settings.json");
+			} else
+			{
+				string commonPath = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
+				string applicationDirectory = Path.Combine (commonPath, "Terra");
+				settingFile = Path.Combine (applicationDirectory, "default-settings.json");
 			}
-			string settingFile = Path.Combine (applicationDirectory, "settings.json");
+
 			return settingFile;
 		}
 
