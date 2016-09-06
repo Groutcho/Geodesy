@@ -19,18 +19,40 @@ namespace Geodesy.Controllers.Caching
 		HashTree inMemoryCache = new HashTree ();
 		private WebClient downloader = new WebClient ();
 
-		private object monitor = new object ();
+		private object requestLocker = new object ();
 		private Stack<ICacheRequest> completedRequests = new Stack<ICacheRequest> (128);
 		private List<ICacheRequest> toDispatch = new List<ICacheRequest> (128);
 		private int dispatchLimitPerFrame;
+		private float freeIncrement;
+		private object syncRoot = new object ();
 
 		public long SizeLimit { get; set; }
 
 		public static Cache Instance { get; private set; }
 
+		public Cache (int initialSizeLimitBytes)
+		{
+			Instance = this;
+
+			SizeLimit = MegabytesToBytes (SettingProvider.Get (300L, "Cache", "Size limit (MB)"));
+			dispatchLimitPerFrame = (int)Settings.SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
+			freeIncrement = (float)SettingProvider.Get (0.1d, "Cache", "Free increment (%)");
+
+			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
+			string terraDir = Path.Combine (commonAppData, "Terra");
+			cacheRoot = new DirectoryInfo (Path.Combine (terraDir, "cache"));
+			if (!cacheRoot.Exists)
+				cacheRoot.Create ();
+
+			if (Console.Instance != null)
+			{
+				Console.Instance.Register ("cache", ExecuteCacheCommands);
+			}
+		}
+
 		public void Update ()
 		{
-			lock (monitor)
+			lock (requestLocker)
 			{
 				if (completedRequests.Count > 0)
 				{
@@ -49,36 +71,24 @@ namespace Geodesy.Controllers.Caching
 			toDispatch.Clear ();
 		}
 
-		private long MegabytesToBytes (long megabytes)
-		{
-			return megabytes * 1024 * 1024;
-		}
-
-		public Cache (int initialSizeLimitBytes)
-		{
-			Instance = this;
-
-			SizeLimit = MegabytesToBytes (SettingProvider.Get (300L, "Cache", "Size limit (MB)"));
-			dispatchLimitPerFrame = (int)Settings.SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
-
-			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
-			string terraDir = Path.Combine (commonAppData, "Terra");
-			cacheRoot = new DirectoryInfo (Path.Combine (terraDir, "cache"));
-			if (!cacheRoot.Exists)
-				cacheRoot.Create ();
-
-			if (Console.Instance != null)
-			{
-				Console.Instance.Register ("cache", ExecuteCacheCommands);
-			}
-		}
-
 		public void Get (Uri uri, Action<Uri, byte[]> callback)
 		{
 			string hash = Hash (uri);
-			if (inMemoryCache.ContainsKey (hash))
+			bool contains;
+
+			lock (syncRoot)
 			{
-				callback (uri, inMemoryCache [hash].Data);
+				contains = inMemoryCache.ContainsKey (hash);
+			}
+
+			if (contains)
+			{
+				byte[] data;
+				lock (syncRoot)
+				{
+					data = inMemoryCache [hash].Data;
+				}
+				callback (uri, data);
 			} else
 			{
 				Fetch (hash, uri, callback);
@@ -87,12 +97,17 @@ namespace Geodesy.Controllers.Caching
 
 		#region helpers
 
-		private string Hash (Uri uri)
+		private static long MegabytesToBytes (long megabytes)
+		{
+			return megabytes * 1024 * 1024;
+		}
+
+		private static string Hash (Uri uri)
 		{
 			return Hash (uri.AbsoluteUri);
 		}
 
-		private string Hash (string s)
+		private static string Hash (string s)
 		{
 			byte[] hash;
 			using (SHA1 sha1 = SHA1.Create ())
@@ -118,7 +133,13 @@ namespace Geodesy.Controllers.Caching
 			{
 				byte[] data = File.ReadAllBytes (diskPath);
 				callback (uri, data);
-				if (!inMemoryCache.ContainsKey (hash))
+				bool contains;
+				lock (syncRoot)
+				{
+					contains = inMemoryCache.ContainsKey (hash);
+				}
+
+				if (!contains)
 				{
 					StoreInMemory (hash, new CacheItem (hash, data));
 				}
@@ -136,16 +157,22 @@ namespace Geodesy.Controllers.Caching
 		/// <summary>
 		/// Stores the cache item in the in-memory immediate cache for fast access.
 		/// </summary>
-		/// <param name="hash">Hash.</param>
-		/// <param name="item">Item.</param>
 		private void StoreInMemory (string hash, CacheItem item)
 		{
-			if (inMemoryCache.Size + item.Data.Length > SizeLimit)
+			lock (syncRoot)
 			{
-				GC ();
-			}
+				if (inMemoryCache.ContainsKey (hash))
+				{
+					return;
+				}
 
-			inMemoryCache.Add (new KeyValuePair<string, CacheItem> (hash, item));
+				if (inMemoryCache.Size + item.Data.Length > SizeLimit)
+				{
+					GC ();
+				}
+
+				inMemoryCache.Add (new KeyValuePair<string, CacheItem> (hash, item));
+			}
 		}
 
 		/// <summary>
@@ -172,7 +199,7 @@ namespace Geodesy.Controllers.Caching
 
 			request.Data = e.Result;
 
-			lock (monitor)
+			lock (requestLocker)
 			{
 				completedRequests.Push (request);
 			}
