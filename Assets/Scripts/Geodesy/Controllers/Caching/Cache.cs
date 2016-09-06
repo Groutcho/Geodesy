@@ -8,6 +8,7 @@ using System.Text;
 using System.Linq;
 using Console = Geodesy.Views.Debugging.Console;
 using Geodesy.Views.Debugging;
+using Geodesy.Controllers.Settings;
 
 namespace Geodesy.Controllers.Caching
 {
@@ -21,11 +22,9 @@ namespace Geodesy.Controllers.Caching
 		private object monitor = new object ();
 		private Stack<ICacheRequest> completedRequests = new Stack<ICacheRequest> (128);
 		private List<ICacheRequest> toDispatch = new List<ICacheRequest> (128);
-		private int dispatchLimitPerFrame = 100;
+		private int dispatchLimitPerFrame;
 
-		public int Size { get; private set; }
-
-		public int SizeLimit { get; set; }
+		public long SizeLimit { get; set; }
 
 		public static Cache Instance { get; private set; }
 
@@ -50,11 +49,18 @@ namespace Geodesy.Controllers.Caching
 			toDispatch.Clear ();
 		}
 
+		private long MegabytesToBytes (long megabytes)
+		{
+			return megabytes * 1024 * 1024;
+		}
+
 		public Cache (int initialSizeLimitBytes)
 		{
 			Instance = this;
 
-			SizeLimit = initialSizeLimitBytes;
+			SizeLimit = MegabytesToBytes (SettingProvider.Get (300L, "Cache", "Size limit (MB)"));
+			dispatchLimitPerFrame = (int)Settings.SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
+
 			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
 			string terraDir = Path.Combine (commonAppData, "Terra");
 			cacheRoot = new DirectoryInfo (Path.Combine (terraDir, "cache"));
@@ -134,12 +140,11 @@ namespace Geodesy.Controllers.Caching
 		/// <param name="item">Item.</param>
 		private void StoreInMemory (string hash, CacheItem item)
 		{
-			if (Size + item.Data.Length > SizeLimit)
+			if (inMemoryCache.Size + item.Data.Length > SizeLimit)
 			{
 				GC ();
 			}
 
-			Size += item.Data.Length;
 			inMemoryCache.Add (new KeyValuePair<string, CacheItem> (hash, item));
 		}
 
@@ -148,7 +153,7 @@ namespace Geodesy.Controllers.Caching
 		/// </summary>
 		private void GC ()
 		{
-			int bytesToFree = (int)(Size * 0.2f);
+			int bytesToFree = (int)(inMemoryCache.Size * 0.2f);
 			//TODO: implement freeing the leaf-level nodes based on number of accesses.
 		}
 
@@ -188,9 +193,10 @@ namespace Geodesy.Controllers.Caching
 
 		private CommandResult ExecuteCacheCommands (Command command)
 		{
-			if (Console.Matches (command, new Token (Token.T_ID, "use")))
+			if (Console.Matches (command, new Token (Token.T_ID, "stats")))
 			{
-				return new CommandResult (string.Format ("{0} B ({1} MB) - {2:P2} used.", Size, Size / 1024 / 1024, Size / (float)SizeLimit));
+				long size = inMemoryCache.Size;
+				return new CommandResult (string.Format ("{0} B ({1} MB) - {2:P2} used.", size, size / 1024 / 1024, size / (float)SizeLimit));
 			}
 
 			if (Console.Matches (command, new Token (Token.T_ID, "fetch"), Token.STR))
@@ -200,7 +206,7 @@ namespace Geodesy.Controllers.Caching
 				return new CommandResult ("OK");
 			}
 
-			throw new CommandException ("cache size\ncache fetch <string>");
+			throw new CommandException ("cache stats\ncache fetch <string>");
 		}
 
 		private void ConsoleCallback (Uri uri, byte[] data)

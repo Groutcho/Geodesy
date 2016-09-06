@@ -8,6 +8,8 @@ namespace Geodesy.Controllers.Caching
 		private HashNode root;
 		private int count;
 
+		public long Size { get; private set; }
+
 		public HashTree ()
 		{
 			root = new HashNode (0, string.Empty);
@@ -29,20 +31,25 @@ namespace Geodesy.Controllers.Caching
 		{
 			root.Add (item.Hash, item);
 			count++;
+			Size += item.Data.Length;
 		}
 
 		public void Add (string hash, CacheItem item)
 		{
 			root.Add (hash, item);
 			count++;
+			Size += item.Data.Length;
 		}
 
 		public bool Remove (string key)
 		{
+			CacheItem toRemove = root.Get (key);
+
 			bool removed = root.Remove (key);
 			if (removed)
 			{
 				count--;
+				Size -= toRemove.Data.Length;
 			}
 
 			return removed;
@@ -100,6 +107,7 @@ namespace Geodesy.Controllers.Caching
 		public void Clear ()
 		{
 			count = 0;
+			Size = 0;
 			root.Clear ();
 		}
 
