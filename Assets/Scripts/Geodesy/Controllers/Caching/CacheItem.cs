@@ -8,6 +8,11 @@ namespace Geodesy.Controllers.Caching
 
 		public string Hash { get; private set; }
 
+		/// <summary>
+		/// Number of times this cache item has been accessed.
+		/// </summary>
+		public int AccessCount { get; set; }
+
 		public CacheItem (string hash, byte[] data)
 		{
 			if (data == null)
@@ -17,6 +22,11 @@ namespace Geodesy.Controllers.Caching
 
 			this.Data = data;
 			this.Hash = hash;
+		}
+
+		public long SizeInBytes
+		{
+			get { return this.Data.Length; }
 		}
 
 		#region IEquatable implementation

@@ -180,8 +180,26 @@ namespace Geodesy.Controllers.Caching
 		/// </summary>
 		private void GC ()
 		{
-			int bytesToFree = (int)(inMemoryCache.Size * 0.2f);
-			//TODO: implement freeing the leaf-level nodes based on number of accesses.
+			lock (syncRoot)
+			{
+				long bytesToFree = (long)(inMemoryCache.Size * freeIncrement);
+				long count = 0;
+
+				// Collect cache items by least number of accesses
+				IEnumerable<string> hashesToRemove = inMemoryCache.
+				OrderBy (item => item.Value.AccessCount).
+				TakeWhile (x =>
+				{
+					count += x.Value.SizeInBytes;
+					return count < bytesToFree;
+				}).
+				Select (x => x.Key);
+
+				foreach (string hash in hashesToRemove)
+				{
+					inMemoryCache.Remove (hash);
+				}
+			}
 		}
 
 		private void OnDownloadDataCompleted (object sender, DownloadDataCompletedEventArgs e)
