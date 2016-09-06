@@ -18,6 +18,11 @@ namespace Geodesy.Controllers.Settings
 		{
 			this.Value = value;
 		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[Setting {0}={1}]", Name, Value);
+		}
 	}
 }
 

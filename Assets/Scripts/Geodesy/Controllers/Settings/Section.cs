@@ -54,6 +54,11 @@ namespace Geodesy.Controllers.Settings
 		{
 			this.Elements = elements;
 		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[Section {0}]", Name);
+		}
 	}
 }
 
