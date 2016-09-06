@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Geodesy.Controllers.Caching
 {
-	public class HashNode
+	public class HashNode : IEnumerator<KeyValuePair<string, CacheItem>>
 	{
 		public const int PrefixLength = 4;
 		public const int MaxLevel = 40 / PrefixLength;
@@ -72,7 +73,10 @@ namespace Geodesy.Controllers.Caching
 				foreach (var item in items)
 				{
 					if (item != null && item.Hash == hash)
+					{
+						item.AccessCount++;
 						return item;
+					}
 				}
 
 				return null;
@@ -154,6 +158,82 @@ namespace Geodesy.Controllers.Caching
 				children.Add (newChild);
 			}
 		}
+
+		#region IEnumerator implementation
+
+		private int currentChild = -1;
+		private int currentItem = -1;
+
+		bool IEnumerator.MoveNext ()
+		{
+			if (IsLeafNode ())
+			{
+				if (currentItem == items.Count - 1)
+				{
+					return false;
+				} else
+				{
+					currentItem++;
+					return true;
+				}
+			}
+
+			if (!(children [currentChild] as IEnumerator).MoveNext ())
+			{
+				if (currentChild == children.Count - 1)
+				{
+					return false;
+				} else
+				{
+					return true;
+				}
+			}
+
+			return true;
+		}
+
+		void IEnumerator.Reset ()
+		{
+			currentItem = -1;
+			currentChild = -1;
+		}
+
+		object IEnumerator.Current
+		{
+			get
+			{
+				return (this as IEnumerator<KeyValuePair<string, CacheItem>>).Current;
+			}
+		}
+
+		#endregion
+
+		#region IDisposable implementation
+
+		void IDisposable.Dispose ()
+		{
+			// there are no managed resources to dispose.
+		}
+
+		#endregion
+
+		#region IEnumerator implementation
+
+		KeyValuePair<string, CacheItem> IEnumerator<KeyValuePair<string, CacheItem>>.Current
+		{
+			get
+			{
+				if (IsLeafNode ())
+				{
+					return new KeyValuePair<string, CacheItem> (items [currentItem].Hash, items [currentItem]);
+				} else
+				{
+					return (children [currentChild] as IEnumerator<KeyValuePair<string, CacheItem>>).Current;
+				}
+			}
+		}
+
+		#endregion
 	}
 }
 

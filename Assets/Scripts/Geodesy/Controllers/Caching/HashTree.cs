@@ -148,7 +148,7 @@ namespace Geodesy.Controllers.Caching
 
 		public IEnumerator<KeyValuePair<string, CacheItem>> GetEnumerator ()
 		{
-			throw new NotImplementedException ();
+			return root;
 		}
 
 		#endregion
@@ -157,7 +157,7 @@ namespace Geodesy.Controllers.Caching
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator ()
 		{
-			throw new NotImplementedException ();
+			return root;
 		}
 
 		#endregion
