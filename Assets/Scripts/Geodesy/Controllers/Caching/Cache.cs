@@ -110,7 +110,12 @@ namespace Geodesy.Controllers.Caching
 			string diskPath = GetDiskPath (hash);
 			if (File.Exists (diskPath))
 			{
-				callback (uri, File.ReadAllBytes (diskPath));
+				byte[] data = File.ReadAllBytes (diskPath);
+				callback (uri, data);
+				if (!inMemoryCache.ContainsKey (hash))
+				{
+					StoreInMemory (hash, new CacheItem (hash, data));
+				}
 			} else
 			{
 				Download (new UriRequest (uri, hash, callback));
