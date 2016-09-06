@@ -109,10 +109,7 @@ namespace Geodesy.Controllers
 				RaycastHit hit;
 				if (Physics.Raycast (viewpoint.Camera.ScreenPointToRay (Input.mousePosition), out hit))
 				{
-					float lat = Mathf.Clamp (Vector3.Angle (new Vector3 (hit.point.x, hit.point.y, 0), Vector3.right) * Mathf.Sign (hit.point.y), -90, 90);
-					float lon = Mathf.Clamp (Vector3.Angle (new Vector3 (hit.point.x, 0, hit.point.z), Vector3.right) * Mathf.Sign (hit.point.z), -180, 180);
-
-					return new LatLon (lat, lon, 0);
+					return Project (hit.point);
 				}
 				return new LatLon ();
 			}
@@ -121,6 +118,18 @@ namespace Geodesy.Controllers
 		public Vector3 Project (LatLon point)
 		{
 			return Project (point.Latitude, point.Longitude, point.Altitude);
+		}
+
+		public LatLon Project (Vector3 point)
+		{
+			point /= reductionFactor;
+			float lat = Mathf.Clamp (Vector3.Angle (new Vector3 (point.x, point.y, 0), Vector3.right) * Mathf.Sign (point.y), -90, 90);
+			float lon = Mathf.Clamp (Vector3.Angle (new Vector3 (point.x, 0, point.z), Vector3.right) * Mathf.Sign (point.z), -180, 180);
+
+			Vector3 onSphere = Project (lat, lon);
+			float alt = Vector3.Distance (point, onSphere / reductionFactor);
+
+			return new LatLon (lat, lon, alt);
 		}
 
 		/// <summary>
