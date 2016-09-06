@@ -10,7 +10,7 @@ namespace Geodesy.Views.Debugging
 		}
 
 		public CommandException (string usage) :
-			base (string.Format ("usage: {0}", usage))
+			base (string.Format ("usage:\n{0}", usage))
 		{
 		}
 	}
