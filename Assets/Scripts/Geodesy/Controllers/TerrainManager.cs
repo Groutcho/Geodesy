@@ -5,6 +5,7 @@ using Geodesy.Models;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Geodesy.Controllers.Caching;
 
 namespace Geodesy.Controllers
 {
@@ -15,17 +16,19 @@ namespace Geodesy.Controllers
 		private enum TileStatus
 		{
 			// No data available for this tile
-			Missing = 0,
-
-			// Data available but not loaded
-			Existing = 1,
+			Unloaded = 0,
 
 			// The data is ready to be consumed
-			Loaded = 2
+			Loaded = 1,
+
+			// Data requested (to avoid new requests for the same tile)
+			Requested = 2,
 		}
 
 		private SrtmTile[,] grid = new SrtmTile[360, 180];
 		private byte[,] gridStatus = new byte[360, 180];
+		private Uri terrainProvider = new Uri (@"C:\SRTM\srtm\");
+		private Dictionary<Uri, LatLon> pendingRequests = new Dictionary<Uri, LatLon> (128);
 
 		public static TerrainManager Instance
 		{
@@ -38,41 +41,65 @@ namespace Geodesy.Controllers
 		public TerrainManager ()
 		{
 			instance = this;
-			CollectData (@"C:\SRTM\srtm");
+
+			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 		}
 
-		private void CollectData (string directory)
+		private void OnViewpointMoved (object sender, CameraMovedEventArgs args)
 		{
-			new Thread (() =>
+			LatLon point = ViewpointController.Instance.CurrentPosition;
+			RequestTilesAroundPoint (point);
+		}
+
+		/// <summary>
+		/// Request the loading of the four tiles that lie around the specified point.
+		/// </summary>
+		private void RequestTilesAroundPoint (LatLon point)
+		{
+			int lat = (int)point.Latitude;
+			int lon = (int)point.Longitude;
+
+			// bottom left
+			RequestTile (lat, lon - 1);
+
+			// bottom right
+			RequestTile (lat, lon);
+
+			// top left
+			RequestTile (lat + 1, lon);
+
+			// top right
+			RequestTile (lat + 1, lon + 1);
+		}
+
+		private void RequestTile (int lat, int lon)
+		{
+			// Tile already requested
+			if (gridStatus [lon + 180, lat + 90] != (byte)TileStatus.Unloaded)
+				return;
+
+			char northing = lat < 0 ? 'S' : 'N';
+			char easting = lon < 0 ? 'W' : 'E';
+			string name = string.Format ("{0}{1:00}{2}{3:000}.hgt", northing, Math.Abs (lat), easting, Math.Abs (lon));
+			LatLon position = new LatLon (lat, lon);
+			Uri request = new Uri (terrainProvider, name);
+			pendingRequests.Add (request, position);
+			gridStatus [lon + 180, lat + 90] = (byte)TileStatus.Requested;
+
+			Cache.Instance.Get (request, OnDownloadCompleted);
+		}
+
+		private void OnDownloadCompleted (Uri uri, byte[] data)
+		{
+			if (!pendingRequests.ContainsKey (uri))
 			{
-				DirectoryInfo di = new DirectoryInfo (directory);
-				FileInfo[] files = di.GetFiles ();
-				for (int i = 0; i < files.Length; i++)
-				{
-					SrtmTile tile = Load (new Uri (files [i].FullName));
-					grid [tile.Easting, tile.Northing] = tile;
-					gridStatus [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
-				}
-			}).Start ();
-		}
+				// TODO: Log error
+				return;
+			}
 
-		static readonly Regex hgtRegex = new Regex (@"(N|S)(\d+)(E|W)(\d+)");
-
-		private SrtmTile Load (Uri uri)
-		{
-			byte[] data = File.ReadAllBytes (uri.AbsolutePath);
-
-			string name = Path.GetFileNameWithoutExtension (uri.AbsolutePath);
-
-			Match m = hgtRegex.Match (name);
-			int lat = int.Parse (m.Groups [2].Value);
-			int lon = int.Parse (m.Groups [4].Value);
-			if (m.Groups [1].Value == "S")
-				lat *= -1;
-			if (m.Groups [3].Value == "W")
-				lon *= -1;
-
-			return new SrtmTile (lat, lon, data);
+			SrtmTile tile = new SrtmTile (pendingRequests [uri], data);
+			grid [tile.Easting, tile.Northing] = tile;
+			gridStatus [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
 		}
 
 		/// <summary>
@@ -86,7 +113,7 @@ namespace Geodesy.Controllers
 			int i = (int)easting;
 			int j = (int)northing;
 
-			if (gridStatus [i % 360, j % 180] == (byte)TileStatus.Missing)
+			if (gridStatus [i % 360, j % 180] != (byte)TileStatus.Loaded)
 				return 0;
 
 			SrtmTile tile = grid [i, j];
