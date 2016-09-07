@@ -51,7 +51,7 @@ namespace Geodesy.Controllers
 			}
 		}
 
-		public LatLon CurrentPosition { get; private set; }
+		public LatLon CurrentPosition { get { return Globe.Instance.Project (viewpoint.Camera.transform.position); } }
 
 		public Camera CurrentCamera
 		{
