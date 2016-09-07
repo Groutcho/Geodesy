@@ -34,23 +34,21 @@ namespace Geodesy.Models
 
 		private int size;
 
-		private float latitude;
-		private float longitude;
+		private LatLon position;
 
 		public int Easting
 		{
-			get { return (int)(longitude) + 180; }
+			get { return (int)(position.Longitude) + 180; }
 		}
 
 		public int Northing
 		{
-			get { return (int)(latitude) + 90; }
+			get { return (int)(position.Latitude) + 90; }
 		}
 
-		public SrtmTile (float lat, float lon, byte[] data)
+		public SrtmTile (LatLon position, byte[] data)
 		{
-			this.latitude = lat;
-			this.longitude = lon;
+			this.position = position;
 			this.data = data;
 
 			if (data.Length == 1201 * 1201 * 2)
@@ -63,10 +61,10 @@ namespace Geodesy.Models
 
 		public bool Contains (float pLat, float pLon)
 		{
-			return pLat >= latitude &&
-			pLat < latitude + 1 &&
-			pLon >= longitude &&
-			pLon < longitude + 1;
+			return pLat >= position.Latitude &&
+			pLat < position.Latitude + 1 &&
+			pLon >= position.Longitude &&
+			pLon < position.Longitude + 1;
 		}
 
 		/// <summary>
