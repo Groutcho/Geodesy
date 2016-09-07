@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace Geodesy.Views.Debugging
 {
@@ -20,6 +21,7 @@ namespace Geodesy.Views.Debugging
 		private GameObject stackItemTemplate;
 		private Transform buffer;
 		private GameObject root;
+		private InputField inputField;
 
 		private const string Error = "ff0000ff";
 		private const string Normal = "ffffffff";
@@ -39,6 +41,7 @@ namespace Geodesy.Views.Debugging
 			stackItemTemplate.SetActive (false);
 
 			buffer = transform.Find ("console/Scroll View/Viewport/Content");
+			inputField = transform.Find ("console/userInput").GetComponent<InputField> ();
 
 			root.SetActive (false);
 		}
@@ -49,6 +52,8 @@ namespace Geodesy.Views.Debugging
 			{
 				visible = !visible;
 				root.SetActive (visible);
+
+				FocusOnInputField ();
 			}
 		}
 
@@ -87,12 +92,19 @@ namespace Geodesy.Views.Debugging
 			handlers.Add (keyword, handler);
 		}
 
+		private void FocusOnInputField ()
+		{
+			inputField.Select ();
+			inputField.OnPointerClick (new PointerEventData (EventSystem.current));
+		}
+
 		public void SubmitInput (string input)
 		{
 			if (string.IsNullOrEmpty (input))
 				return;
 
 			ProcessLine (input);
+			FocusOnInputField ();
 		}
 
 		private void AddResponse (object response, string color)
@@ -137,11 +149,6 @@ namespace Geodesy.Views.Debugging
 		private void ProcessLine (string line)
 		{
 			string actual = line.Trim ();
-			if (actual.Length == 0)
-			{
-				// ghost key press
-				return;
-			}
 
 			// Add line to the buffer
 			AddLine (line);
