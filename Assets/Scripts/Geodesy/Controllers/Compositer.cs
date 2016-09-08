@@ -78,7 +78,6 @@ namespace Geodesy.Controllers
 		private List<Layer> layers = new List<Layer> (10);
 		private Stack<Location> renderStack = new Stack<Location> (128);
 		List<Node> toRender = new List<Node> (100);
-		private object renderQueueMonitor = new object ();
 
 		public bool BackgroundVisible
 		{
