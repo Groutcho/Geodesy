@@ -68,23 +68,35 @@ namespace Geodesy.Controllers
 
 		/// <summary>
 		/// Request the loading of the four tiles that lie around the specified point.
+		/// If any of those tiles is out of bounds (too north or too south), ignore it.
 		/// </summary>
 		private void RequestTilesAroundPoint (LatLon point)
 		{
 			int lat = (int)point.Latitude;
 			int lon = (int)point.Longitude;
 
+			if (lat >= 90 || lat < -90)
+				return;
+
 			// bottom left
-			RequestTile (lat, lon - 1);
+			if (lon == -180)
+				RequestTile(lat, 179);
+			else if (lon == 180)
+				RequestTile(lat, -179);
+			else
+				RequestTile(lat, lon - 1);
 
 			// bottom right
 			RequestTile (lat, lon);
 
-			// top left
-			RequestTile (lat + 1, lon);
+			if (lat < 90)
+			{
+				// top left
+				RequestTile(lat + 1, lon);
 
-			// top right
-			RequestTile (lat + 1, lon + 1);
+				// top right
+				RequestTile(lat + 1, lon + 1);
+			}
 		}
 
 		/// <summary>
