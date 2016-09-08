@@ -127,11 +127,25 @@ namespace Geodesy.Models
 			char easting = longitude >= 0 ? 'E' : 'W';
 
 			return string.Format (
-				"{0} {1:00}° {2:00}' {3:F4}\" " +
-				"{4} {5:00}° {6:00}' {7:F4}\", " +
+				"{0} {1:00}° {2:00}' {3:F4} " +
+				"{4} {5:00}° {6:00}' {7:F4}, " +
 				"{8:0}m",
 				northing, LatDegrees, LatMinutes, LatSeconds,
 				easting, LonDegrees, LonMinutes, LonSeconds,
+				Altitude);
+		}
+
+		public string ToShortString()
+		{
+			char northing = latitude >= 0 ? 'N' : 'S';
+			char easting = longitude >= 0 ? 'E' : 'W';
+
+			return string.Format(
+				"{0} {1:00}° {2:00}' " +
+				"{3} {4:00}° {5:00}', " +
+				"{6:0}m",
+				northing, LatDegrees, LatMinutes,
+				easting, LonDegrees, LonMinutes,
 				Altitude);
 		}
 
