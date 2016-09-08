@@ -41,8 +41,29 @@ namespace Geodesy.Controllers
 			patchRoot.transform.parent = globe.transform;
 			patches = new Dictionary<Location, Patch> (MaxPatchCount);
 			TerrainGradient = terrainGradient;
+			TerrainManager.Instance.TileAvailable += OnTerrainTileAvailable;
 
 			Views.Debugging.Console.Instance.Register ("patch", HandlePatchCommand);
+		}
+
+		/// <summary>
+		/// Request a new mesh for all the visible patches that intersect with this new tile.
+		/// </summary>
+		private void OnTerrainTileAvailable(object sender, EventArgs e)
+		{
+			GeoRectangle tileArea = (e as TileAvailableEventArgs).Rectangle;
+
+			foreach (Node node in Globe.Instance.Tree.GetVisibleNodes())
+			{
+				// Ignore patches that don't even show the terrain
+				if (node.Location.depth < Patch.TerrainDisplayedDepth)
+					continue;
+
+				if (tileArea.Intersects(node.Location))
+				{
+					MeshBuilder.Instance.RequestPatchMesh(node.Location);
+				}
+			}
 		}
 
 		private void OnPatchRequestReady (object sender, MeshGeneratedEventArgs args)
@@ -125,7 +146,13 @@ namespace Geodesy.Controllers
 
 			if (!patches.TryGetValue (node.Location, out patch))
 			{
-				patch = AddPatch (node.Location);
+				patch = AddPatch(node.Location);
+			}
+			else
+			{
+				// Request a refreshed terrain mesh
+				if (node.Visible && node.Location.depth >= Patch.TerrainDisplayedDepth)
+					MeshBuilder.Instance.RequestPatchMesh(node.Location);
 			}
 
 			patch.Visible = node.Visible;

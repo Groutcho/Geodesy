@@ -1,14 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.IO;
+﻿using Geodesy.Controllers.Caching;
 using Geodesy.Models;
+using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading;
-using Geodesy.Controllers.Caching;
 
 namespace Geodesy.Controllers
 {
+	public class TileAvailableEventArgs : EventArgs
+	{
+		public GeoRectangle Rectangle { get; private set; }
+
+		public TileAvailableEventArgs(GeoRectangle rect)
+		{
+			this.Rectangle = rect;
+		}
+	}
+
 	public class TerrainManager
 	{
 		private static TerrainManager instance;
@@ -29,6 +35,8 @@ namespace Geodesy.Controllers
 		private byte[,] gridStatus = new byte[360, 180];
 		private Uri terrainProvider = new Uri (@"C:\SRTM\srtm\");
 		private Dictionary<Uri, LatLon> pendingRequests = new Dictionary<Uri, LatLon> (128);
+
+		public event EventHandler TileAvailable;
 
 		public static TerrainManager Instance
 		{
@@ -162,6 +170,19 @@ namespace Geodesy.Controllers
 			gridStatus [tile.Easting, tile.Northing] = (byte)TileStatus.Loaded;
 
 			pendingRequests.Remove (uri);
+
+			RaiseTileAvailableEvent(tile);
+		}
+
+		private void RaiseTileAvailableEvent(SrtmTile tile)
+		{
+			if (TileAvailable != null)
+			{
+				LatLon bottomLeft = new LatLon(tile.Easting, tile.Northing);
+				LatLon topRight = new LatLon(tile.Easting + 1, tile.Northing + 1);
+				GeoRectangle rect = new GeoRectangle(bottomLeft, topRight);
+				TileAvailable(this, new TileAvailableEventArgs(rect));
+			}
 		}
 
 		/// <summary>
