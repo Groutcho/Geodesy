@@ -111,7 +111,12 @@ namespace Geodesy.Controllers.Workers
 					subdivs = Patch.SubdivisionsWithTerrain;
 				}
 
-				newRequests.Enqueue (new PatchRequest (location, subdivs));
+				PatchRequest request = new PatchRequest(location, subdivs);
+
+				if (!newRequests.Contains(request))
+				{
+					newRequests.Enqueue(request);
+				}				
 			}
 
 			// In any case, return immediately with a low resolution patch.
