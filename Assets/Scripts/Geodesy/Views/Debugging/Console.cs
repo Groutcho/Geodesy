@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace Geodesy.Views.Debugging
+namespace OpenTerra.Views.Debugging
 {
 	public class Console : MonoBehaviour
 	{

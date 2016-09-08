@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Views.Debugging;
-using Geodesy.Models.QuadTree;
-using Geodesy.Controllers.Workers;
+using OpenTerra.Views.Debugging;
+using OpenTerra.Models.QuadTree;
+using OpenTerra.Controllers.Workers;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	public class Tile : IDisposable
 	{

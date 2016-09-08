@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Geodesy.Controllers.Settings
+namespace OpenTerra.Controllers.Settings
 {
 	internal class SettingConverter : JsonConverter
 	{

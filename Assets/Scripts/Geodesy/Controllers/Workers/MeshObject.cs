@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Geodesy.Controllers.Workers
+namespace OpenTerra.Controllers.Workers
 {
 	/// <summary>
 	/// Represents a mesh that has been generated in a background thread.

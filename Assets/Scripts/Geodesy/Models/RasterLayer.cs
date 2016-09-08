@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Geodesy.Controllers.Caching;
-using Geodesy.Views;
-using Geodesy.Views.Debugging;
+using OpenTerra.Controllers.Caching;
+using OpenTerra.Views;
+using OpenTerra.Views.Debugging;
 using UnityEngine;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	public delegate void NewDataAvailableHandler (Location coord);
 

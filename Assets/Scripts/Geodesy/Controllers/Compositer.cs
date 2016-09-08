@@ -1,15 +1,15 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Models.QuadTree;
+using OpenTerra.Models.QuadTree;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
-using Geodesy.Views;
-using Geodesy.Models;
-using Geodesy.Views.Debugging;
-using Console = Geodesy.Views.Debugging.Console;
+using OpenTerra.Views;
+using OpenTerra.Models;
+using OpenTerra.Views.Debugging;
+using Console = OpenTerra.Views.Debugging.Console;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	/// <summary>
 	/// Class responsible for compositing raster images into the map to be later cut into tiles assigned to the 3D patches on the surface of the globe.

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Controllers.Caching
+namespace OpenTerra.Controllers.Caching
 {
 	internal interface ICacheRequest
 	{

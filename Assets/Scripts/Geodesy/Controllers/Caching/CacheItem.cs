@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Controllers.Caching
+namespace OpenTerra.Controllers.Caching
 {
 	public class CacheItem : IEquatable<CacheItem>
 	{

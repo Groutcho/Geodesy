@@ -1,14 +1,14 @@
-﻿using Geodesy.Controllers.Workers;
-using Geodesy.Models;
-using Geodesy.Models.QuadTree;
-using Geodesy.Views;
-using Geodesy.Views.Debugging;
+﻿using OpenTerra.Controllers.Workers;
+using OpenTerra.Models;
+using OpenTerra.Models.QuadTree;
+using OpenTerra.Views;
+using OpenTerra.Views.Debugging;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Console = Geodesy.Views.Debugging.Console;
+using Console = OpenTerra.Views.Debugging.Console;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class PatchManager
 	{

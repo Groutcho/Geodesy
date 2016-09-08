@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Controllers.Caching
+namespace OpenTerra.Controllers.Caching
 {
 	public class UriRequest : ICacheRequest
 	{

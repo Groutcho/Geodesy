@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	/// <summary>
 	/// An abstract representation of a geodetic datum.

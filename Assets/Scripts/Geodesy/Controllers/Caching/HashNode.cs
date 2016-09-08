@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 
-namespace Geodesy.Controllers.Caching
+namespace OpenTerra.Controllers.Caching
 {
 	public class HashNode : IEnumerator<KeyValuePair<string, CacheItem>>
 	{

@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 
-namespace Geodesy.Controllers.Settings
+namespace OpenTerra.Controllers.Settings
 {
 	/// <summary>
 	/// Provides access to application settings, organized in sections.

@@ -1,14 +1,14 @@
 ﻿using System;
-using Geodesy.Views;
-using Geodesy.Models.QuadTree;
+using OpenTerra.Views;
+using OpenTerra.Models.QuadTree;
 using UnityEngine;
-using Geodesy.Models;
+using OpenTerra.Models;
 using System.Collections;
 using System.Collections.Generic;
-using Geodesy.Views.Debugging;
-using Console = Geodesy.Views.Debugging.Console;
+using OpenTerra.Views.Debugging;
+using Console = OpenTerra.Views.Debugging.Console;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class Globe : MonoBehaviour
 	{

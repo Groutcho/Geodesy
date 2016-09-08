@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Geodesy.Controllers;
+using OpenTerra.Controllers;
 
 public class MouseOrbitImproved : MonoBehaviour
 {

@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace Geodesy.Controllers.Workers
+namespace OpenTerra.Controllers.Workers
 {
 	public class MeshGeneratedEventArgs : EventArgs
 	{

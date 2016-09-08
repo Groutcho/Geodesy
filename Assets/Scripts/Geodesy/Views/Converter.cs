@@ -1,8 +1,8 @@
 ﻿using System;
-using Geodesy.Models;
+using OpenTerra.Models;
 using UnityEngine;
 
-namespace Geodesy.Views
+namespace OpenTerra.Views
 {
 	public static class Converter
 	{

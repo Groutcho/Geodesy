@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using Geodesy.Controllers;
+using OpenTerra.Controllers;
 using System.Collections;
 
-namespace Geodesy.Views
+namespace OpenTerra.Views
 {
 	public class UiController : MonoBehaviour
 	{

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Views.Debugging
+namespace OpenTerra.Views.Debugging
 {
 	public class CommandResult
 	{

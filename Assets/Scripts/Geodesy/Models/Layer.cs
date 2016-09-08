@@ -1,8 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Models.QuadTree;
+using OpenTerra.Models.QuadTree;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	public class Layer
 	{

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Geodesy.Controllers.Settings
+namespace OpenTerra.Controllers.Settings
 {
 	/// <summary>
 	/// Stores related settings.

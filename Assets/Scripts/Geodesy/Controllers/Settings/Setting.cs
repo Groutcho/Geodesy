@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace Geodesy.Controllers.Settings
+namespace OpenTerra.Controllers.Settings
 {
 	/// <summary>
 	/// Contains a single value associated to a setting name.

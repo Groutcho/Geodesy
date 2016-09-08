@@ -1,9 +1,9 @@
-﻿using Geodesy.Controllers.Caching;
-using Geodesy.Models;
+﻿using OpenTerra.Controllers.Caching;
+using OpenTerra.Models;
 using System;
 using System.Collections.Generic;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class TileAvailableEventArgs : EventArgs
 	{

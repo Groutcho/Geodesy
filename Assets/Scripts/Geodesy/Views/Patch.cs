@@ -1,10 +1,10 @@
 ﻿using System;
-using Geodesy.Controllers;
-using Geodesy.Controllers.Workers;
-using Geodesy.Models;
+using OpenTerra.Controllers;
+using OpenTerra.Controllers.Workers;
+using OpenTerra.Models;
 using UnityEngine;
 
-namespace Geodesy.Views
+namespace OpenTerra.Views
 {
 	public enum RenderingMode
 	{

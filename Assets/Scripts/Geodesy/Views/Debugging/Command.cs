@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Geodesy.Views.Debugging
+namespace OpenTerra.Views.Debugging
 {
 	public class Command
 	{

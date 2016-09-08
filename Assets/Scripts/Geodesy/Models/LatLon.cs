@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	/// <summary>
 	/// Represents a point given by geographic coordinates
@@ -89,7 +89,7 @@ namespace Geodesy.Models
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Geodesy.Models.LatLon"/> using decimal angles.
+		/// Initializes a new instance of the <see cref="OpenTerra.Models.LatLon"/> using decimal angles.
 		/// </summary>
 		/// <param name="decimalLat">Decimal latitude in degrees.</param>
 		/// <param name="decimalLon">Decimal longitude in degrees.</param>

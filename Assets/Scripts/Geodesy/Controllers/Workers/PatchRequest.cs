@@ -1,7 +1,7 @@
 ﻿using System;
-using Geodesy.Models;
+using OpenTerra.Models;
 
-namespace Geodesy.Controllers.Workers
+namespace OpenTerra.Controllers.Workers
 {
 	public class PatchRequest : IEquatable<PatchRequest>
 	{

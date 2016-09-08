@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Geodesy.Controllers;
+using OpenTerra.Controllers;
 using UnityEngine;
 
-namespace Geodesy.Models.QuadTree
+namespace OpenTerra.Models.QuadTree
 {
 	public class NodeUpdatedEventArgs : EventArgs
 	{

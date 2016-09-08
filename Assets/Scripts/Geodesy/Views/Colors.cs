@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Geodesy.Views
+namespace OpenTerra.Views
 {
 	public static class Colors
 	{

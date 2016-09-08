@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Text;
-using Geodesy.Models;
-using Geodesy.Views;
+using OpenTerra.Models;
+using OpenTerra.Views;
 using System;
-using Geodesy.Controllers.Workers;
-using Geodesy.Controllers.Settings;
-using Geodesy.Controllers.Caching;
+using OpenTerra.Controllers.Workers;
+using OpenTerra.Controllers.Settings;
+using OpenTerra.Controllers.Caching;
 using UnityEngine.SceneManagement;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class MainController : MonoBehaviour
 	{

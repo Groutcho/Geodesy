@@ -1,11 +1,11 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Views;
-using Geodesy.Views.Debugging;
-using Console = Geodesy.Views.Debugging.Console;
-using Geodesy.Models;
+using OpenTerra.Views;
+using OpenTerra.Views.Debugging;
+using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Models;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class CameraMovedEventArgs : EventArgs
 	{

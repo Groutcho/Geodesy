@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	public struct GeoMatrix
 	{

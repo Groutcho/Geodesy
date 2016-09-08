@@ -5,11 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Geodesy.Controllers.Settings;
-using Geodesy.Views.Debugging;
-using Console = Geodesy.Views.Debugging.Console;
+using OpenTerra.Controllers.Settings;
+using OpenTerra.Views.Debugging;
+using Console = OpenTerra.Views.Debugging.Console;
 
-namespace Geodesy.Controllers.Caching
+namespace OpenTerra.Controllers.Caching
 {
 	public class Cache
 	{

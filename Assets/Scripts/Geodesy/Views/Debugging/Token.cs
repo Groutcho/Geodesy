@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace Geodesy.Views.Debugging
+namespace OpenTerra.Views.Debugging
 {
 	public class Token
 	{

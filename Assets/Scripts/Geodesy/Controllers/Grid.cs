@@ -1,12 +1,12 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Views;
+using OpenTerra.Views;
 using System.Collections.Generic;
-using Geodesy.Models;
-using Geodesy.Controllers.Workers;
-using Geodesy.Controllers.Settings;
+using OpenTerra.Models;
+using OpenTerra.Controllers.Workers;
+using OpenTerra.Controllers.Settings;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class Grid : Layer
 	{

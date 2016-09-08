@@ -1,13 +1,13 @@
 ﻿using System;
-using Geodesy.Models;
+using OpenTerra.Models;
 using System.Collections.Generic;
-using Console = Geodesy.Views.Debugging.Console;
-using Geodesy.Views.Debugging;
+using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Views.Debugging;
 using Newtonsoft.Json;
 using UnityEngine;
 using System.IO;
 
-namespace Geodesy.Controllers
+namespace OpenTerra.Controllers
 {
 	public class BookmarkManager
 	{

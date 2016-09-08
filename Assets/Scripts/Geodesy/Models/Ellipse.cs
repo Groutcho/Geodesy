@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	public class Ellipse : Shape
 	{
@@ -10,7 +10,7 @@ namespace Geodesy.Models
 		private GeoMatrix transform;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Geodesy.Models.Ellipse"/> class.
+		/// Initializes a new instance of the <see cref="OpenTerra.Models.Ellipse"/> class.
 		/// </summary>
 		/// <param name="semimajorAxis">Semimajor axis.</param>
 		/// <param name="semiminorAxis">Semiminor axis.</param>

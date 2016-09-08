@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	/// <summary>
 	/// Define a location in a quadtree.

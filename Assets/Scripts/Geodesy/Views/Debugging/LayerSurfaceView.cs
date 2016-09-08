@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Models;
-using Geodesy.Controllers;
+using OpenTerra.Models;
+using OpenTerra.Controllers;
 
-namespace Geodesy.Views.Debugging
+namespace OpenTerra.Views.Debugging
 {
 	public class LayerSurfaceView : MonoBehaviour
 	{

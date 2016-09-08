@@ -1,8 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using Geodesy.Models;
+using OpenTerra.Models;
 
-namespace Geodesy.Views
+namespace OpenTerra.Views
 {
 	public class MatrixView : MonoBehaviour
 	{

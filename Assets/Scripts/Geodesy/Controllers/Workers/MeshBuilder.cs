@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using UnityEngine;
-using Geodesy.Views;
+using OpenTerra.Views;
 using System.Collections.Generic;
-using Geodesy.Controllers.Settings;
-using Geodesy.Models;
-using Geodesy.Models.QuadTree;
+using OpenTerra.Controllers.Settings;
+using OpenTerra.Models;
+using OpenTerra.Models.QuadTree;
 
-namespace Geodesy.Controllers.Workers
+namespace OpenTerra.Controllers.Workers
 {
 	/// <summary>
 	/// Background worker for heavy mesh generation.

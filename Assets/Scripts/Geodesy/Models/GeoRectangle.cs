@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Models
+namespace OpenTerra.Models
 {
 	/// <summary>
 	/// Describes a rectangle defined by geographic coordinates.

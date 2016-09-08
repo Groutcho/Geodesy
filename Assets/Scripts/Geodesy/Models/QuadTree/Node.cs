@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Geodesy.Controllers;
+using OpenTerra.Controllers;
 
-namespace Geodesy.Models.QuadTree
+namespace OpenTerra.Models.QuadTree
 {
 	public class Node
 	{

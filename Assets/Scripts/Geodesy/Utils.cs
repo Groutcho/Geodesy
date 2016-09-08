@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Geodesy
+namespace OpenTerra
 {
 	public static class Utils
 	{
