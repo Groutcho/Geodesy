@@ -52,9 +52,9 @@ namespace Geodesy.Models
 			double height = 180 / pow;
 
 			double minLon = width * source.i - 180;
-			double minLat = width * source.j - 90;
+			double maxLat = (pow - source.j) * height - 90;
 			double maxLon = minLon + width;
-			double maxLat = minLat + height;
+			double minLat = maxLat - height;
 
 			this.BottomLeft = new LatLon(minLat, minLon);
 			this.TopRight = new LatLon(maxLat, maxLon);
@@ -126,7 +126,8 @@ namespace Geodesy.Models
 
 		public bool Intersects(Location other)
 		{
-			return Intersects(new GeoRectangle(other));
+			GeoRectangle geoOther = new GeoRectangle(other);
+			return Intersects(geoOther);
 		}
 
 		public bool Equals(GeoRectangle other)
@@ -142,6 +143,35 @@ namespace Geodesy.Models
 			LatLon bottomLeft = rect.BottomLeft + operand;
 			LatLon topRight = rect.TopRight + operand;
 			return new GeoRectangle(bottomLeft, topRight);
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				int hash = 17;
+				hash = hash * 23 + BottomLeft.GetHashCode();
+				hash = hash * 23 + TopRight.GetHashCode();
+				return hash;
+			}
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is GeoRectangle)
+				return Equals((GeoRectangle)obj);
+
+			return false;
+		}
+
+		public override string ToString()
+		{
+			return string.Format(
+				"[GeoRectangle: bottomLeft= {0} topRight= {1} (width: {2}° height: {3}°)",
+				BottomLeft.ToShortString(),
+				TopRight.ToShortString(),
+				WidthDegrees,
+				HeightDegrees);
 		}
 	}
 }
