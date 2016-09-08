@@ -20,9 +20,7 @@ namespace Geodesy.Controllers
 
 		Datum datum;
 		Globe globe;
-		MeshBuilder meshBuilder;
 		BookmarkManager bookmarkManager;
-		Cache cache;
 		bool ready;
 
 		private IEnumerator StartRoutine ()
@@ -34,11 +32,8 @@ namespace Geodesy.Controllers
 
 			CreateView ();
 			CreateDatum ();
-			CreateCache ();
-			CreateMeshBuilder ();
 			CreateGlobe ();
 			CreateCompositer ();
-			CreateTerrainManager ();
 			CreateUiController ();
 			CreateBookmarkManager ();
 
@@ -53,22 +48,6 @@ namespace Geodesy.Controllers
 		void Start ()
 		{
 			StartCoroutine (StartRoutine ());
-		}
-
-		void CreateCache ()
-		{
-			// 256 MB of in-memory cache
-			cache = new Cache (1024 * 1024 * 256);
-		}
-
-		void CreateMeshBuilder ()
-		{
-			meshBuilder = new MeshBuilder ();
-		}
-
-		void CreateTerrainManager ()
-		{
-			new TerrainManager ();
 		}
 
 		void CreateBookmarkManager ()
@@ -119,8 +98,8 @@ namespace Geodesy.Controllers
 			if (!ready)
 				return;
 
-			cache.Update ();
-			meshBuilder.Update ();
+			Cache.Instance.Update ();
+			MeshBuilder.Instance.Update ();
 		}
 	}
 }

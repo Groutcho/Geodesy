@@ -34,14 +34,17 @@ namespace Geodesy.Controllers
 		{
 			get
 			{
+				if (instance == null)
+				{
+					instance = new TerrainManager();
+				}
+
 				return instance;
 			}
 		}
 
 		public TerrainManager ()
 		{
-			instance = this;
-
 			ViewpointController.Instance.HasMoved += OnViewpointMoved;
 		}
 

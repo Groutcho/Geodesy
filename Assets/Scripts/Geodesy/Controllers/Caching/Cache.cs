@@ -1,14 +1,13 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Linq;
-using Console = Geodesy.Views.Debugging.Console;
-using Geodesy.Views.Debugging;
 using Geodesy.Controllers.Settings;
+using Geodesy.Views.Debugging;
+using Console = Geodesy.Views.Debugging.Console;
 
 namespace Geodesy.Controllers.Caching
 {
@@ -17,7 +16,6 @@ namespace Geodesy.Controllers.Caching
 		private DirectoryInfo cacheRoot;
 
 		HashTree inMemoryCache = new HashTree ();
-		private WebClient downloader = new WebClient ();
 
 		private object requestLocker = new object ();
 		private Stack<ICacheRequest> completedRequests = new Stack<ICacheRequest> (128);
@@ -28,14 +26,23 @@ namespace Geodesy.Controllers.Caching
 
 		public long SizeLimit { get; set; }
 
-		public static Cache Instance { get; private set; }
-
-		public Cache (int initialSizeLimitBytes)
+		private static Cache instance;
+		public static Cache Instance
 		{
-			Instance = this;
+			get
+			{
+				if (instance == null)
+				{
+					instance = new Cache();
+				}
+				return instance;
+			}
+		}
 
+		public Cache ()
+		{
 			SizeLimit = MegabytesToBytes (SettingProvider.Get (300L, "Cache", "Size limit (MB)"));
-			dispatchLimitPerFrame = (int)Settings.SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
+			dispatchLimitPerFrame = (int)SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
 			freeIncrement = (float)SettingProvider.Get (0.1d, "Cache", "Free increment (%)");
 
 			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);

@@ -27,14 +27,23 @@ namespace Geodesy.Controllers.Workers
 		/// </summary>
 		public event MeshGeneratedEventHandler PatchRequestReady;
 
-		public static MeshBuilder Instance { get; private set; }
+		private static MeshBuilder instance;
+		public static MeshBuilder Instance
+		{
+			get
+			{
+				if (instance == null)
+				{
+					instance = new MeshBuilder();
+				}
+				return instance;
+			}
+		}
 
 		public MeshBuilder ()
 		{
 			SettingProvider.Changed += (object sender, EventArgs e) => UpdateSettings ();
 			UpdateSettings ();
-
-			Instance = this;
 		}
 
 		private void UpdateSettings ()
