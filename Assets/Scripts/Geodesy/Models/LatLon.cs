@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Geodesy.Models
 {
 	/// <summary>
 	/// Represents a point given by geographic coordinates
 	/// </summary>
-	//	[DataContract]
 	public struct LatLon : IEquatable<LatLon>, IComparable<LatLon>
 	{
 		#region fields
@@ -76,7 +74,7 @@ namespace Geodesy.Models
 			get
 			{
 				double abslonMinusDeg = Math.Abs (longitude) - LonDegrees;
-				return  3600 * abslonMinusDeg - 60 * LonMinutes;
+				return 3600 * abslonMinusDeg - 60 * LonMinutes;
 			}
 		}
 
@@ -98,8 +96,11 @@ namespace Geodesy.Models
 		/// <param name="altitude">Altitude in meters.</param>
 		public LatLon (double latitude, double longitude, double altitude)
 		{
-			if (longitude > 180 || longitude < -180)
-				throw new FormatException ("Invalid longitude: " + longitude.ToString ());
+			// wrap around cases
+			if (longitude > 180)
+				longitude = -180 + (longitude % 180);
+			if (longitude < -180)
+				longitude = 180 + (longitude % -180);
 
 			if (latitude > 90 || latitude < -90)
 				throw new FormatException ("Invalid latitude: " + latitude.ToString ());
@@ -107,6 +108,15 @@ namespace Geodesy.Models
 			this.longitude = longitude;
 			this.latitude = latitude;
 			this.altitude = altitude;
+		}
+
+		#endregion
+
+		#region operators
+
+		public static LatLon operator +(LatLon a, LatLon b)
+		{
+			return new LatLon(a.latitude + b.latitude, a.longitude + b.longitude);
 		}
 
 		#endregion
