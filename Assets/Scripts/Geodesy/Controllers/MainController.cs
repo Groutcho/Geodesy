@@ -14,14 +14,14 @@ namespace Geodesy.Controllers
 	public class MainController : MonoBehaviour
 	{
 		public Camera cameraNode;
-		private Viewpoint viewpoint;
 		public Material LineMaterial;
 		public Gradient Gradient;
 
-		Datum datum;
-		Globe globe;
-		BookmarkManager bookmarkManager;
-		bool ready;
+		private Viewpoint viewpoint;
+		private Datum datum;
+		private Globe globe;
+		private BookmarkManager bookmarkManager;
+		private bool ready;
 
 		private IEnumerator StartRoutine ()
 		{
