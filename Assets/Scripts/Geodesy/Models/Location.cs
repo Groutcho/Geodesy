@@ -58,6 +58,16 @@ namespace Geodesy.Models
 				return hash;
 			}
 		}
+
+		public static bool operator ==(Location a, Location b)
+		{
+			return a.Equals(b);
+		}
+
+		public static bool operator !=(Location a, Location b)
+		{
+			return !a.Equals(b);
+		}
 	}
 }
 
