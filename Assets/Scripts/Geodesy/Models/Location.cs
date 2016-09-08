@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Geodesy.Models.QuadTree
+namespace Geodesy.Models
 {
 	/// <summary>
 	/// Define a location in a quadtree.
@@ -15,6 +15,9 @@ namespace Geodesy.Models.QuadTree
 
 		public Location (int i, int j, int depth)
 		{
+			if (depth < 0)
+				throw new ArgumentException("The depth cannot be less than zero.");
+
 			this.i = i;
 			this.j = j;
 			this.depth = depth;

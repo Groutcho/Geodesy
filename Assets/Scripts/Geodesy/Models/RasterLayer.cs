@@ -1,16 +1,13 @@
 ﻿using System;
-using System.IO;
-using UnityEngine;
-using Geodesy.Views.Debugging;
 using System.Collections.Generic;
-using Geodesy.Views;
-using System.Linq;
-using Geodesy.Models.QuadTree;
 using Geodesy.Controllers.Caching;
+using Geodesy.Views;
+using Geodesy.Views.Debugging;
+using UnityEngine;
 
 namespace Geodesy.Models
 {
-	public delegate void NewDataAvailableHandler (QuadTree.Location coord);
+	public delegate void NewDataAvailableHandler (Location coord);
 
 	public class RasterLayer : Layer
 	{

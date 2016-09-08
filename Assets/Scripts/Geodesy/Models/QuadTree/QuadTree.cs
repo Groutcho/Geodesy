@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Geodesy.Controllers;
 using UnityEngine;
-using Geodesy.Views;
 
 namespace Geodesy.Models.QuadTree
 {

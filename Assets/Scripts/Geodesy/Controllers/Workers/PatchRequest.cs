@@ -1,5 +1,4 @@
-﻿using System;
-using Geodesy.Models.QuadTree;
+﻿using Geodesy.Models;
 
 namespace Geodesy.Controllers.Workers
 {

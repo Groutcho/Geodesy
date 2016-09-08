@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Geodesy.Controllers.Workers;
+using Geodesy.Models;
+using Geodesy.Models.QuadTree;
 using Geodesy.Views;
+using Geodesy.Views.Debugging;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Geodesy.Models.QuadTree;
-using Geodesy.Views.Debugging;
 using Console = Geodesy.Views.Debugging.Console;
-using Geodesy.Controllers.Workers;
 
 namespace Geodesy.Controllers
 {

@@ -1,9 +1,8 @@
 ﻿using System;
-using UnityEngine;
-using System.Collections.Generic;
 using Geodesy.Controllers;
 using Geodesy.Controllers.Workers;
-using Geodesy.Models.QuadTree;
+using Geodesy.Models;
+using UnityEngine;
 
 namespace Geodesy.Views
 {
