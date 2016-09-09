@@ -118,7 +118,15 @@ namespace OpenTerra.Controllers.Caching
 
 		public void CopyTo (KeyValuePair<string, CacheItem>[] array, int arrayIndex)
 		{
-			throw new NotImplementedException ();
+			if (array.Length < count)
+				throw new IndexOutOfRangeException("Insufficient space in destination array.");
+
+			int i = arrayIndex;
+			foreach (var item in this)
+			{
+				array[i] = new KeyValuePair<string, CacheItem>(item.Key, item.Value);
+				i++;
+			}
 		}
 
 		public bool Remove (KeyValuePair<string, CacheItem> item)
