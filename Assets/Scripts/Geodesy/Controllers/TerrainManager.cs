@@ -190,8 +190,12 @@ namespace OpenTerra.Controllers
 		{
 			if (TileAvailable != null)
 			{
-				LatLon bottomLeft = new LatLon(tile.Easting, tile.Northing);
-				LatLon topRight = new LatLon(tile.Easting + 1, tile.Northing + 1);
+				int easting = tile.Easting - 180;
+				int northing = tile.Northing - 90;
+
+				LatLon bottomLeft = new LatLon(easting, northing);
+				LatLon topRight = new LatLon(easting + 1, northing + 1);
+
 				GeoRectangle rect = new GeoRectangle(bottomLeft, topRight);
 				TileAvailable(this, new TileAvailableEventArgs(rect));
 			}
