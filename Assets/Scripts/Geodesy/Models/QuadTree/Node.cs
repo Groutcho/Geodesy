@@ -8,6 +8,8 @@ namespace OpenTerra.Models.QuadTree
 	public class Node
 	{
 		private QuadTree tree;
+		private IGlobe globe;
+		private IViewpointController viewpointController;
 
 		public readonly Location Location;
 
@@ -53,10 +55,10 @@ namespace OpenTerra.Models.QuadTree
 		public float GetScreenArea ()
 		{
 			Vector2[] v = new Vector2[4] {
-				ViewpointController.Instance.WorldToGUIPoint (corners [0]),
-				ViewpointController.Instance.WorldToGUIPoint (corners [1]),
-				ViewpointController.Instance.WorldToGUIPoint (corners [2]),
-				ViewpointController.Instance.WorldToGUIPoint (corners [3])
+				viewpointController.ActiveViewpoint.WorldToGUIPoint (corners [0]),
+				viewpointController.ActiveViewpoint.WorldToGUIPoint (corners [1]),
+				viewpointController.ActiveViewpoint.WorldToGUIPoint (corners [2]),
+				viewpointController.ActiveViewpoint.WorldToGUIPoint (corners [3])
 			};
 			
 			float minX = float.MaxValue;
@@ -76,11 +78,13 @@ namespace OpenTerra.Models.QuadTree
 			return Mathf.Abs ((maxX - minX) * (maxY - minY));
 		}
 
-		public Node (QuadTree tree, Node parent, Location location)
+		public Node (QuadTree tree, Node parent, Location location, IGlobe globe, IViewpointController viewpointController)
 		{
 			this.tree = tree;
 			this.Location = location;
 			this.Parent = parent;
+			this.globe = globe;
+			this.viewpointController = viewpointController;
 
 			int subdivs = (int)Math.Pow (2, location.depth);
 			float w = 360f / subdivs;
@@ -88,10 +92,10 @@ namespace OpenTerra.Models.QuadTree
 			float lat = (subdivs - location.j) * h - 90;
 			float lon = location.i * w - 180;
 
-			corners [0] = Globe.Instance.Project (lat, lon);
-			corners [1] = Globe.Instance.Project (lat, lon + w);
-			corners [2] = Globe.Instance.Project (lat - h, lon);
-			corners [3] = Globe.Instance.Project (lat - h, lon + w);
+			corners [0] = globe.Project (lat, lon);
+			corners [1] = globe.Project (lat, lon + w);
+			corners [2] = globe.Project (lat - h, lon);
+			corners [3] = globe.Project (lat - h, lon + w);
 
 			ComputeBounds ();
 		}
@@ -141,10 +145,10 @@ namespace OpenTerra.Models.QuadTree
 				int i = Location.i * 2;
 				int j = Location.j * 2;
 
-				children [0] = new Node (tree, this, new Location (i, j, childrenDepth));
-				children [1] = new Node (tree, this, new Location (i + 1, j, childrenDepth));
-				children [2] = new Node (tree, this, new Location (i, j + 1, childrenDepth));
-				children [3] = new Node (tree, this, new Location (i + 1, j + 1, childrenDepth));
+				children [0] = new Node (tree, this, new Location (i, j, childrenDepth), globe, viewpointController);
+				children [1] = new Node (tree, this, new Location (i + 1, j, childrenDepth), globe, viewpointController);
+				children [2] = new Node (tree, this, new Location (i, j + 1, childrenDepth), globe, viewpointController);
+				children [3] = new Node (tree, this, new Location (i + 1, j + 1, childrenDepth), globe, viewpointController);
 				isLeaf = false;
 				Visible = false;
 			} else

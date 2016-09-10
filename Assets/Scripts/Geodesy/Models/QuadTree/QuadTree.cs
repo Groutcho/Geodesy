@@ -21,12 +21,14 @@ namespace OpenTerra.Models.QuadTree
 		public const int MaxDepth = 19;
 
 		private Node root;
+		private IViewpointController viewpointController;
 
 		public event EventHandler NodeChanged;
 
-		public QuadTree ()
+		public QuadTree (IGlobe globe, IViewpointController viewpointController)
 		{
-			root = new Node (this, null, new Location (0, 0, 0));
+			this.viewpointController = viewpointController;
+			root = new Node (this, null, new Location (0, 0, 0), globe, viewpointController);
 			Divide (); // 4 nodes
 			Divide (); // 16 nodes
 			Divide (); // 64 nodes
@@ -126,7 +128,7 @@ namespace OpenTerra.Models.QuadTree
 		/// </summary>
 		private void UpdateNodeVisibility ()
 		{
-			Camera cam = ViewpointController.Instance.CurrentCamera;
+			Camera cam = viewpointController.ActiveViewpoint.Camera;
 			Vector3 cameraForward = cam.transform.forward;
 			Plane[] frustum = GeometryUtility.CalculateFrustumPlanes (cam);
 
