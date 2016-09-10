@@ -7,9 +7,9 @@ namespace OpenTerra.Controllers.Settings
 	/// <summary>
 	/// Provides access to application settings, organized in sections.
 	/// </summary>
-	public static class SettingProvider
+	public class SettingProvider : ISettingProvider
 	{
-		public static Section Root { get; private set; }
+		private Section root;
 
 		private enum SettingFile
 		{
@@ -17,12 +17,9 @@ namespace OpenTerra.Controllers.Settings
 			Default
 		}
 
-		/// <summary>
-		/// Loads the default settings.
-		/// </summary>
-		static SettingProvider ()
+		public SettingProvider()
 		{
-
+			Load();
 		}
 
 		/// <summary>
@@ -31,9 +28,9 @@ namespace OpenTerra.Controllers.Settings
 		/// </summary>
 		/// <param name="path">Path.</param>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public static T Get<T> (T defaultValue, params string[] path)
+		public T Get<T> (T defaultValue, params string[] path)
 		{
-			Setting setting = Root.Get (path);
+			Setting setting = root.Get (path);
 			if (setting == null)
 			{
 				return defaultValue;
@@ -48,7 +45,7 @@ namespace OpenTerra.Controllers.Settings
 		/// <summary>
 		/// Load the settings from the settings.json file.
 		/// </summary>
-		public static void Load ()
+		public void Load ()
 		{
 			string settingFile = GetSettingFilename (SettingFile.User);
 			if (!File.Exists (settingFile))
@@ -56,10 +53,10 @@ namespace OpenTerra.Controllers.Settings
 				settingFile = GetSettingFilename (SettingFile.Default);
 			}
 
-			Root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
+			root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
 		}
 
-		public static void Save ()
+		public void Save ()
 		{
 			string settingFile = GetSettingFilename (SettingFile.User);
 
@@ -70,12 +67,12 @@ namespace OpenTerra.Controllers.Settings
 			{
 				using (JsonWriter jsonWriter = new JsonTextWriter (textWriter))
 				{
-					serializer.Serialize (jsonWriter, Root);
+					serializer.Serialize (jsonWriter, root);
 				}
 			}
 		}
 
-		private static string GetSettingFilename (SettingFile type)
+		private string GetSettingFilename (SettingFile type)
 		{
 			string settingFile;
 			if (type == SettingFile.User)
@@ -97,7 +94,7 @@ namespace OpenTerra.Controllers.Settings
 			return settingFile;
 		}
 
-		public static event EventHandler Changed;
+		public event EventHandler SettingsUpdated;
 	}
 }
 
