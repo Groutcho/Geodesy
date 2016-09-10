@@ -2,48 +2,60 @@
 using OpenTerra.Models;
 using OpenTerra.Models.QuadTree;
 using OpenTerra.Views;
-using OpenTerra.Views.Debugging;
+using OpenTerra.Controllers.Commands;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Console = OpenTerra.Views.Debugging.Console;
 
 namespace OpenTerra.Controllers
 {
-	public class PatchManager
+	public class PatchManager : IPatchManager
 	{
 		/// <summary>
 		/// How long a patch has to be invisible before being destroyed ?
 		/// </summary>
 		public const float DurationToTriggerCleanup = 20;
 
-		private Globe globe;
-		private Material texture;
-		private Material pseudoColor;
-		private Material terrain;
+		/// <summary>
+		/// Every nth seconds, a cleanup function if triggered to delete obsolete cached data.
+		/// </summary>
+		public const float CleanupFrequency = 10;
+
 		private const int maxCleanupCount = 64;
 		private const int MaxPatchCount = 1024;
 
-		Dictionary<Location, Patch> patches;
-		GameObject patchRoot;
-		RenderingMode mode;
-		public static Gradient TerrainGradient;
+		private Material texture;
+		private Material pseudoColor;
+		private Material terrain;
+		private IShell shell;
+		private IMeshBuilder meshBuilder;
 
-		public PatchManager (Globe globe, Gradient terrainGradient)
+		private QuadTree quadTree;
+
+		private float cleanupTimer;
+
+		private Dictionary<Location, Patch> patches;
+		private GameObject patchRoot;
+		private RenderingMode mode;
+
+		public PatchManager (IShell shell, ITerrainManager terrainManager, IMeshBuilder meshBuilder, QuadTree quadTree)
 		{
-			this.globe = globe;
+			this.meshBuilder = meshBuilder;
 			this.texture = (Material)Resources.Load ("Patch");
 			this.pseudoColor = (Material)Resources.Load ("Solid");
 			this.terrain = (Material)Resources.Load ("Terrain");
-			this.globe.Tree.NodeChanged += OnNodeChanged;
-			MeshBuilder.Instance.PatchRequestReady += OnPatchRequestReady;
-			patchRoot = new GameObject ("_patches");
-			patchRoot.transform.parent = globe.transform;
-			patches = new Dictionary<Location, Patch> (MaxPatchCount);
-			TerrainGradient = terrainGradient;
-			TerrainManager.Instance.TileAvailable += OnTerrainTileAvailable;
+			this.shell = shell;
+			this.quadTree = quadTree;
+			quadTree.NodeChanged += OnNodeChanged;
+			meshBuilder.PatchRequestReady += OnPatchRequestReady;
 
-			Views.Debugging.Console.Instance.Register ("patch", HandlePatchCommand);
+			GameObject globeRoot = GameObject.Find("Globe");
+			patchRoot = new GameObject ("_patches");
+			patchRoot.transform.parent = globeRoot.transform;
+			patches = new Dictionary<Location, Patch> (MaxPatchCount);
+			terrainManager.ElevationDataAvailable += OnTerrainTileAvailable;
+
+			shell.Register ("patch", HandlePatchCommand);
 		}
 
 		/// <summary>
@@ -53,7 +65,7 @@ namespace OpenTerra.Controllers
 		{
 			GeoRectangle tileArea = (e as TileAvailableEventArgs).Rectangle;
 
-			foreach (Node node in Globe.Instance.Tree.GetVisibleNodes())
+			foreach (Node node in quadTree.GetVisibleNodes())
 			{
 				// Ignore patches that don't even show the terrain
 				if (node.Location.depth < Patch.TerrainDisplayedDepth)
@@ -61,7 +73,7 @@ namespace OpenTerra.Controllers
 
 				if (tileArea.Intersects(node.Location))
 				{
-					MeshBuilder.Instance.RequestPatchMesh(node.Location);
+					meshBuilder.RequestPatchMesh(node.Location);
 				}
 			}
 		}
@@ -124,7 +136,7 @@ namespace OpenTerra.Controllers
 
 		private Patch AddPatch (Location location)
 		{
-			Patch patch = new Patch (globe, patchRoot.transform, location, texture, pseudoColor, terrain);
+			Patch patch = new Patch (patchRoot.transform, location, texture, pseudoColor, terrain, meshBuilder);
 			patch.Mode = mode;
 			patches.Add (location, patch);
 
@@ -152,16 +164,29 @@ namespace OpenTerra.Controllers
 			{
 				// Request a refreshed terrain mesh
 				if (node.Visible && node.Location.depth >= Patch.TerrainDisplayedDepth)
-					MeshBuilder.Instance.RequestPatchMesh(node.Location);
+					meshBuilder.RequestPatchMesh(node.Location);
 			}
 
 			patch.Visible = node.Visible;
 		}
 
+		public void Update()
+		{
+			if (cleanupTimer > CleanupFrequency)
+			{
+				cleanupTimer = 0;
+				Cleanup();
+			}
+			else
+			{
+				cleanupTimer += Time.deltaTime;
+			}
+		}
+
 		/// <summary>
 		/// Perform removal of old patches to save memory.
 		/// </summary>
-		public void Cleanup ()
+		private void Cleanup ()
 		{
 			List<Patch> toRemove = new List<Patch> (maxCleanupCount);
 			var now = DateTime.Now;
@@ -188,11 +213,11 @@ namespace OpenTerra.Controllers
 
 		#region Console commands
 
-		private CommandResult HandlePatchCommand (Command command)
+		private Response HandlePatchCommand (Command command)
 		{
-			if (Console.Matches (command, new Token (Token.T_ID, "mode")))
+			if (Command.Matches (command, new Token (Token.T_ID, "mode")))
 			{
-				return new CommandResult (mode);
+				return new Response(mode, ResponseType.Normal);
 			}
 
 			string usage = "patch mode [texture|depth|terrain]";
@@ -216,7 +241,7 @@ namespace OpenTerra.Controllers
 				}
 
 				UpdatePatchModes (mode);
-				return new CommandResult (mode);
+				return new Response(mode, ResponseType.Success);
 			}
 
 			throw new CommandException (usage);
