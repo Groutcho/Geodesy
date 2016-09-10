@@ -54,7 +54,10 @@ public class MouseOrbitImproved : MonoBehaviour
 
 			if (Moved != null)
 			{
-				Moved (this, new CameraMovedEventArgs (this, position, rotation));
+				if (Vector3.Distance(position, transform.position) > 1)
+				{
+					Moved(this, new CameraMovedEventArgs(this, position, rotation));
+				}
 			}
 
 			transform.rotation = rotation;
