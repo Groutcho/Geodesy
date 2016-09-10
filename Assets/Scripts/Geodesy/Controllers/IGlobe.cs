@@ -21,6 +21,7 @@ namespace OpenTerra.Controllers
 		Vector3 Project(LatLon point);
 		Vector3 Project(double lat, double lon, double alt = 0);
 		bool Intersects(Vector3 origin, Vector3 direction, out Vector3 point);
+		bool Intersects(Ray ray, out Vector3 point);
 		void OnDrawGizmos();
 	}
 }

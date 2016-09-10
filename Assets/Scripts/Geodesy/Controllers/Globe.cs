@@ -109,8 +109,10 @@ namespace OpenTerra.Controllers
 			float lat = Mathf.Clamp (Vector3.Angle (new Vector3 (point.x, point.y, 0), Vector3.right) * Mathf.Sign (point.y), -90, 90);
 			float lon = Mathf.Clamp (Vector3.Angle (new Vector3 (point.x, 0, point.z), Vector3.right) * Mathf.Sign (point.z), -180, 180);
 
-			Vector3 onSphere = Project (lat, lon);
-			float alt = Vector3.Distance (point, onSphere);
+			Vector3 hit;
+			Intersects(new Ray(point, -point), out hit);
+
+			float alt = Vector3.Distance(hit, point);
 
 			return new LatLon (lat, lon, alt / reductionFactor);
 		}
@@ -134,6 +136,11 @@ namespace OpenTerra.Controllers
 			double y = Math.Sin (lat) * redY;
 			double z = Math.Sin (lon) * wRadius;
 			return new Vector3 ((float)x, (float)y, (float)z);
+		}
+
+		public bool Intersects(Ray ray, out Vector3 point)
+		{
+			return Intersects(ray.origin, ray.direction, out point);
 		}
 
 		public bool Intersects(Vector3 origin, Vector3 direction, out Vector3 point)
@@ -265,6 +272,11 @@ namespace OpenTerra.Controllers
 		{
 			Vector3 pos = Project (latlon);
 			debugPoints.Add (pos);
+		}
+
+		public float Scale(float meters)
+		{
+			return meters * reductionFactor;
 		}
 
 		#endregion
