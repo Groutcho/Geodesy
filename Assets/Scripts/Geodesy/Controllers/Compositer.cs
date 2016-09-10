@@ -1,20 +1,19 @@
 ﻿using System;
-using UnityEngine;
-using OpenTerra.Models.QuadTree;
 using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
-using OpenTerra.Views;
+using OpenTerra.Controllers.Caching;
+using OpenTerra.Controllers.Commands;
+using OpenTerra.Controllers.Settings;
 using OpenTerra.Models;
-using OpenTerra.Views.Debugging;
-using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Models.QuadTree;
+using OpenTerra.Views;
+using UnityEngine;
 
 namespace OpenTerra.Controllers
 {
 	/// <summary>
 	/// Class responsible for compositing raster images into the map to be later cut into tiles assigned to the 3D patches on the surface of the globe.
 	/// </summary>
-	public class Compositer : MonoBehaviour
+	public class Compositer : ICompositer
 	{
 		/// <summary>
 		/// Describes a zone in the compositing area.
@@ -63,17 +62,21 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		public Camera CompositerCamera;
-
-		public static Compositer Instance { get; private set; }
-
 		private int NodeBatchCount = 64;
 		private bool backgroundVisible = true;
 
-		private QuadTree tree;
-		private PatchManager patchManager;
 		private GameObject background;
+		private Camera compositingCamera;
 		private Grid grid;
+
+		private QuadTree quadTree;
+		
+		private IPatchManager patchManager;
+		private IShell shell;
+		private ICache cache;
+		private IGlobe globe;
+		private ISettingProvider settingProvider;
+		private IViewpointController viewpointController;
 
 		private List<Layer> layers = new List<Layer> (10);
 		private Stack<Location> renderStack = new Stack<Location> (128);
@@ -95,12 +98,7 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		private void Awake ()
-		{
-			Instance = this;
-		}
-
-		private void Update ()
+		public void Update ()
 		{
 			foreach (var item in layers)
 			{
@@ -110,7 +108,7 @@ namespace OpenTerra.Controllers
 			for (int i = 0; i < NodeBatchCount && i < renderStack.Count; i++)
 			{
 				Location location = renderStack.Pop ();
-				Node node = tree.Find (location);
+				Node node = quadTree.Find (location);
 				if (node != null && node.Visible)
 				{
 					toRender.Add (node);
@@ -130,7 +128,7 @@ namespace OpenTerra.Controllers
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
 		{
-			float altitude = (float)Globe.Instance.Project (arg.Position).Altitude;
+			float altitude = (float)globe.Project (arg.Position).Altitude;
 			float minAlt = 1000000;
 			float maxAlt = 40000000;
 
@@ -147,28 +145,54 @@ namespace OpenTerra.Controllers
 			RequestRenderForAllNodes ();
 		}
 
-		public void Initialize (Globe globe)
+		public Compositer (IGlobe globe, QuadTree quadTree, IShell shell, ICache cache, ISettingProvider settingProvider, IPatchManager patchManager, IViewpointController viewpointController)
 		{
-			Debug.Log ("Initializing compositer.");
+			Debug.Log("Initializing compositer.");
 
-			background = GameObject.Find ("Compositer/_background");
-			grid = new Grid ();
-			AddLayer (grid);
+			GameObject compositerRoot = GameObject.Find("Compositer");
+			CreateCompositingCamera(compositerRoot);
+
+			background = compositerRoot.transform.Find("_background").gameObject;
+
+			grid = new Grid(settingProvider);
+			AddLayer(grid);
 			grid.Changed += OnGridChanged;
 
-			this.tree = globe.Tree;
-			this.tree.NodeChanged += OnNodeChanged;
-			this.patchManager = globe.PatchManager;
-			ViewpointController.Instance.HasMoved += OnViewpointMoved;
+			this.shell = shell;
+			this.quadTree = quadTree;
+			this.quadTree.NodeChanged += OnNodeChanged;
+			this.patchManager = patchManager;
+			this.cache = cache;
+			this.settingProvider = settingProvider;
+			this.viewpointController = viewpointController;
+			this.globe = globe;
 
-			RegisterConsoleCommands ();
+			viewpointController.ActiveViewpointMoved += OnViewpointMoved;
+
+			RegisterConsoleCommands();
+		}
+
+		private void CreateCompositingCamera(GameObject compositerRoot)
+		{
+			compositingCamera = GameObject.Find("_compositingCamera").GetComponent<Camera>();
+			//cameraObject.transform.parent = compositerRoot.transform;
+
+			//compositingCamera = cameraObject.AddComponent<Camera>();
+			//compositingCamera.orthographic = true;
+			//compositingCamera.nearClipPlane = 0.3f;
+			//compositingCamera.farClipPlane = 11f;
+			//compositingCamera.
+
+#if UNITY_EDITOR
+			//cameraObject.AddComponent<CompositerFrame>();
+#endif
 		}
 
 		private void RegisterConsoleCommands ()
 		{
-			Console.Instance.Register ("grid", ExecuteGridCommand);
-			Console.Instance.Register ("addlayer", ExecuteLayerCommands);
-			Console.Instance.Register ("bg", ExecuteBackgroundCommand);
+			shell.Register("grid", ExecuteGridCommand);
+			shell.Register("addlayer", ExecuteLayerCommands);
+			shell.Register("bg", ExecuteBackgroundCommand);
 		}
 
 		private void RequestDataForLocation (Location location)
@@ -188,14 +212,14 @@ namespace OpenTerra.Controllers
 			float x = zone.Longitude + zone.Width / 2;
 			float y = zone.Latitude - zone.Height / 2;
 
-			CompositerCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
-			CompositerCamera.orthographicSize = zone.Width / 4;
-			CompositerCamera.aspect = 2f;
+			compositingCamera.transform.position = new Vector3 (x, Layer.CameraDepth, y);
+			compositingCamera.orthographicSize = zone.Width / 4;
+			compositingCamera.aspect = 2f;
 
 			Patch patch = patchManager.Get (node.Location);
-			CompositerCamera.targetTexture = patch.Texture;
+			compositingCamera.targetTexture = patch.Texture;
 
-			CompositerCamera.Render ();
+			compositingCamera.Render ();
 		}
 
 		private void OnNodeChanged (object sender, EventArgs e)
@@ -216,7 +240,7 @@ namespace OpenTerra.Controllers
 			if (layer is RasterLayer)
 			{
 				(layer as RasterLayer).DataAvailable += OnLayerDataAvailable;
-				foreach (Node node in tree.GetVisibleNodes())
+				foreach (Node node in quadTree.GetVisibleNodes())
 				{
 					RequestDataForLocation (node.Location);
 				}
@@ -230,7 +254,7 @@ namespace OpenTerra.Controllers
 
 		private void RequestRenderForAllNodes ()
 		{
-			foreach (Node node in tree.GetVisibleNodes())
+			foreach (Node node in quadTree.GetVisibleNodes())
 			{
 				renderStack.Push (node.Location);
 			}
@@ -240,48 +264,48 @@ namespace OpenTerra.Controllers
 
 		#region Console commands
 
-		private CommandResult ExecuteBackgroundCommand (Command command)
+		private Response ExecuteBackgroundCommand (Command command)
 		{
 			if (command.TokenCount == 0)
-				return new CommandResult (BackgroundVisible);
+				return new Response(BackgroundVisible, ResponseType.Normal);
 
-			if (Console.Matches (command, Token.BOOL))
+			if (Command.Matches (command, Token.BOOL))
 			{
 				BackgroundVisible = command.Tokens [0].Bool;
 				RequestRenderForAllNodes ();
-				return new CommandResult (BackgroundVisible);
+				return new Response(BackgroundVisible, ResponseType.Success);
 			} else
 			{
 				throw new CommandException ("bg [bool]");
 			}
 		}
 
-		private CommandResult ExecuteLayerCommands (Command command)
+		private Response ExecuteLayerCommands (Command command)
 		{
 			Layer created;
 
-			if (Console.Matches (command, new Token (Token.T_ID, "bm")))
+			if (Command.Matches (command, new Token (Token.T_ID, "bm")))
 			{
 				Uri uri = new Uri (@"\\SGA-NAS\sga\media\GIS\store\BlueMarble\tileset.kml");
-				created = new RasterLayer (uri, "NASA BlueMarble", 2);
+				created = new RasterLayer (uri, "NASA BlueMarble", 2, cache);
 			} else
 			{
 				throw new CommandException ("addlayer bm (to show the BlueMarble tileset)");
 			}
 
 			AddLayer (created);
-			return new CommandResult (created);
+			return new Response(created, ResponseType.Success);
 		}
 
-		private CommandResult ExecuteGridCommand (Command command)
+		private Response ExecuteGridCommand (Command command)
 		{
 			if (command.TokenCount == 0)
-				return new CommandResult (grid.Visible);
+				return new Response(grid.Visible, ResponseType.Normal);
 
-			if (Console.Matches (command, Token.BOOL))
+			if (Command.Matches (command, Token.BOOL))
 			{
 				grid.Visible = command.Tokens [0].Bool;
-				return new CommandResult (grid.Visible);
+				return new Response(grid.Visible, ResponseType.Success);
 			} else
 			{
 				throw new CommandException ("grid [bool]");
