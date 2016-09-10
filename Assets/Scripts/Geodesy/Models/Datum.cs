@@ -50,7 +50,7 @@ namespace OpenTerra.Models
 
 			double radius = Math.Cos (latitude) * SemimajorAxis;
 			var sinlat = Math.Sin (latitude);
-			m.Position = GeoVector3.Up * SemiminorAxis * sinlat;
+			m.Position = Cartesian3.Up * SemiminorAxis * sinlat;
 			m = Transform * m;
 			return new Circle (radius, m);
 		}

@@ -24,8 +24,8 @@ namespace OpenTerra.Views
 		{
 			Vector3 rotation = Rotation * Time.deltaTime;
 
-			matrix.Scale = new GeoVector3 (Scale.x, Scale.y, Scale.z);
-			matrix.Position = new GeoVector3 (Position.x, Position.y, Position.z);
+			matrix.Scale = new Cartesian3 (Scale.x, Scale.y, Scale.z);
+			matrix.Position = new Cartesian3 (Position.x, Position.y, Position.z);
 			matrix.Rotate (rotation.x, rotation.y, rotation.z);
 		}
 

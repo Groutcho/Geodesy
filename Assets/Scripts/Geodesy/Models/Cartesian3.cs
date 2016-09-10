@@ -2,7 +2,7 @@
 
 namespace OpenTerra.Models
 {
-	public struct GeoVector3
+	public struct Cartesian3
 	{
 		private double x;
 		private double y;
@@ -14,7 +14,7 @@ namespace OpenTerra.Models
 
 		public double Z { get { return z; } }
 
-		public GeoVector3 (double x, double y, double z)
+		public Cartesian3 (double x, double y, double z)
 		{
 			this.x = x;
 			this.y = y;
@@ -25,7 +25,7 @@ namespace OpenTerra.Models
 		/// Gets the normalized vector.
 		/// </summary>
 		/// <value>The normalized vector.</value>
-		public GeoVector3 Normalized
+		public Cartesian3 Normalized
 		{
 			get { return this * (1 / Magnitude); }
 		}
@@ -33,56 +33,56 @@ namespace OpenTerra.Models
 		/// <summary>
 		/// Equivalent of [0, 0, 0]
 		/// </summary>
-		public static GeoVector3 Zero
+		public static Cartesian3 Zero
 		{
-			get { return new GeoVector3 (0, 0, 0); }
+			get { return new Cartesian3 (0, 0, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [0, 1, 0]
 		/// </summary>
-		public static GeoVector3 Up
+		public static Cartesian3 Up
 		{
-			get { return new GeoVector3 (0, 1, 0); }
+			get { return new Cartesian3 (0, 1, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [1, 0, 0]
 		/// </summary>
-		public static GeoVector3 Right
+		public static Cartesian3 Right
 		{
-			get { return new GeoVector3 (1, 0, 0); }
+			get { return new Cartesian3 (1, 0, 0); }
 		}
 
 		/// <summary>
 		/// Equivalent of [0, 0, 1]
 		/// </summary>
-		public static GeoVector3 Forward
+		public static Cartesian3 Forward
 		{
-			get { return new GeoVector3 (0, 0, 1); }
+			get { return new Cartesian3 (0, 0, 1); }
 		}
 
 		/// <summary>
 		/// Equivalent of [1, 1, 1]
 		/// </summary>
-		public static GeoVector3 One
+		public static Cartesian3 One
 		{
-			get { return new GeoVector3 (1, 1, 1); }
+			get { return new Cartesian3 (1, 1, 1); }
 		}
 
-		public static GeoVector3 operator * (GeoVector3 a, double b)
+		public static Cartesian3 operator * (Cartesian3 a, double b)
 		{
-			return new GeoVector3 (a.X * b, a.Y * b, a.Z * b);
+			return new Cartesian3 (a.X * b, a.Y * b, a.Z * b);
 		}
 
-		public static GeoVector3 operator * (double b, GeoVector3 a)
+		public static Cartesian3 operator * (double b, Cartesian3 a)
 		{
 			return a * b;
 		}
 
-		public static GeoVector3 operator + (GeoVector3 a, GeoVector3 b)
+		public static Cartesian3 operator + (Cartesian3 a, Cartesian3 b)
 		{
-			return new GeoVector3 (a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+			return new Cartesian3 (a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 		}
 
 		public override string ToString ()

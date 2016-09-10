@@ -27,7 +27,7 @@ namespace OpenTerra.Models
 		/// Sample the ellipse by the specified parameter.
 		/// </summary>
 		/// <param name="deg">Deg.</param>
-		public override GeoVector3 Sample (double deg)
+		public override Cartesian3 Sample (double deg)
 		{
 			double rad = Utils.DegToRad (deg);
 
@@ -35,7 +35,7 @@ namespace OpenTerra.Models
 			double y = 0;
 			double z = Math.Sin (rad) * semiminorAxis;
 
-			GeoVector3 v = new GeoVector3 (x, y, z);
+			Cartesian3 v = new Cartesian3 (x, y, z);
 			v *= transform;
 
 			return v;

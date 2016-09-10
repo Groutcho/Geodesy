@@ -4,7 +4,7 @@ namespace OpenTerra.Models
 {
 	public abstract class Shape
 	{
-		public abstract GeoVector3 Sample(double t);
+		public abstract Cartesian3 Sample(double t);
 	}
 }
 

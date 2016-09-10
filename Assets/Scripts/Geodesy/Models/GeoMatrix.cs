@@ -56,11 +56,11 @@ namespace OpenTerra.Models
 		/// Gets or sets the scale.
 		/// </summary>
 		/// <value>The scale.</value>
-		public GeoVector3 Scale
+		public Cartesian3 Scale
 		{
 			get
 			{
-				return new GeoVector3 (
+				return new Cartesian3 (
 					GetRow (0).Magnitude,
 					GetRow (1).Magnitude,
 					GetRow (2).Magnitude);
@@ -75,9 +75,9 @@ namespace OpenTerra.Models
 				double magY = row1.Magnitude;
 				double magZ = row2.Magnitude;
 
-				row0 *= value.X * (1 / magX);
-				row1 *= value.Y * (1 / magY);
-				row2 *= value.Z * (1 / magZ);
+				row0 *= value.x * (1 / magX);
+				row1 *= value.y * (1 / magY);
+				row2 *= value.z * (1 / magZ);
 
 				SetRow (0, row0);
 				SetRow (1, row1);
@@ -85,17 +85,17 @@ namespace OpenTerra.Models
 			}
 		}
 
-		public GeoVector3 Position
+		public Cartesian3 Position
 		{
 			get
 			{
-				return new GeoVector3 (R03, R13, R23);
+				return new Cartesian3 (R03, R13, R23);
 			}
 			set
 			{
-				R03 = value.X;
-				R13 = value.Y;
-				R23 = value.Z;
+				R03 = value.x;
+				R13 = value.y;
+				R23 = value.z;
 			}
 		}
 
@@ -103,51 +103,51 @@ namespace OpenTerra.Models
 		/// Gets the rotation in degrees.
 		/// </summary>
 		/// <value>The rotation.</value>
-		public GeoVector3 Rotation
+		public Cartesian3 Rotation
 		{
 			get
 			{
-				var x = Math.Acos (GetRow (0).Normalized.X);
-				var y = Math.Acos (GetRow (1).Normalized.Y);
-				var z = Math.Acos (GetRow (2).Normalized.Z);
-				return new GeoVector3 (Utils.RadToDeg (x), Utils.RadToDeg (y), Utils.RadToDeg (z));
+				var x = Math.Acos (GetRow (0).Normalized.x);
+				var y = Math.Acos (GetRow (1).Normalized.y);
+				var z = Math.Acos (GetRow (2).Normalized.z);
+				return new Cartesian3 (Utils.RadToDeg (x), Utils.RadToDeg (y), Utils.RadToDeg (z));
 			}
 		}
 
-		public void SetRow (int row, GeoVector3 vector)
+		public void SetRow (int row, Cartesian3 vector)
 		{
 			switch (row)
 			{
 				case 0:
-					R00 = vector.X;
-					R01 = vector.Y;
-					R02 = vector.Z;
+					R00 = vector.x;
+					R01 = vector.y;
+					R02 = vector.z;
 					break;
 				case 1:
-					R10 = vector.X;
-					R11 = vector.Y;
-					R12 = vector.Z;
+					R10 = vector.x;
+					R11 = vector.y;
+					R12 = vector.z;
 					break;
 				case 2:
-					R20 = vector.X;
-					R21 = vector.Y;
-					R22 = vector.Z;
+					R20 = vector.x;
+					R21 = vector.y;
+					R22 = vector.z;
 					break;
 				default:
 					throw new ArgumentOutOfRangeException ("row");
 			}
 		}
 
-		public GeoVector3 GetRow (int row)
+		public Cartesian3 GetRow (int row)
 		{
 			switch (row)
 			{
 				case 0:
-					return new GeoVector3 (R00, R01, R02);
+					return new Cartesian3 (R00, R01, R02);
 				case 1:
-					return new GeoVector3 (R10, R11, R12);
+					return new Cartesian3 (R10, R11, R12);
 				case 2:
-					return new GeoVector3 (R20, R21, R22);
+					return new Cartesian3 (R20, R21, R22);
 				default:
 					throw new ArgumentOutOfRangeException ("row");
 			}
@@ -210,11 +210,11 @@ namespace OpenTerra.Models
 		/// Move the matrix along the specified vector.
 		/// </summary>
 		/// <param name="v">The translation vector.</param>
-		public void Translate (GeoVector3 v)
+		public void Translate (Cartesian3 v)
 		{
-			R03 += v.X;
-			R13 += v.Y;
-			R23 += v.Z;
+			R03 += v.x;
+			R13 += v.y;
+			R23 += v.z;
 		}
 
 		/// <summary>
@@ -313,13 +313,13 @@ namespace OpenTerra.Models
 			);
 		}
 
-		public static GeoVector3 operator * (GeoMatrix m, GeoVector3 v)
+		public static Cartesian3 operator * (GeoMatrix m, Cartesian3 v)
 		{
-			double x = v.X;
-			double y = v.Y;
-			double z = v.Z;
+			double x = v.x;
+			double y = v.y;
+			double z = v.z;
 
-			var u = new GeoVector3 (
+			var u = new Cartesian3 (
 				        m.R00 * x + m.R01 * y + m.R02 * z + m.R03,
 				        m.R10 * x + m.R11 * y + m.R12 * z + m.R13,
 				        m.R20 * x + m.R21 * y + m.R22 * z + m.R23);
@@ -327,7 +327,7 @@ namespace OpenTerra.Models
 			return u;
 		}
 
-		public static GeoVector3 operator * (GeoVector3 v, GeoMatrix m)
+		public static Cartesian3 operator * (Cartesian3 v, GeoMatrix m)
 		{
 			return m * v;
 		}
