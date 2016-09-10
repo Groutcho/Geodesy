@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using OpenTerra.Controllers.Caching;
 using OpenTerra.Views;
-using OpenTerra.Views.Debugging;
+using OpenTerra.Controllers.Commands;
 using UnityEngine;
+using OpenTerra.Views.Debugging;
 
 namespace OpenTerra.Models
 {
@@ -24,11 +25,15 @@ namespace OpenTerra.Models
 
 		public event NewDataAvailableHandler DataAvailable;
 
-		public RasterLayer (Uri uri, string name, float depth) : base (name, depth)
+		private ICache cache;
+
+		public RasterLayer (Uri uri, string name, float depth, ICache cache) : base (name, depth)
 		{
 			Uri = uri;
 
 			Surface = new Rect (-180, 90, 360, 180);
+
+			this.cache = cache;
 
 			#if UNITY_EDITOR
 			LayerSurfaceView lsv = node.AddComponent<LayerSurfaceView> ();
@@ -49,7 +54,7 @@ namespace OpenTerra.Models
 				if (!pendingRequests.ContainsKey (tileUri))
 				{
 					pendingRequests.Add (tileUri, location);
-					Cache.Instance.Get (tileUri, AddTile);
+					cache.Get (tileUri, AddTile);
 				}
 			}
 		}
