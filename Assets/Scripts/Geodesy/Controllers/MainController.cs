@@ -1,105 +1,56 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Text;
-using OpenTerra.Models;
-using OpenTerra.Views;
-using System;
-using OpenTerra.Controllers.Workers;
+﻿using OpenTerra.Controllers.Caching;
+using OpenTerra.Controllers.Commands;
 using OpenTerra.Controllers.Settings;
-using OpenTerra.Controllers.Caching;
-using UnityEngine.SceneManagement;
+using OpenTerra.Controllers.Workers;
+using OpenTerra.Models;
+using OpenTerra.Models.QuadTree;
+using OpenTerra.Views;
+using UnityEngine;
 
 namespace OpenTerra.Controllers
 {
-	public class MainController : MonoBehaviour
+	public class MainController
 	{
-		public Camera cameraNode;
-		public Material LineMaterial;
-		public Gradient Gradient;
+		private IShell shell;
+		private ICache cache;
+		private ISettingProvider settingProvider;
+		private IMeshBuilder meshBuilder;
+		private ITerrainManager terrainManager;
+		private IGlobe globe;
+		private IPatchManager patchManager;
+		private ICompositer compositer;
+		private IViewpointController viewpointController;
+		private QuadTree quadTree;
 
-		private Viewpoint viewpoint;
-		private Datum datum;
-		private Globe globe;
-		private BookmarkManager bookmarkManager;
-		private bool ready;
-
-		private IEnumerator StartRoutine ()
+		public MainController(Gradient elevationColorRamp)
 		{
-			SettingProvider.Load ();
+			shell = new Shell();
+			settingProvider = new SettingProvider();
+			cache = new Cache(shell, settingProvider);
+			globe = new Globe(new WGS84(), 0.001f, shell);
+			viewpointController = new ViewpointController(shell, globe);
+			terrainManager = new TerrainManager(cache, viewpointController);
+			quadTree = new QuadTree(globe, viewpointController);
+			meshBuilder = new MeshBuilder(settingProvider, globe, quadTree, terrainManager, elevationColorRamp);
 
-			SceneManager.LoadScene ("UI", LoadSceneMode.Additive);
-			yield return new WaitForEndOfFrame ();
+			patchManager = new PatchManager(shell, terrainManager, meshBuilder, quadTree);
+			compositer = new Compositer(globe, quadTree, shell, cache, settingProvider, patchManager, viewpointController);
 
-			CreateView ();
-			CreateDatum ();
-			CreateGlobe ();
-			CreateCompositer ();
-			CreateUiController ();
-			CreateBookmarkManager ();
-
-			globe.Tree.Update ();
-
-			yield return new WaitForEndOfFrame ();
-
-			ready = true;
+			GameObject.Find("UI").GetComponent<UiController>().Initialize(shell);
 		}
 
-		// Use this for initialization
-		void Start ()
+		public void Update()
 		{
-			StartCoroutine (StartRoutine ());
+			cache.Update();
+			quadTree.Update();
+			meshBuilder.Update();
+			patchManager.Update();
+			compositer.Update();
 		}
 
-		void CreateBookmarkManager ()
+		public void OnDrawGizmos()
 		{
-			bookmarkManager = new BookmarkManager ();
-		}
-
-		void CreateDatum ()
-		{
-			datum = new WGS84 ();
-		}
-
-		void CreateGlobe ()
-		{
-			globe = GameObject.Find ("Globe").AddComponent<Globe> ();
-			globe.Initialize (
-				datum: datum,
-				reductionFactor: 0.001f,
-				viewpoint: viewpoint,
-				terrainGradient: Gradient);
-		}
-
-		void CreateView ()
-		{
-			if (cameraNode == null)
-			{
-				throw new NullReferenceException ("No viewpoint selected. Aborting.");
-			}
-			viewpoint = new Viewpoint (cameraNode);
-			ViewpointController controller = cameraNode.gameObject.AddComponent<ViewpointController> ();
-			controller.Initialize (viewpoint);
-		}
-
-		void CreateCompositer ()
-		{
-			Compositer compositer = GameObject.Find ("Compositer").GetComponent<Compositer> ();
-			compositer.Initialize (globe);
-		}
-
-		void CreateUiController ()
-		{
-			var ui = GameObject.Find ("UI").GetComponent<UiController> ();
-			ui.Initialize (globe);
-		}
-
-		void Update ()
-		{
-			if (!ready)
-				return;
-
-			Cache.Instance.Update ();
-			MeshBuilder.Instance.Update ();
+			globe.OnDrawGizmos();
 		}
 	}
 }
