@@ -1,8 +1,7 @@
 ﻿using System;
-using UnityEngine;
-using OpenTerra.Views.Debugging;
-using OpenTerra.Models.QuadTree;
 using OpenTerra.Controllers.Workers;
+using OpenTerra.Views.Debugging;
+using UnityEngine;
 
 namespace OpenTerra.Models
 {
