@@ -11,7 +11,7 @@ PlayerSettings:
   accelerometerFrequency: 60
   companyName: "S\xE9bastien Guimmara"
   productName: Terra
-  defaultCursor: {fileID: 2800000, guid: dbf7ca3fc9133644389e54ffddb98787, type: 3}
+  defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_ShowUnitySplashScreen: 1
   m_VirtualRealitySplashScreen: {fileID: 0}

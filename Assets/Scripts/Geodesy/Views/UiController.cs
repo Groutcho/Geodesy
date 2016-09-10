@@ -18,16 +18,12 @@ namespace OpenTerra.Views
 
 		#region UI elements
 
-		Text cursorCoordinates;
-		Image progressBar;
 		Image introBg;
 		RawImage introTitle;
 		Terminal terminal;
 
 		private void CollectUIElements ()
 		{
-			cursorCoordinates = transform.Find ("topBar/cursorCoords").GetComponent<Text> ();
-			progressBar = transform.Find ("progressBar").GetComponent<Image> ();
 			introTitle = transform.Find ("introScreen/terra").GetComponent<RawImage> ();
 			introBg = transform.Find ("introScreen").GetComponent<Image> ();
 
@@ -36,44 +32,10 @@ namespace OpenTerra.Views
 
 		#endregion
 
-		public bool ShowCursorCoordinates
-		{
-			get
-			{ 
-				return cursorCoordinates.enabled;
-			}
-			set
-			{
-				cursorCoordinates.enabled = value; 
-			} 
-		}
-
-		public float Progress
-		{ 
-			get
-			{
-				return progressBar.transform.localScale.x;
-			}
-			set
-			{ 
-				if (value >= 1f)
-					progressBar.enabled = false;
-				else
-				{
-					progressBar.enabled = true;
-					Vector3 s = progressBar.transform.localScale;
-					s.x = value;
-					progressBar.transform.localScale = s;
-				}
-			}
-		}
-
 		private void Awake ()
 		{
 			instance = this;
 			CollectUIElements ();
-			ShowCursorCoordinates = true;
-			Progress = 0;
 		}
 
 		private void Start ()

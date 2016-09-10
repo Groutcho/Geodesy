@@ -80,25 +80,6 @@ namespace OpenTerra.Controllers
 			shell.Register ("atmosphere", ExecuteAtmosphereCommand);
 		}
 
-		/// <summary>
-		/// Return the geographic coordinates of the point under the cursor.
-		/// If the cursor is not over the globe, return 0, 0, 0;
-		/// </summary>
-		/// <value>The cursor coordinates.</value>
-		public LatLon CursorCoordinates
-		{
-			get
-			{
-				// TODO: implement correct trigonometric computation using actual datum instead of sphere
-				RaycastHit hit;
-				if (Physics.Raycast (viewpoint.Camera.ScreenPointToRay (Input.mousePosition), out hit))
-				{
-					return Project (hit.point);
-				}
-				return new LatLon ();
-			}
-		}
-
 		public Vector3 Project (LatLon point)
 		{
 			return Project (point.Latitude, point.Longitude, point.Altitude);

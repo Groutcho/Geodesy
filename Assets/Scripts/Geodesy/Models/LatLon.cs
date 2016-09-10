@@ -17,13 +17,10 @@ namespace OpenTerra.Models
 
 		#region properties
 
-		//		[DataMember]
 		public double Longitude { get { return longitude; } }
 
-		//		[DataMember]
 		public double Altitude { get { return altitude; } }
 
-		//		[DataMember]
 		public double Latitude { get { return latitude; } }
 
 		public double LatDegrees
