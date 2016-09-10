@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace OpenTerra.Views.Debugging
+namespace OpenTerra.Controllers.Commands
 {
 	public class Token
 	{

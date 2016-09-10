@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenTerra.Views.Debugging
+namespace OpenTerra.Controllers.Commands
 {
 	public class CommandException : Exception
 	{
