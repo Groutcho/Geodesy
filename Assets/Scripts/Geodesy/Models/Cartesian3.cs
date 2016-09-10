@@ -4,15 +4,11 @@ namespace OpenTerra.Models
 {
 	public struct Cartesian3
 	{
-		private double x;
-		private double y;
-		private double z;
+		public readonly double x;
 
-		public double X { get { return x; } }
+		public readonly double y;
 
-		public double Y { get { return y; } }
-
-		public double Z { get { return z; } }
+		public readonly double z;
 
 		public Cartesian3 (double x, double y, double z)
 		{
@@ -72,7 +68,7 @@ namespace OpenTerra.Models
 
 		public static Cartesian3 operator * (Cartesian3 a, double b)
 		{
-			return new Cartesian3 (a.X * b, a.Y * b, a.Z * b);
+			return new Cartesian3 (a.x * b, a.y * b, a.z * b);
 		}
 
 		public static Cartesian3 operator * (double b, Cartesian3 a)
@@ -82,17 +78,17 @@ namespace OpenTerra.Models
 
 		public static Cartesian3 operator + (Cartesian3 a, Cartesian3 b)
 		{
-			return new Cartesian3 (a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+			return new Cartesian3 (a.x + b.x, a.y + b.y, a.z + b.z);
 		}
 
 		public override string ToString ()
 		{
-			return string.Format ("[GeoVector3: X={0}, Y={1}, Z={2}]", X, Y, Z);
+			return string.Format ("[GeoVector3: X={0}, Y={1}, Z={2}]", x, y, z);
 		}
 
 		public double Magnitude
 		{
-			get { return Math.Sqrt (X * X + Y * Y + Z * Z); }
+			get { return Math.Sqrt (x * x + y * y + z * z); }
 		}
 	}
 }
