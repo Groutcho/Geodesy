@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using OpenTerra.Controllers;
 using System.Collections;
+using OpenTerra.Controllers.Commands;
+using OpenTerra.Views.Debugging;
 
 namespace OpenTerra.Views
 {
@@ -12,8 +14,6 @@ namespace OpenTerra.Views
 
 		public static UiController Instance { get { return instance; } }
 
-		private Globe globe;
-
 		private bool initialized;
 
 		#region UI elements
@@ -22,6 +22,7 @@ namespace OpenTerra.Views
 		Image progressBar;
 		Image introBg;
 		RawImage introTitle;
+		Terminal terminal;
 
 		private void CollectUIElements ()
 		{
@@ -29,6 +30,8 @@ namespace OpenTerra.Views
 			progressBar = transform.Find ("progressBar").GetComponent<Image> ();
 			introTitle = transform.Find ("introScreen/terra").GetComponent<RawImage> ();
 			introBg = transform.Find ("introScreen").GetComponent<Image> ();
+
+			terminal = GetComponent<Terminal>();
 		}
 
 		#endregion
@@ -101,26 +104,19 @@ namespace OpenTerra.Views
 		}
 
 		/// <summary>
-		/// The UI controller remains inactive until it initialized.
+		/// The UI controller remains inactive until is it initialized.
 		/// </summary>
 		/// <param name="globe">The globe instance.</param>
-		public void Initialize (Globe globe)
+		public void Initialize (IShell shell)
 		{
-			this.globe = globe;
 			initialized = true;
-		}
-
-		private void UpdateCursorCoordinates ()
-		{
-			cursorCoordinates.text = globe.CursorCoordinates.ToString ();
+			terminal.Initialize(shell);
 		}
 
 		private void Update ()
 		{
 			if (!initialized)
 				return;
-
-			UpdateCursorCoordinates ();
 		}
 	}
 }
