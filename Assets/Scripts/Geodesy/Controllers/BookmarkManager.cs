@@ -1,11 +1,9 @@
-﻿using System;
-using OpenTerra.Models;
-using System.Collections.Generic;
-using Console = OpenTerra.Views.Debugging.Console;
-using OpenTerra.Views.Debugging;
-using Newtonsoft.Json;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
+using OpenTerra.Controllers.Commands;
+using OpenTerra.Models;
+using UnityEngine;
 
 namespace OpenTerra.Controllers
 {
@@ -13,13 +11,21 @@ namespace OpenTerra.Controllers
 	{
 		public List<Bookmark> Bookmarks { get; private set; }
 
-		public static BookmarkManager Instance { get; private set; }
+		private IShell shell;
+		private IGlobe globe;
+		private ICompositer compositer;
+		private IViewpointController viewpointController;
 
-		public BookmarkManager ()
+		public BookmarkManager (IShell shell, IGlobe globe, ICompositer compositer, IViewpointController viewpointController)
 		{
-			Instance = this;
+			this.globe = globe;
+			this.shell = shell;
+			this.compositer = compositer;
+			this.viewpointController = viewpointController;
 			Bookmarks = new List<Bookmark> (64);
-			Console.Instance.Register ("bookmark", ExecuteBookmarkCommand);
+
+			
+			shell.Register ("bookmark", ExecuteBookmarkCommand);
 		}
 
 		/// <summary>
@@ -28,13 +34,13 @@ namespace OpenTerra.Controllers
 		/// </summary>
 		public Bookmark Record (string name)
 		{
-			LatLon position = ViewpointController.Instance.CurrentPosition;
+			LatLon position = viewpointController.ActiveViewpoint.CurrentPosition;
 
 			Bookmark bookmark = new Bookmark {
 				Name = name,
 				ObserverPosition = position,
-				AtmosphereEnabled = Globe.Instance.AtmosphereEnabled,
-				BackgroundVisible = Compositer.Instance.BackgroundVisible
+				AtmosphereEnabled = globe.AtmosphereEnabled,
+				BackgroundVisible = compositer.BackgroundVisible
 			};
 
 			Bookmarks.Add (bookmark);
@@ -59,23 +65,24 @@ namespace OpenTerra.Controllers
 				}
 			}
 
+			//TODO: fix path
 			File.WriteAllText (@"c:\temp\bookmarks.json", json);
 		}
 
 		#region Console commands
 
-		private CommandResult ExecuteBookmarkCommand (Command command)
+		private Response ExecuteBookmarkCommand (Command command)
 		{
-			if (Console.Matches (command, new Token (Token.T_ID, "record"), Token.ID))
+			if (Command.Matches (command, new Token (Token.T_ID, "record"), Token.ID))
 			{
 				Bookmark created = Record (command.Tokens [1].Id);
-				return new CommandResult (created);
+				return new Response (created, ResponseType.Success);
 			}
 
-			if (Console.Matches (command, new Token (Token.T_ID, "save")))
+			if (Command.Matches (command, new Token (Token.T_ID, "save")))
 			{
 				Save ();
-				return new CommandResult ("Bookmarks saved.");
+				return new Response("Bookmarks saved.", ResponseType.Success);
 			}
 
 			throw new CommandException ("bookmark [record|save] [name]");
