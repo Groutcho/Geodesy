@@ -67,9 +67,9 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		public Grid () : base ("grid", Layer.MaxDepth)
+		public Grid (ISettingProvider settings) : base ("grid", Layer.MaxDepth)
 		{
-			Visible = SettingProvider.Get (false, "Grid", "Visible");
+			Visible = settings.Get (false, "Grid", "Visible");
 			gridMaterial = Resources.Load ("TransparentSolid") as Material;
 			resolution = MAX_RESOLUTION;
 			CreateGrid ();
