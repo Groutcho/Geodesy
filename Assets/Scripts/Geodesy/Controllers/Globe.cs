@@ -3,29 +3,22 @@ using OpenTerra.Views;
 using OpenTerra.Models.QuadTree;
 using UnityEngine;
 using OpenTerra.Models;
-using System.Collections;
 using System.Collections.Generic;
-using OpenTerra.Views.Debugging;
-using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Controllers.Commands;
 
 namespace OpenTerra.Controllers
 {
-	public class Globe : MonoBehaviour
+	public class Globe : IGlobe
 	{
-		QuadTree tree;
-		PatchManager patchManager;
-		Datum datum;
-		float reductionFactor;
-		Viewpoint viewpoint;
-		SphereCollider approximateCollider;
-		List<Vector3> debugPoints = new List<Vector3> (10);
-		GameObject atmosphere;
+		private Datum datum;
+		private readonly float reductionFactor;
+		private List<Vector3> debugPoints = new List<Vector3> (10);
+		private GameObject atmosphere;
 
 		const double deg2rad = Math.PI / 180;
 
-		public static Globe Instance { get; private set; }
-
 		private bool atmosphereEnabled = true;
+		private double observerAltitude;
 
 		public bool AtmosphereEnabled
 		{
@@ -39,6 +32,18 @@ namespace OpenTerra.Controllers
 				if (!value)
 				{
 					atmosphere.SetActive (false);
+				}
+			}
+		}
+
+		public double ObserverAltitude
+		{
+			set
+			{
+				if (value != observerAltitude)
+				{
+					AtmosphereVisible = value > Units.km_to_m(6000);
+					observerAltitude = value;
 				}
 			}
 		}
@@ -59,24 +64,10 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		/// <summary>
-		/// Every nth seconds, the globe will trigger a cleanup function to delete obsolete cached data.
-		/// </summary>
-		public const float CleanupFrequency = 10;
-
-		public QuadTree Tree { get { return tree; } }
-
-		public PatchManager PatchManager { get { return patchManager; } }
-
-		public void Initialize (Datum datum, float reductionFactor, Viewpoint viewpoint, Gradient terrainGradient)
+		public Globe (Datum datum, float reductionFactor, IShell shell)
 		{
-			Instance = this;
 			this.reductionFactor = reductionFactor;
-			this.viewpoint = viewpoint;
 			this.datum = datum;
-
-			this.tree = new QuadTree ();
-			patchManager = new PatchManager (this, terrainGradient);
 
 			atmosphere = GameObject.Find ("Globe/Atmosphere");
 			float atmosphereHeight = 100;
@@ -85,15 +76,8 @@ namespace OpenTerra.Controllers
 				(float)(datum.SemiminorAxis * reductionFactor + atmosphereHeight),
 				(float)(datum.SemimajorAxis * reductionFactor + atmosphereHeight));
 
-			// Create a spherical approximation of the spheroid
-			// for purposes that don't need exact calculations.
-			approximateCollider = gameObject.AddComponent<SphereCollider> ();
-			approximateCollider.radius = (float)(datum.SemimajorAxis * reductionFactor) * 0.995f;
-
-			StartCoroutine (PatchManagerGarbageCollector ());
-
-			Console.Instance.Register ("point", ExecutePointCommand);
-			Console.Instance.Register ("atmosphere", ExecuteAtmosphereCommand);
+			shell.Register ("point", ExecutePointCommand);
+			shell.Register ("atmosphere", ExecuteAtmosphereCommand);
 		}
 
 		/// <summary>
@@ -191,9 +175,9 @@ namespace OpenTerra.Controllers
 		/// </summary>
 		private void DrawDebugGraticule ()
 		{
-			float distance = viewpoint.DistanceFromView (datum.Transform.Position.ToVector3 ());
+			float altitude = (float)(observerAltitude * reductionFactor);
 			int resolution = 1;
-			float ratio = (viewpoint.MaxDistance - viewpoint.MinDistance) / Mathf.Clamp (distance, viewpoint.MinDistance, viewpoint.MaxDistance);
+			float ratio = (Viewpoint.MaxDistance - Viewpoint.MinDistance) / Mathf.Clamp (altitude, Viewpoint.MinDistance, Viewpoint.MaxDistance);
 			int subdivisions = (int)Mathf.Pow (2, 1 / ratio);
 			subdivisions = 30;
 
@@ -230,9 +214,9 @@ namespace OpenTerra.Controllers
 
 		private void DrawAxes ()
 		{
-			GeoVector3 orig = datum.Transform.Position;
-			GeoVector3 semimaj = (orig + GeoVector3.Right * datum.Transform) * reductionFactor * datum.SemimajorAxis;
-			GeoVector3 semimin = (orig + GeoVector3.Up * datum.Transform) * reductionFactor * datum.SemiminorAxis;
+			Cartesian3 orig = datum.Transform.Position;
+			Cartesian3 semimaj = (orig + Cartesian3.Right * datum.Transform) * reductionFactor * datum.SemimajorAxis;
+			Cartesian3 semimin = (orig + Cartesian3.Up * datum.Transform) * reductionFactor * datum.SemiminorAxis;
 
 			Gizmos.color = Color.red;
 			Gizmos.DrawLine (orig.ToVector3 (), semimaj.ToVector3 ());
@@ -250,7 +234,7 @@ namespace OpenTerra.Controllers
 		}
 
 		// Update is called once per frame
-		void OnDrawGizmos ()
+		public void OnDrawGizmos ()
 		{
 			DrawAxes ();
 			DrawDebugGraticule ();
@@ -262,18 +246,18 @@ namespace OpenTerra.Controllers
 
 		#region IConsoleCommandHandler implementation
 
-		public CommandResult ExecuteAtmosphereCommand (Command command)
+		private Response ExecuteAtmosphereCommand (Command command)
 		{
-			if (!Console.Matches (command, Token.BOOL))
+			if (!Command.Matches (command, Token.BOOL))
 				throw new CommandException ("atmosphere [bool]");
 
 			AtmosphereEnabled = command.Tokens [0].Bool;
-			return new CommandResult (AtmosphereEnabled);
+			return new Response(AtmosphereEnabled, ResponseType.Success);
 		}
 
-		public CommandResult ExecutePointCommand (Command command)
+		private Response ExecutePointCommand (Command command)
 		{
-			if (!Console.Matches (command, Token.FLOAT, Token.FLOAT))
+			if (!Command.Matches (command, Token.FLOAT, Token.FLOAT))
 				throw new CommandException ("point latitude longitude");
 
 			var lat = command.Tokens [0].Float;
@@ -281,7 +265,7 @@ namespace OpenTerra.Controllers
 
 			LatLon latlon = new LatLon (lat, lon, 0);
 			DebugCreatePoint (latlon);
-			return new CommandResult (latlon);
+			return new Response(latlon, ResponseType.Success);
 		}
 
 		private void DebugCreatePoint (LatLon latlon)
