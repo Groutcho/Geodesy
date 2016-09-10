@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using UnityEngine;
 using OpenTerra.Views;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace OpenTerra.Controllers.Workers
 	/// <summary>
 	/// Background worker for heavy mesh generation.
 	/// </summary>
-	public class MeshBuilder
+	public class MeshBuilder : IMeshBuilder
 	{
 		private object monitor = new object ();
 		private Queue<PatchRequest> processedRequests = new Queue<PatchRequest> (128);
@@ -21,34 +20,31 @@ namespace OpenTerra.Controllers.Workers
 		private int maxThreadCount;
 		private int runningThreads;
 		private bool dataAvailable;
+		private ISettingProvider settingProvider;
+		private Gradient elevationColorRamp;
+		private IGlobe globe;
+		private QuadTree quadTree;
+		private ITerrainManager terrainManager;
 
 		/// <summary>
 		/// Occurs when a new mesh is ready for consumption.
 		/// </summary>
 		public event MeshGeneratedEventHandler PatchRequestReady;
 
-		private static MeshBuilder instance;
-		public static MeshBuilder Instance
+		public MeshBuilder (ISettingProvider settingProvider, IGlobe globe, QuadTree quadTree, ITerrainManager terrainManager, Gradient elevationColorRamp)
 		{
-			get
-			{
-				if (instance == null)
-				{
-					instance = new MeshBuilder();
-				}
-				return instance;
-			}
-		}
-
-		public MeshBuilder ()
-		{
-			SettingProvider.Changed += (object sender, EventArgs e) => UpdateSettings ();
+			this.elevationColorRamp = elevationColorRamp;
+			this.globe = globe;
+			this.quadTree = quadTree;
+			this.settingProvider = settingProvider;
+			this.terrainManager = terrainManager;
+			settingProvider.SettingsUpdated += (object sender, EventArgs e) => UpdateSettings ();
 			UpdateSettings ();
 		}
 
 		private void UpdateSettings ()
 		{
-			maxThreadCount = SettingProvider.Get<int> (3, "Mesh builder", "Max threads");
+			maxThreadCount = settingProvider.Get(3, "Mesh builder", "Max threads");
 		}
 
 		public void Update ()
@@ -67,7 +63,7 @@ namespace OpenTerra.Controllers.Workers
 				PatchRequest request = newRequests.Dequeue ();
 
 				// If the node has disappeared, discard the request.
-				Node node = Globe.Instance.Tree.Find (request.Location);
+				Node node = quadTree.Find (request.Location);
 				if (node != null && node.Visible)
 				{
 					GeneratePatchMeshAsync (request);
@@ -174,11 +170,8 @@ namespace OpenTerra.Controllers.Workers
 
 		private MeshObject GeneratePatchMesh (Location location, int subdivisions)
 		{
-			Globe globe = Globe.Instance;
-			TerrainManager terrain = TerrainManager.Instance;
-
 			// Create the base grid
-			MeshObject meshObject = MeshBuilder.Instance.GetGridPrimitive (subdivisions);
+			MeshObject meshObject = GetGridPrimitive (subdivisions);
 
 			float subs = Mathf.Pow (2, location.depth);
 			float samplingRadius = 10 / subs;
@@ -210,10 +203,10 @@ namespace OpenTerra.Controllers.Workers
 				{
 					int index = x + y * iterations;
 
-					// Compute position and normal according to local elevation of the terrain.
+					// Compute position and normal according to local elevation of the terrainManager.
 					if (location.depth >= Patch.TerrainDisplayedDepth)
 					{
-						alt = terrain.GetElevation (lat, lon, Filtering.Bilinear);
+						alt = terrainManager.GetElevation (lat, lon, Filtering.Bilinear);
 						pos = globe.Project (lat, lon, alt) - origin;
 
 						// The sampling radius decreases the higher the terrain resolution.
@@ -223,9 +216,9 @@ namespace OpenTerra.Controllers.Workers
 						float lonK0 = lon - samplingRadius;
 
 						// Compute the position of the sampling points
-						k0 = globe.Project (latK0, lonK0, terrain.GetElevation (latK0, lonK0, Filtering.Point));
-						k1 = globe.Project (latK1, lonK0, terrain.GetElevation (latK1, lonK0, Filtering.Point));
-						k2 = globe.Project (lat, lonK2, terrain.GetElevation (lat, lonK2, Filtering.Point));
+						k0 = globe.Project (latK0, lonK0, terrainManager.GetElevation (latK0, lonK0, Filtering.Point));
+						k1 = globe.Project (latK1, lonK0, terrainManager.GetElevation (latK1, lonK0, Filtering.Point));
+						k2 = globe.Project (lat, lonK2, terrainManager.GetElevation (lat, lonK2, Filtering.Point));
 
 						// The approximate normal of pos is the normal of the plane k0, k1, k2
 						normalPlane.Set3Points (k0, k1, k2);
@@ -233,7 +226,7 @@ namespace OpenTerra.Controllers.Workers
 
 						// Finally, store the elevation in the vertex itself
 						// to be used by a Hillshading shader.
-						meshObject.colors32 [index] = (Color32)PatchManager.TerrainGradient.Evaluate (Mathf.Clamp (alt, 0, Patch.MaxAltitude) / Patch.MaxAltitude);
+						meshObject.colors32 [index] = elevationColorRamp.Evaluate (Mathf.Clamp (alt, 0, Patch.MaxAltitude) / Patch.MaxAltitude);
 					} else
 					{
 						pos = globe.Project (lat, lon, 0);
