@@ -15,10 +15,8 @@ namespace OpenTerra.Controllers
 		}
 	}
 
-	public class TerrainManager
+	public class TerrainManager : ITerrainManager
 	{
-		private static TerrainManager instance;
-
 		private enum TileStatus
 		{
 			// No data available for this tile
@@ -31,34 +29,26 @@ namespace OpenTerra.Controllers
 			Requested = 2,
 		}
 
+		private ICache cache;
+		private IViewpointController viewpointController;
+
 		private SrtmTile[,] grid = new SrtmTile[360, 180];
 		private byte[,] gridStatus = new byte[360, 180];
 		private Uri terrainProvider = new Uri (@"C:\SRTM\srtm\");
 		private Dictionary<Uri, LatLon> pendingRequests = new Dictionary<Uri, LatLon> (128);
 
-		public event EventHandler TileAvailable;
+		public event EventHandler ElevationDataAvailable;
 
-		public static TerrainManager Instance
+		public TerrainManager (ICache cache, IViewpointController viewpointController)
 		{
-			get
-			{
-				if (instance == null)
-				{
-					instance = new TerrainManager();
-				}
-
-				return instance;
-			}
-		}
-
-		public TerrainManager ()
-		{
-			ViewpointController.Instance.HasMoved += OnViewpointMoved;
+			this.cache = cache;
+			this.viewpointController = viewpointController;
+			viewpointController.ActiveViewpointMoved += OnViewpointMoved;
 		}
 
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs args)
 		{
-			LatLon point = ViewpointController.Instance.CurrentPosition;
+			LatLon point = viewpointController.ActiveViewpoint.CurrentPosition;
 			RequestTilesAroundPoint (point);
 
 			int oppositeLat = ((int)point.Latitude + 90) % 90;
@@ -151,6 +141,10 @@ namespace OpenTerra.Controllers
 		/// <param name="lon">Lon.</param>
 		private void RequestTile (int lat, int lon)
 		{
+			// Request out of range
+			if ((lon + 180) >= 360 || lat + 90 >= 180)
+				return;
+
 			// Tile already requested
 			if (gridStatus [lon + 180, lat + 90] != (byte)TileStatus.Unloaded)
 				return;
@@ -166,7 +160,7 @@ namespace OpenTerra.Controllers
 
 			gridStatus [lon + 180, lat + 90] = (byte)TileStatus.Requested;
 
-			Cache.Instance.Get (request, OnDownloadCompleted);
+			cache.Get (request, OnDownloadCompleted);
 		}
 
 		private void OnDownloadCompleted (Uri uri, byte[] data)
@@ -188,7 +182,7 @@ namespace OpenTerra.Controllers
 
 		private void RaiseTileAvailableEvent(SrtmTile tile)
 		{
-			if (TileAvailable != null)
+			if (ElevationDataAvailable != null)
 			{
 				int easting = tile.Easting - 180;
 				int northing = tile.Northing - 90;
@@ -197,7 +191,7 @@ namespace OpenTerra.Controllers
 				LatLon topRight = new LatLon(easting + 1, northing + 1);
 
 				GeoRectangle rect = new GeoRectangle(bottomLeft, topRight);
-				TileAvailable(this, new TileAvailableEventArgs(rect));
+				ElevationDataAvailable(this, new TileAvailableEventArgs(rect));
 			}
 		}
 
