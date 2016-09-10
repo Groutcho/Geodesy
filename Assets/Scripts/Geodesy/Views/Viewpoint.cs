@@ -12,6 +12,9 @@ namespace OpenTerra.Views
 		private Camera camera;
 		private IGlobe globe;
 		private MouseOrbitImproved handler;
+		public Vector3 Position { get; private set; }
+		public Quaternion Orientation { get; private set; }
+		public Vector3 Forward { get; private set; }
 
 		public Camera Camera { get { return camera; } }
 
@@ -51,6 +54,10 @@ namespace OpenTerra.Views
 
 		private void OnMoved(object sender, CameraMovedEventArgs args)
 		{
+			Position = args.Position;
+			Orientation = args.Orientation;
+			Forward = args.Forward;
+
 			if (Moved != null)
 			{
 				Moved(this, args);
