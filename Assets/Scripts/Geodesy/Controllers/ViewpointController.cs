@@ -14,16 +14,14 @@ namespace OpenTerra.Controllers
 
 		public Quaternion Orientation { get; set; }
 
-		public CameraMovedEventArgs (object sender, Vector3 position)
+		public Vector3 Forward { get; set; }
+
+		public CameraMovedEventArgs (object sender, Vector3 position, Quaternion orientation, Vector3 forward)
 		{
 			this.Sender = sender;
 			this.Position = position;
-		}
-
-		public CameraMovedEventArgs (object sender, Vector3 position, Quaternion orientation)
-			: this (sender, position)
-		{
 			this.Orientation = orientation;
+			this.Forward = forward;
 		}
 	}
 
@@ -72,7 +70,7 @@ namespace OpenTerra.Controllers
 			AdaptClippingRanges(activeViewpoint);
 			if (ActiveViewpointMoved != null)
 			{
-				ActiveViewpointMoved(this, new CameraMovedEventArgs(this, activeViewpoint.Camera.transform.position));
+				ActiveViewpointMoved(this, args);
 				globe.ObserverAltitude = activeViewpoint.CurrentPosition.Altitude;
 			}
 		}
@@ -80,28 +78,61 @@ namespace OpenTerra.Controllers
 		/// <summary>
 		/// Adapt the clipping planes so that:
 		/// 1. the near clipping plane is slightly above the globe surface
-		/// 2. the far clipping plane is slightly farther than the hemisphere boundary.
+		/// 2. the far clipping plane is:
+		/// - At the farthest intersection of a frustum ray with the ellipsoid if any,
+		/// - slightly farther than the hemisphere boundary if no ray intersects.
 		/// </summary>
 		private void AdaptClippingRanges(Viewpoint viewpoint)
 		{
-			Transform t = viewpoint.Camera.transform;
-			Vector3 point;
+			Vector3 pos = viewpoint.Position;
 
-			// TODO: use 4 frustum rays to compute far clip
-			if (globe.Intersects(t.position, t.forward, out point))
+			// The four rays defining the frustum
+			Ray A = viewpoint.Camera.ViewportPointToRay(new Vector3(0, 0));
+			Ray B = viewpoint.Camera.ViewportPointToRay(new Vector3(1, 0));
+			Ray C = viewpoint.Camera.ViewportPointToRay(new Vector3(1, 1));
+			Ray D = viewpoint.Camera.ViewportPointToRay(new Vector3(0, 1));
+
+			// The ray in the axis of the frustum
+			Ray O = viewpoint.Camera.ViewportPointToRay(new Vector3(0.5f, 0.5f));
+
+			// The far clip to use in case no frustum ray intersected with the ellipsoid,
+			// i.e the ellipsoid is entirely contained in the frustum.
+			// This distance represents a point 1000 km beyond the center of the earth.
+			// It allows the correct rendering of a full hemisphere, with a comfortable margin.
+			float defaultFarClip = pos.magnitude + globe.Scale(Units.km_to_m(1000));
+
+			float[] distances = new float[4];
+
+			Ray[] rays = new Ray[4] { A, B, C, D };
+			bool doesIntersect = false;
+
+			for (int i = 0; i < rays.Length; i++)
 			{
-				float near = Vector3.Distance(point, t.position);
-				float far = Vector3.Distance(Vector3.zero, t.position) - 100;
+				Vector3 hit;
+				if (globe.Intersects(rays[i], out hit))
+				{
+					doesIntersect = true;
+					distances[i] = Vector3.Distance(pos, hit);
+				}
+			}
 
-				viewpoint.Camera.nearClipPlane = Mathf.Clamp(near - 10, 1, far - 1);
-				viewpoint.Camera.farClipPlane = far;
+			float near = 0;
+			Vector3 nearHit;
+
+			// Intersects the frustum direction with the ellipsoid.
+			// If there is no intersection, take the shortest of the previously
+			// computed distances.
+			if (globe.Intersects(O, out nearHit))
+			{
+				near = Vector3.Distance(pos, nearHit);
 			}
 			else
 			{
-				// if the center of the viewport doesn't intersect with the ellipsoid,
-				// we need to take the frustum ray intersection that is the closest to
-				// the camera.
+				near = Mathf.Min(distances);
 			}
+
+			viewpoint.Camera.farClipPlane = doesIntersect ? Mathf.Max(distances) : defaultFarClip;
+			viewpoint.Camera.nearClipPlane = Mathf.Clamp(near - 200, 1, 10000);
 		}
 
 		public void OnDrawGizmos()
