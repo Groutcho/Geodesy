@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace OpenTerra.Models
 {
@@ -89,6 +90,11 @@ namespace OpenTerra.Models
 		public double Magnitude
 		{
 			get { return Math.Sqrt (x * x + y * y + z * z); }
+		}
+
+		public Vector3 ToVector3()
+		{
+			return new Vector3((float)x, (float)y, (float)z);
 		}
 	}
 }
