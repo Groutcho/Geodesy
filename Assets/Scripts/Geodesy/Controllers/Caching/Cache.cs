@@ -6,16 +6,16 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using OpenTerra.Controllers.Settings;
-using OpenTerra.Views.Debugging;
-using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Controllers.Commands;
+using Terminal = OpenTerra.Views.Debugging.Terminal;
 
 namespace OpenTerra.Controllers.Caching
 {
-	public class Cache
+	public class Cache : ICache
 	{
 		private DirectoryInfo cacheRoot;
 
-		HashTree inMemoryCache = new HashTree ();
+		private HashTree inMemoryCache = new HashTree ();
 
 		private object requestLocker = new object ();
 		private Stack<ICacheRequest> completedRequests = new Stack<ICacheRequest> (128);
@@ -23,27 +23,17 @@ namespace OpenTerra.Controllers.Caching
 		private int dispatchLimitPerFrame;
 		private float freeIncrement;
 		private object syncRoot = new object ();
+		private IShell shell;
 
 		public long SizeLimit { get; set; }
 
-		private static Cache instance;
-		public static Cache Instance
+		public Cache (IShell shell, ISettingProvider settings)
 		{
-			get
-			{
-				if (instance == null)
-				{
-					instance = new Cache();
-				}
-				return instance;
-			}
-		}
+			this.shell = shell;
 
-		public Cache ()
-		{
-			SizeLimit = MegabytesToBytes (SettingProvider.Get (300L, "Cache", "Size limit (MB)"));
-			dispatchLimitPerFrame = (int)SettingProvider.Get (90L, "Cache", "Dispatch limit per frame");
-			freeIncrement = (float)SettingProvider.Get (0.1d, "Cache", "Free increment (%)");
+			SizeLimit = MegabytesToBytes (settings.Get (300L, "Cache", "Size limit (MB)"));
+			dispatchLimitPerFrame = (int)settings.Get (90L, "Cache", "Dispatch limit per frame");
+			freeIncrement = (float)settings.Get (0.1d, "Cache", "Free increment (%)");
 
 			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
 			string terraDir = Path.Combine (commonAppData, "Terra");
@@ -51,10 +41,7 @@ namespace OpenTerra.Controllers.Caching
 			if (!cacheRoot.Exists)
 				cacheRoot.Create ();
 
-			if (Console.Instance != null)
-			{
-				Console.Instance.Register ("cache", ExecuteCacheCommands);
-			}
+			shell.Register ("cache", ExecuteCacheCommands);
 		}
 
 		public void Update ()
@@ -243,19 +230,19 @@ namespace OpenTerra.Controllers.Caching
 
 		#region Console commands
 
-		private CommandResult ExecuteCacheCommands (Command command)
+		private Response ExecuteCacheCommands (Command command)
 		{
-			if (Console.Matches (command, new Token (Token.T_ID, "stats")))
+			if (Command.Matches (command, new Token (Token.T_ID, "stats")))
 			{
 				long size = inMemoryCache.Size;
-				return new CommandResult (string.Format ("{0} B ({1} MB) - {2:P2} used.", size, size / 1024 / 1024, size / (float)SizeLimit));
+				return new Response(string.Format ("{0} B ({1} MB) - {2:P2} used.", size, size / 1024 / 1024, size / (float)SizeLimit), ResponseType.Normal);
 			}
 
-			if (Console.Matches (command, new Token (Token.T_ID, "fetch"), Token.STR))
+			if (Command.Matches (command, new Token (Token.T_ID, "fetch"), Token.STR))
 			{
 				Uri uri = new Uri (command.Tokens [1].String);
 				Fetch (Hash (uri), uri, ConsoleCallback);
-				return new CommandResult ("OK");
+				return new Response("OK", ResponseType.Success);
 			}
 
 			throw new CommandException ("cache stats\ncache fetch <string>");
@@ -263,7 +250,7 @@ namespace OpenTerra.Controllers.Caching
 
 		private void ConsoleCallback (Uri uri, byte[] data)
 		{
-			Console.Instance.Log (string.Format ("{0} ({1} bytes)", uri, data.Length));
+			Terminal.Instance.Log (string.Format ("{0} ({1} bytes)", uri, data.Length));
 		}
 
 		#endregion
