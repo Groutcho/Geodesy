@@ -1,8 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using OpenTerra.Views;
-using OpenTerra.Views.Debugging;
-using Console = OpenTerra.Views.Debugging.Console;
+using OpenTerra.Controllers.Commands;
 using OpenTerra.Models;
 
 namespace OpenTerra.Controllers
@@ -30,54 +29,51 @@ namespace OpenTerra.Controllers
 
 	public delegate void CameraMovedEventHandler (object sender, CameraMovedEventArgs args);
 
-	public class ViewpointController : MonoBehaviour
+	public class ViewpointController : IViewpointController
 	{
-		Viewpoint viewpoint;
-		Vector3 lastPos;
+		private Viewpoint activeViewpoint;
+		private IShell shell;
+		private IGlobe globe;
 
-		float minClip = 1f;
+		private Transform viewpointRoot;
 
-		public static ViewpointController Instance { get; private set; }
+		private bool showFrustum;
 
-		public bool ShowFrustum { get; set; }
+		public event CameraMovedEventHandler ActiveViewpointMoved;
 
-		public event CameraMovedEventHandler HasMoved;
-
-		public void Awake ()
+		public Viewpoint ActiveViewpoint
 		{
-			if (Instance == null)
+			get { return activeViewpoint; }
+		}
+
+		public ViewpointController(IShell shell, IGlobe globe)
+		{
+			showFrustum = true;
+
+			viewpointRoot = GameObject.Find("Globe/Viewpoints").transform;
+
+			this.globe = globe;
+			this.shell = shell;
+			shell.Register("frustum", ExecuteFrustumCommands);
+
+			CreateDefaultViewpoint();
+		}
+
+		private void CreateDefaultViewpoint()
+		{
+			this.activeViewpoint = new Viewpoint(viewpointRoot, globe, "default", new Vector3(Viewpoint.MaxDistance, 0, 0));
+			this.activeViewpoint.Moved += OnViewpointMoved;
+
+			AdaptClippingRanges(activeViewpoint);
+		}
+
+		private void OnViewpointMoved(object sender, CameraMovedEventArgs args)
+		{
+			AdaptClippingRanges(activeViewpoint);
+			if (ActiveViewpointMoved != null)
 			{
-				Instance = this;
-			}
-		}
-
-		public LatLon CurrentPosition { get { return Globe.Instance.Project (viewpoint.Camera.transform.position); } }
-
-		public Camera CurrentCamera
-		{
-			get { return viewpoint.Camera; }
-		}
-
-		public void Initialize (Viewpoint viewpoint)
-		{
-			ShowFrustum = true;
-			this.viewpoint = viewpoint;
-			this.viewpoint.Handler.Moved += Viewpoint_Handler_Moved;
-			lastPos = transform.position;
-			Console.Instance.Register ("frustum", ExecuteFrustumCommands);
-			AdaptClippingRanges (lastPos);
-		}
-
-		void Viewpoint_Handler_Moved (object sender, CameraMovedEventArgs args)
-		{
-			if (Vector3.Distance (lastPos, args.Position) > 1)
-			{
-				lastPos = args.Position;
-				AdaptClippingRanges (args.Position);
-				if (HasMoved != null)
-				{
-					HasMoved (this, new CameraMovedEventArgs (this, lastPos));
-				}
+				ActiveViewpointMoved(this, new CameraMovedEventArgs(this, activeViewpoint.Camera.transform.position));
+				globe.ObserverAltitude = activeViewpoint.CurrentPosition.Altitude;
 			}
 		}
 
@@ -86,57 +82,60 @@ namespace OpenTerra.Controllers
 		/// 1. the near clipping plane is slightly above the globe surface
 		/// 2. the far clipping plane is slightly farther than the hemisphere boundary.
 		/// </summary>
-		private void AdaptClippingRanges (Vector3 position)
+		private void AdaptClippingRanges(Viewpoint viewpoint)
 		{
-			Camera cam = viewpoint.Camera;
-			float dist = position.magnitude;
-			cam.farClipPlane = dist + 3000;
-			cam.nearClipPlane = Mathf.Clamp (dist - 7000, minClip, cam.farClipPlane - 1);
+			Transform t = viewpoint.Camera.transform;
+			Vector3 point;
+
+			// TODO: use 4 frustum rays to compute far clip
+			if (globe.Intersects(t.position, t.forward, out point))
+			{
+				float near = Vector3.Distance(point, t.position);
+				float far = Vector3.Distance(Vector3.zero, t.position) - 100;
+
+				viewpoint.Camera.nearClipPlane = Mathf.Clamp(near - 10, 1, far - 1);
+				viewpoint.Camera.farClipPlane = far;
+			}
+			else
+			{
+				// if the center of the viewport doesn't intersect with the ellipsoid,
+				// we need to take the frustum ray intersection that is the closest to
+				// the camera.
+			}
 		}
 
-		public void OnDrawGizmos ()
+		public void OnDrawGizmos()
 		{
-			if (ShowFrustum)
+			if (showFrustum)
 			{
 				Color original = Gizmos.color;
 				Gizmos.color = Color.yellow;
-				Gizmos.matrix = viewpoint.Camera.transform.localToWorldMatrix;
-				Gizmos.DrawFrustum (
-					viewpoint.Camera.transform.position,
-					viewpoint.Camera.fieldOfView,
-					viewpoint.Camera.farClipPlane,
-					viewpoint.Camera.nearClipPlane,
-					viewpoint.Camera.aspect);
+				Gizmos.matrix = activeViewpoint.Camera.transform.localToWorldMatrix;
+				Gizmos.DrawFrustum(
+					activeViewpoint.Camera.transform.position,
+					activeViewpoint.Camera.fieldOfView,
+					activeViewpoint.Camera.farClipPlane,
+					activeViewpoint.Camera.nearClipPlane,
+					activeViewpoint.Camera.aspect);
 				Gizmos.color = original;
 			}
 		}
 
-		public float DistanceFromView (Vector3 position)
-		{
-			return viewpoint.DistanceFromView (position);
-		}
-
-		public Vector2 WorldToGUIPoint (Vector3 world)
-		{
-			Vector2 screenPoint = viewpoint.Camera.WorldToScreenPoint (world);
-			screenPoint.y = (float)Screen.height - screenPoint.y;
-			return screenPoint;
-		}
-
 		#region Console commands
 
-		private CommandResult ExecuteFrustumCommands (Command command)
+		private Response ExecuteFrustumCommands(Command command)
 		{
 			if (command.TokenCount == 0)
-				return new CommandResult (ShowFrustum);
+				return new Response(showFrustum, ResponseType.Normal);
 
-			if (Console.Matches (command, Token.BOOL))
+			if (Command.Matches(command, Token.BOOL))
 			{
-				ShowFrustum = command.Tokens [0].Bool;
-				return new CommandResult (ShowFrustum);
-			} else
+				showFrustum = command.Tokens[0].Bool;
+				return new Response(showFrustum, ResponseType.Success);
+			}
+			else
 			{
-				throw new CommandException ("frustum [bool]");
+				throw new CommandException("frustum [bool]");
 			}
 		}
 
