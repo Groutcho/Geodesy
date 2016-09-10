@@ -79,14 +79,14 @@ namespace OpenTerra.Views
 			}
 		}
 
-		public Patch (Globe globe, Transform root, Location location, Material material, Material pseudoColor, Material terrain)
+		public Patch (Transform root, Location location, Material material, Material pseudoColor, Material terrain, IMeshBuilder meshBuilder)
 		{
 			pseudocolorMaterial = pseudoColor;
 			terrainMaterial = terrain;
 
 			this.Location = location;
 
-			MeshObject meshObject = MeshBuilder.Instance.RequestPatchMesh (location);
+			MeshObject meshObject = meshBuilder.RequestPatchMesh (location);
 			Mesh mesh = meshObject.Mesh;
 			mesh.RecalculateBounds ();
 
