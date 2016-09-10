@@ -136,21 +136,15 @@ namespace OpenTerra.Controllers
 			return new Vector3 ((float)x, (float)y, (float)z);
 		}
 
-		private IEnumerator PatchManagerGarbageCollector ()
+		public bool Intersects(Vector3 origin, Vector3 direction, out Vector3 point)
 		{
-			while (true)
-			{
-				yield return new WaitForSeconds (CleanupFrequency);
-				PatchManager.Cleanup ();
-			}
-		}
+			Cartesian3 intersection;
+			Cartesian3 o = new Cartesian3(origin.x / reductionFactor, origin.y / reductionFactor, origin.z / reductionFactor);
+			Cartesian3 d = new Cartesian3(direction.x, direction.y, direction.z);
+			bool intersects = datum.Intersects(o, d, out intersection);
 
-		void Update ()
-		{
-			tree.Update ();
-
-			// Hide atmosphere if we get close to the globe to avoid the blue veil effect
-			AtmosphereVisible = ViewpointController.Instance.DistanceFromView (Vector3.zero) > 12000;
+			point = new Vector3((float)intersection.x, (float)intersection.y, (float)intersection.z) * reductionFactor;
+			return intersects;
 		}
 
 		#region Visual debugging
