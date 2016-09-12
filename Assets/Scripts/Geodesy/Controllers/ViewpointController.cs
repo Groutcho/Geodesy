@@ -141,6 +141,7 @@ namespace OpenTerra.Controllers
 			{
 				Color original = Gizmos.color;
 				Gizmos.color = Color.yellow;
+				Matrix4x4 origmtx = Gizmos.matrix;
 				Gizmos.matrix = activeViewpoint.Camera.transform.localToWorldMatrix;
 				Gizmos.DrawFrustum(
 					activeViewpoint.Camera.transform.position,
@@ -149,6 +150,7 @@ namespace OpenTerra.Controllers
 					activeViewpoint.Camera.nearClipPlane,
 					activeViewpoint.Camera.aspect);
 				Gizmos.color = original;
+				Gizmos.matrix = origmtx;
 			}
 		}
 
