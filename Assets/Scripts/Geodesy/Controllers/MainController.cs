@@ -1,4 +1,5 @@
-﻿using OpenTerra.Controllers.Caching;
+﻿using System.Collections;
+using OpenTerra.Controllers.Caching;
 using OpenTerra.Controllers.Commands;
 using OpenTerra.Controllers.Settings;
 using OpenTerra.Controllers.Workers;
@@ -11,6 +12,10 @@ namespace OpenTerra.Controllers
 {
 	public class MainController
 	{
+		private bool ready;
+
+		private MonoBehaviour parent;
+
 		private IShell shell;
 		private ICache cache;
 		private ISettingProvider settingProvider;
@@ -22,7 +27,7 @@ namespace OpenTerra.Controllers
 		private IViewpointController viewpointController;
 		private QuadTree quadTree;
 
-		public MainController(Gradient elevationColorRamp)
+		public MainController(MonoBehaviour parent, Gradient elevationColorRamp)
 		{
 			shell = new Shell();
 			settingProvider = new SettingProvider();
@@ -37,10 +42,24 @@ namespace OpenTerra.Controllers
 			compositer = new Compositer(globe, quadTree, shell, cache, settingProvider, patchManager, viewpointController);
 
 			GameObject.Find("UI").GetComponent<UiController>().Initialize(shell);
+
+			parent.StartCoroutine(StartupRoutine());
+		}
+
+		private IEnumerator StartupRoutine()
+		{
+			quadTree.Update();
+			yield return new WaitForEndOfFrame();
+			compositer.Initialize();
+
+			ready = true;
 		}
 
 		public void Update()
 		{
+			if (!ready)
+				return;
+
 			cache.Update();
 			quadTree.Update();
 			meshBuilder.Update();
@@ -50,6 +69,9 @@ namespace OpenTerra.Controllers
 
 		public void OnDrawGizmos()
 		{
+			if (!ready)
+				return;
+
 			globe.OnDrawGizmos();
 			viewpointController.OnDrawGizmos();
 			quadTree.OnDrawGizmos();

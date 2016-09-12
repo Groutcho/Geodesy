@@ -26,7 +26,7 @@ namespace OpenTerra.Controllers
 				yield return new WaitForEndOfFrame();
 			}
 
-			mainController = new MainController(ElevationColorRamp);
+			mainController = new MainController(this, ElevationColorRamp);
 
 			ready = true;
 		}

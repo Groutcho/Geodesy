@@ -4,5 +4,6 @@
 	{
 		bool BackgroundVisible { get; set; }
 		void Update();
+		void Initialize();
 	}
 }

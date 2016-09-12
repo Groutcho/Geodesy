@@ -7,11 +7,11 @@ namespace OpenTerra.Models.QuadTree
 {
 	public class NodeUpdatedEventArgs : EventArgs
 	{
-		public Node Node { get; set; }
+		public IEnumerable<Node> Nodes { get; set; }
 
-		public NodeUpdatedEventArgs (Node node)
+		public NodeUpdatedEventArgs (IEnumerable<Node> nodes)
 		{
-			this.Node = node;
+			this.Nodes = nodes;
 		}
 	}
 
@@ -87,7 +87,7 @@ namespace OpenTerra.Models.QuadTree
 		/// <summary>
 		/// Split or reduce nodes when necessary.
 		/// </summary>
-		private void ComputeNodes ()
+		public void ComputeNodes (bool onlyVisible = true)
 		{
 			float w = Screen.width;
 			float h = Screen.height;
@@ -95,21 +95,30 @@ namespace OpenTerra.Models.QuadTree
 			float upperThreshold = 0.1f;
 			float lowerThreshold = 0.07f;
 
+			List<Node> changedNodes = new List<Node>(128);
+
 			foreach (Node node in Traverse(onlyLeaves: true))
 			{
-				if (!node.Visible)
+				if (onlyVisible && !node.Visible)
 					continue;
+
+				var l = node.Location;
+				if (l.depth == 3 && l.i == 3 && l.j == 3)
+				{
+					int x = 2;
+					x++;
+				}
 
 				float area = node.GetScreenArea ();
 				if (area / screenArea > upperThreshold)
 				{
 					node.Visible = false;
-					RaiseChangedEvent (node);
+					changedNodes.Add(node);
 					node.Divide ();
 					for (int i = 0; i < 4; i++)
 					{
 						node.Children [i].Visible = true;
-						RaiseChangedEvent (node.Children [i]);
+						changedNodes.Add(node.Children[i]);
 					}
 
 				} else
@@ -121,7 +130,7 @@ namespace OpenTerra.Models.QuadTree
 						for (int i = 0; i < 4; i++)
 						{
 							node.Parent.Children [i].Visible = false;
-							RaiseChangedEvent (node.Parent.Children [i]);
+							changedNodes.Add(node.Parent.Children[i]);
 						}
 
 						node.Parent.Reduce ();
@@ -129,6 +138,7 @@ namespace OpenTerra.Models.QuadTree
 				}
 			}
 
+			RaiseChangedEvent(changedNodes);
 			UpdateNodeVisibility ();
 		}
 
@@ -140,37 +150,29 @@ namespace OpenTerra.Models.QuadTree
 		private void UpdateNodeVisibility ()
 		{
 			Camera cam = viewpointController.ActiveViewpoint.Camera;
-			Vector3 cameraForward = cam.transform.forward;
 			Plane[] frustum = GeometryUtility.CalculateFrustumPlanes (cam);
+
+			List<Node> updatedNodes = new List<Node>(128);
 
 			foreach (var node in Traverse (onlyLeaves: true))
 			{
-				// step 1 backface culling.
-				// Take advantage of the fact that node surfaces are convex,
-				// so we only need to test orientation of the
-				// vectors at the 4 corners of the patch.
-				// If any of those 4 vectors points to the camera, then this node is facing the camera.
-				//
-				// Step 2 frustum culling.
-				bool visible =
-					(Vector3.Dot (cameraForward, node.Corners [0]) < 0
-					|| Vector3.Dot (cameraForward, node.Corners [1]) < 0
-					|| Vector3.Dot (cameraForward, node.Corners [2]) < 0
-					|| Vector3.Dot (cameraForward, node.Corners [3]) < 0)
-					&&	GeometryUtility.TestPlanesAABB (frustum, node.Bounds);
+				// Perform frustum culling on leaf nodes
+				bool visible = GeometryUtility.TestPlanesAABB (frustum, node.Bounds);
 
 				if (node.Visible != visible)
 				{
 					node.Visible = visible;
+					updatedNodes.Add(node);
 				}
-				RaiseChangedEvent (node);
 			}
+
+			RaiseChangedEvent(updatedNodes);
 		}
 
-		private void RaiseChangedEvent (Node node)
+		private void RaiseChangedEvent(IEnumerable<Node> nodes)
 		{
 			if (NodeChanged != null)
-				NodeChanged (this, new NodeUpdatedEventArgs (node));
+				NodeChanged(this, new NodeUpdatedEventArgs(nodes));
 		}
 	}
 }

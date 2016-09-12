@@ -46,7 +46,7 @@ namespace OpenTerra.Controllers
 			this.terrain = (Material)Resources.Load ("Terrain");
 			this.shell = shell;
 			this.quadTree = quadTree;
-			quadTree.NodeChanged += OnNodeChanged;
+			quadTree.NodeChanged += OnNodesChanged;
 			meshBuilder.PatchRequestReady += OnPatchRequestReady;
 
 			GameObject globeRoot = GameObject.Find("Globe");
@@ -151,23 +151,25 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		private void OnNodeChanged (object sender, EventArgs args)
+		private void OnNodesChanged(object sender, EventArgs args)
 		{
-			Node node = (args as NodeUpdatedEventArgs).Node;
-			Patch patch;
-
-			if (!patches.TryGetValue (node.Location, out patch))
+			foreach (Node node in (args as NodeUpdatedEventArgs).Nodes)
 			{
-				patch = AddPatch(node.Location);
-			}
-			else
-			{
-				// Request a refreshed terrain mesh
-				if (node.Visible && node.Location.depth >= Patch.TerrainDisplayedDepth)
-					meshBuilder.RequestPatchMesh(node.Location);
-			}
+				Patch patch;
 
-			patch.Visible = node.Visible;
+				if (!patches.TryGetValue(node.Location, out patch))
+				{
+					patch = AddPatch(node.Location);
+				}
+				else
+				{
+					// Request a refreshed terrain mesh
+					if (node.Visible && node.Location.depth >= Patch.TerrainDisplayedDepth)
+						meshBuilder.RequestPatchMesh(node.Location);
+				}
+
+				patch.Visible = node.Visible;
+			}
 		}
 
 		public void Update()

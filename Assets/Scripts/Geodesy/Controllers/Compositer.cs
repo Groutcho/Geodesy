@@ -126,6 +126,19 @@ namespace OpenTerra.Controllers
 			toRender.Clear ();
 		}
 
+		/// <summary>
+		/// Perform the initial rendering of the visible nodes.
+		/// Once this has been done, every rendering step is incremental.
+		/// Since the first step cannot rely on the previous step,
+		/// we need to 'force' the initial node computation.
+		/// </summary>
+		public void Initialize()
+		{
+			quadTree.ComputeNodes(onlyVisible: false);
+
+			RequestRenderForAllNodes();
+		}
+
 		private void OnViewpointMoved (object sender, CameraMovedEventArgs arg)
 		{
 			float altitude = (float)globe.Project (arg.Position).Altitude;
@@ -224,10 +237,10 @@ namespace OpenTerra.Controllers
 
 		private void OnNodeChanged (object sender, EventArgs e)
 		{
-			Node node = (e as NodeUpdatedEventArgs).Node;
-			if (node != null && node.Visible)
+			foreach (Node node in (e as NodeUpdatedEventArgs).Nodes)
 			{
-				renderStack.Push (node.Location);
+				if (node.Visible)
+					renderStack.Push(node.Location);
 			}
 		}
 
