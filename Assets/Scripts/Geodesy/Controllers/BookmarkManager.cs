@@ -9,7 +9,7 @@ namespace OpenTerra.Controllers
 {
 	public class BookmarkManager
 	{
-		public List<Bookmark> Bookmarks { get; private set; }
+		private IList<Bookmark> bookmarks;
 
 		private IShell shell;
 		private IGlobe globe;
@@ -22,8 +22,7 @@ namespace OpenTerra.Controllers
 			this.shell = shell;
 			this.compositer = compositer;
 			this.viewpointController = viewpointController;
-			Bookmarks = new List<Bookmark> (64);
-
+			bookmarks = new List<Bookmark> (64);
 			
 			shell.Register ("bookmark", ExecuteBookmarkCommand);
 		}
@@ -43,7 +42,7 @@ namespace OpenTerra.Controllers
 				BackgroundVisible = compositer.BackgroundVisible
 			};
 
-			Bookmarks.Add (bookmark);
+			bookmarks.Add (bookmark);
 			return bookmark;
 		}
 
