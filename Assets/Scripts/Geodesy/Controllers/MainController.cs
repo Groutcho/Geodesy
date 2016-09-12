@@ -52,6 +52,7 @@ namespace OpenTerra.Controllers
 		{
 			globe.OnDrawGizmos();
 			viewpointController.OnDrawGizmos();
+			quadTree.OnDrawGizmos();
 		}
 	}
 }

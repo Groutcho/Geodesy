@@ -34,6 +34,17 @@ namespace OpenTerra.Models.QuadTree
 			Divide (); // 64 nodes
 		}
 
+		public void OnDrawGizmos()
+		{
+			foreach (var node in Traverse(onlyLeaves: true))
+			{
+				if (!node.Visible)
+					continue;
+
+				Gizmos.DrawWireCube(node.Bounds.center, node.Bounds.size);
+			}
+		}
+
 		public IEnumerable<Node> Traverse (bool onlyLeaves)
 		{
 			return root.Traverse (onlyLeaves);
