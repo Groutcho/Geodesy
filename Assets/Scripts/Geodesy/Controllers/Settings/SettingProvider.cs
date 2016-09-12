@@ -77,18 +77,10 @@ namespace OpenTerra.Controllers.Settings
 			string settingFile;
 			if (type == SettingFile.User)
 			{
-				string userPath = Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData);
-				string applicationDirectory = Path.Combine (userPath, "Terra");
-				if (!Directory.Exists (applicationDirectory))
-				{
-					Directory.CreateDirectory (applicationDirectory);
-				}
-				settingFile = Path.Combine (applicationDirectory, "settings.json");
+				settingFile = Path.Combine (Utils.GetUserDirectory().FullName, "settings.json");
 			} else
 			{
-				string commonPath = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
-				string applicationDirectory = Path.Combine (commonPath, "Terra");
-				settingFile = Path.Combine (applicationDirectory, "default-settings.json");
+				settingFile = Path.Combine(Utils.GetAppDirectory().FullName, "default-settings.json");
 			}
 
 			return settingFile;

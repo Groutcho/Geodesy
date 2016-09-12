@@ -35,11 +35,7 @@ namespace OpenTerra.Controllers.Caching
 			dispatchLimitPerFrame = (int)settings.Get (90L, "Cache", "Dispatch limit per frame");
 			freeIncrement = (float)settings.Get (0.1d, "Cache", "Free increment (%)");
 
-			string commonAppData = Environment.GetFolderPath (Environment.SpecialFolder.CommonApplicationData);
-			string terraDir = Path.Combine (commonAppData, "Terra");
-			cacheRoot = new DirectoryInfo (Path.Combine (terraDir, "cache"));
-			if (!cacheRoot.Exists)
-				cacheRoot.Create ();
+			InitializeCacheDirectory();
 
 			shell.Register ("cache", ExecuteCacheCommands);
 		}
@@ -90,6 +86,15 @@ namespace OpenTerra.Controllers.Caching
 		}
 
 		#region helpers
+
+		private void InitializeCacheDirectory()
+		{
+			DirectoryInfo appDir = Utils.GetAppDirectory();
+			cacheRoot = new DirectoryInfo(Path.Combine(appDir.FullName, "cache"));
+
+			if (!cacheRoot.Exists)
+				cacheRoot.Create();
+		}
 
 		private static long MegabytesToBytes (long megabytes)
 		{

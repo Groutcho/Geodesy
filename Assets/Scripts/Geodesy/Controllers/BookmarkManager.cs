@@ -47,6 +47,14 @@ namespace OpenTerra.Controllers
 			return bookmark;
 		}
 
+		private static string GetBookmarkFilename()
+		{
+			var userDir = Utils.GetUserDirectory();
+			string bookmarkFile = Path.Combine(userDir.FullName, "bookmarks.json");
+
+			return bookmarkFile;
+		}
+
 		/// <summary>
 		/// Save the bookmarks into the user's bookmarks.json file.
 		/// </summary>
@@ -65,8 +73,7 @@ namespace OpenTerra.Controllers
 				}
 			}
 
-			//TODO: fix path
-			File.WriteAllText (@"c:\temp\bookmarks.json", json);
+			File.WriteAllText (GetBookmarkFilename(), json);
 		}
 
 		#region Console commands
