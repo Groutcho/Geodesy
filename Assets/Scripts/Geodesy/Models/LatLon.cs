@@ -154,6 +154,16 @@ namespace OpenTerra.Models
 			return false;
 		}
 
+		public static bool operator ==(LatLon a, LatLon b)
+		{
+			return a.Equals(b);
+		}
+
+		public static bool operator !=(LatLon a, LatLon b)
+		{
+			return !a.Equals(b);
+		}
+
 		public override int GetHashCode ()
 		{
 			unchecked
