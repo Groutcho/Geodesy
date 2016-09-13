@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using OpenTerra.Controllers.Caching;
 using OpenTerra.Views;
-using OpenTerra.Controllers.Commands;
 using UnityEngine;
 using OpenTerra.Views.Debugging;
 
 namespace OpenTerra.Models
 {
-	public delegate void NewDataAvailableHandler (Location coord);
+	public delegate void NewDataAvailableHandler (object sender, Location coord);
 
 	public class RasterLayer : Layer
 	{
@@ -73,7 +72,7 @@ namespace OpenTerra.Models
 				pendingRequests.Remove (uri);
 				if (DataAvailable != null)
 				{
-					DataAvailable (location);
+					DataAvailable (this, location);
 				}
 			} else
 			{
