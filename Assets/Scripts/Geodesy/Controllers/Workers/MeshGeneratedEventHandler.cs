@@ -14,6 +14,6 @@ namespace OpenTerra.Controllers.Workers
 		}
 	}
 
-	public delegate void MeshGeneratedEventHandler (object sender, MeshGeneratedEventArgs args);
+	public delegate void MeshGeneratedEventHandler (object sender, MeshGeneratedEventArgs e);
 }
 
