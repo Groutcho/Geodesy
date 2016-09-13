@@ -43,7 +43,8 @@ namespace OpenTerra.Controllers.Settings
 		}
 
 		/// <summary>
-		/// Load the settings from the settings.json file.
+		/// Load the user settings from the default settings.json file.
+		/// If no user setting file is found, load the default settings instead.
 		/// </summary>
 		public void Load ()
 		{
@@ -56,6 +57,9 @@ namespace OpenTerra.Controllers.Settings
 			root = JsonConvert.DeserializeObject<Section> (File.ReadAllText (settingFile), new SettingConverter ());
 		}
 
+		/// <summary>
+		/// Save the current user settings in the default settings.json file.
+		/// </summary>
 		public void Save ()
 		{
 			string settingFile = GetSettingFilename (SettingFile.User);
