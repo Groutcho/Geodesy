@@ -38,7 +38,7 @@ namespace OpenTerra.Controllers.Workers
 			this.quadTree = quadTree;
 			this.settingProvider = settingProvider;
 			this.terrainManager = terrainManager;
-			settingProvider.SettingsUpdated += (object sender, EventArgs e) => UpdateSettings ();
+
 			UpdateSettings ();
 		}
 

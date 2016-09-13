@@ -7,6 +7,5 @@ namespace OpenTerra.Controllers.Settings
 		T Get<T>(T defaultValue, params string[] path);
 		void Load();
 		void Save();
-		event EventHandler SettingsUpdated;
 	}
 }

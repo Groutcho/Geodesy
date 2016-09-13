@@ -67,12 +67,9 @@ namespace OpenTerra.Controllers.Settings
 			JsonSerializer serializer = new JsonSerializer ();
 			serializer.Formatting = Formatting.Indented;
 
-			using (TextWriter textWriter = new StreamWriter (settingFile))
+			using (JsonWriter jsonWriter = new JsonTextWriter(new StreamWriter(settingFile)))
 			{
-				using (JsonWriter jsonWriter = new JsonTextWriter (textWriter))
-				{
-					serializer.Serialize (jsonWriter, root);
-				}
+				serializer.Serialize(jsonWriter, root);
 			}
 		}
 
@@ -89,8 +86,6 @@ namespace OpenTerra.Controllers.Settings
 
 			return settingFile;
 		}
-
-		public event EventHandler SettingsUpdated;
 	}
 }
 
