@@ -30,7 +30,7 @@ namespace OpenTerra.Views.Debugging
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return "terminal";
 			}
 		}
 
