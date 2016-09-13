@@ -11,6 +11,10 @@ using Terminal = OpenTerra.Views.Debugging.Terminal;
 
 namespace OpenTerra.Controllers.Caching
 {
+	/// <summary>
+	/// Performs downloading and caching of requested URIs. All downloaded files are
+	/// stored in the cache directory and their filename is the SHA-1 of their URI.
+	/// </summary>
 	public class Cache : ICache
 	{
 		private DirectoryInfo cacheRoot;
@@ -87,6 +91,9 @@ namespace OpenTerra.Controllers.Caching
 
 		#region helpers
 
+		/// <summary>
+		/// Create the cache directory if it does not exist. If it already exists, nothing happens.
+		/// </summary>
 		private void InitializeCacheDirectory()
 		{
 			DirectoryInfo appDir = Utils.GetAppDirectory();
@@ -101,11 +108,21 @@ namespace OpenTerra.Controllers.Caching
 			return megabytes * 1024 * 1024;
 		}
 
+		/// <summary>
+		/// Hash the specified URI using the current hash algorithm (SHA-1).
+		/// </summary>
+		/// <param name="uri">The URI to hash.</param>
+		/// <returns></returns>
 		private static string Hash (Uri uri)
 		{
 			return Hash (uri.AbsoluteUri);
 		}
 
+		/// <summary>
+		/// Hash the specified string using the current hash algorithm (SHA-1).
+		/// </summary>
+		/// <param name="s">The string to hash.</param>
+		/// <returns></returns>
 		private static string Hash (string s)
 		{
 			byte[] hash;
@@ -117,6 +134,11 @@ namespace OpenTerra.Controllers.Caching
 			return BitConverter.ToString (hash).Replace ("-", string.Empty);
 		}
 
+		/// <summary>
+		/// Start an async download using a WebClient. Once the download is finished,
+		/// the request Data property is populated with the download bytes.
+		/// </summary>
+		/// <param name="request"></param>
 		private void Download (UriRequest request)
 		{
 			WebClient downloader = new WebClient ();
@@ -125,6 +147,15 @@ namespace OpenTerra.Controllers.Caching
 			downloader.DownloadDataCompleted += OnDownloadDataCompleted;
 		}
 
+		/// <summary>
+		/// Tries to search the in-memory cache for the specified hash.
+		/// If the hash is not present in the in-memory cache, search the on-disk
+		/// cache. If there is nothing on-disk, perform a download and fill the cache
+		/// with the downloaded URI.
+		/// </summary>
+		/// <param name="hash">The has to search in the in-memory and on-disk caches.</param>
+		/// <param name="uri">The URI to download if the hash is not present in the cache.</param>
+		/// <param name="callback">The callback method to execute once the data has been retrieved, whether in cache or after a download.</param>
 		private void Fetch (string hash, Uri uri, Action<Uri, byte[]> callback)
 		{
 			string diskPath = GetDiskPath (hash);
