@@ -27,7 +27,6 @@ namespace OpenTerra.Controllers
 		private Material texture;
 		private Material pseudoColor;
 		private Material terrain;
-		private IShell shell;
 		private IMeshBuilder meshBuilder;
 
 		private QuadTree quadTree;
@@ -44,7 +43,6 @@ namespace OpenTerra.Controllers
 			this.texture = (Material)Resources.Load ("Patch");
 			this.pseudoColor = (Material)Resources.Load ("Solid");
 			this.terrain = (Material)Resources.Load ("Terrain");
-			this.shell = shell;
 			this.quadTree = quadTree;
 			quadTree.NodeChanged += OnNodesChanged;
 			meshBuilder.PatchRequestReady += OnPatchRequestReady;
