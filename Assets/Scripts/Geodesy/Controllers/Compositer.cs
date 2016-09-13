@@ -75,8 +75,6 @@ namespace OpenTerra.Controllers
 		private IShell shell;
 		private ICache cache;
 		private IGlobe globe;
-		private ISettingProvider settingProvider;
-		private IViewpointController viewpointController;
 
 		private List<Layer> layers = new List<Layer> (10);
 		private Stack<Location> renderStack = new Stack<Location> (128);
@@ -160,8 +158,6 @@ namespace OpenTerra.Controllers
 
 		public Compositer (IGlobe globe, QuadTree quadTree, IShell shell, ICache cache, ISettingProvider settingProvider, IPatchManager patchManager, IViewpointController viewpointController)
 		{
-			Debug.Log("Initializing compositer.");
-
 			GameObject compositerRoot = GameObject.Find("Compositer");
 			CreateCompositingCamera(compositerRoot);
 
@@ -176,8 +172,6 @@ namespace OpenTerra.Controllers
 			this.quadTree.NodeChanged += OnNodeChanged;
 			this.patchManager = patchManager;
 			this.cache = cache;
-			this.settingProvider = settingProvider;
-			this.viewpointController = viewpointController;
 			this.globe = globe;
 
 			viewpointController.ActiveViewpointMoved += OnViewpointMoved;
@@ -260,7 +254,7 @@ namespace OpenTerra.Controllers
 			}
 		}
 
-		private void OnLayerDataAvailable (Location coord)
+		private void OnLayerDataAvailable (object sender, Location coord)
 		{
 			renderStack.Push (coord);
 		}
