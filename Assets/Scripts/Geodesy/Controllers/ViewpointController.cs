@@ -25,12 +25,11 @@ namespace OpenTerra.Controllers
 		}
 	}
 
-	public delegate void CameraMovedEventHandler (object sender, CameraMovedEventArgs args);
+	public delegate void CameraMovedEventHandler (object sender, CameraMovedEventArgs e);
 
 	public class ViewpointController : IViewpointController
 	{
 		private Viewpoint activeViewpoint;
-		private IShell shell;
 		private IGlobe globe;
 
 		private Transform viewpointRoot;
@@ -51,7 +50,6 @@ namespace OpenTerra.Controllers
 			viewpointRoot = GameObject.Find("Globe/Viewpoints").transform;
 
 			this.globe = globe;
-			this.shell = shell;
 			shell.Register("frustum", ExecuteFrustumCommands);
 
 			CreateDefaultViewpoint();
