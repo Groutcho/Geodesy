@@ -9,12 +9,12 @@ namespace OpenTerra.Controllers
 		public Gradient ElevationColorRamp;
 		public int[] ScenesToLoad;
 
-		private bool ready;
-
 		private MainController mainController;
 
 		public void Start()
 		{
+			mainController = new MainController(ElevationColorRamp);
+
 			StartCoroutine(Startup());
 		}
 
@@ -26,14 +26,12 @@ namespace OpenTerra.Controllers
 				yield return new WaitForEndOfFrame();
 			}
 
-			mainController = new MainController(this, ElevationColorRamp);
-
-			ready = true;
+			StartCoroutine(mainController.Startup());
 		}
 
 		public void Update()
 		{
-			if (!ready)
+			if (!mainController.Ready)
 				return;
 
 			mainController.Update();
@@ -41,7 +39,7 @@ namespace OpenTerra.Controllers
 
 		public void OnDrawGizmos()
 		{
-			if (!ready)
+			if (mainController == null || !mainController.Ready)
 				return;
 
 			mainController.OnDrawGizmos();

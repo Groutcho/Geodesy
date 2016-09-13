@@ -12,9 +12,7 @@ namespace OpenTerra.Controllers
 {
 	public class MainController
 	{
-		private bool ready;
-
-		private MonoBehaviour parent;
+		public bool Ready { get; private set; }
 
 		private IShell shell;
 		private ICache cache;
@@ -27,7 +25,18 @@ namespace OpenTerra.Controllers
 		private IViewpointController viewpointController;
 		private QuadTree quadTree;
 
-		public MainController(MonoBehaviour parent, Gradient elevationColorRamp)
+		private Gradient elevationColorRamp;
+
+		public MainController(Gradient elevationColorRamp)
+		{
+			this.elevationColorRamp = elevationColorRamp;
+		}
+
+		/// <summary>
+		/// Perform the main initialisation routine. All services are created once here and
+		/// then injected to every instance that need them.
+		/// </summary>
+		public IEnumerator Startup()
 		{
 			shell = new Shell();
 			settingProvider = new SettingProvider();
@@ -43,21 +52,18 @@ namespace OpenTerra.Controllers
 
 			GameObject.Find("UI").GetComponent<UiController>().Initialize(shell);
 
-			parent.StartCoroutine(StartupRoutine());
-		}
-
-		private IEnumerator StartupRoutine()
-		{
 			quadTree.Update();
+
 			yield return new WaitForEndOfFrame();
+
 			compositer.Initialize();
 
-			ready = true;
+			Ready = true;
 		}
 
 		public void Update()
 		{
-			if (!ready)
+			if (!Ready)
 				return;
 
 			cache.Update();
@@ -69,7 +75,7 @@ namespace OpenTerra.Controllers
 
 		public void OnDrawGizmos()
 		{
-			if (!ready)
+			if (!Ready)
 				return;
 
 			globe.OnDrawGizmos();
