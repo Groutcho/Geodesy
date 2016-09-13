@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace OpenTerra.Controllers.Caching
 {
-	public class HashNode : IEnumerator<KeyValuePair<string, CacheItem>>
+	public sealed class HashNode : IEnumerator<KeyValuePair<string, CacheItem>>
 	{
 		public const int PrefixLength = 4;
 		public const int MaxLevel = 40 / PrefixLength;
@@ -210,7 +210,7 @@ namespace OpenTerra.Controllers.Caching
 
 		#region IDisposable implementation
 
-		void IDisposable.Dispose ()
+		public void Dispose ()
 		{
 			// there are no managed resources to dispose.
 		}

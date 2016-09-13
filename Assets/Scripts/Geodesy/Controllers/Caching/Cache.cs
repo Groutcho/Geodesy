@@ -27,14 +27,11 @@ namespace OpenTerra.Controllers.Caching
 		private int dispatchLimitPerFrame;
 		private float freeIncrement;
 		private object syncRoot = new object ();
-		private IShell shell;
 
 		public long SizeLimit { get; set; }
 
 		public Cache (IShell shell, ISettingProvider settings)
 		{
-			this.shell = shell;
-
 			SizeLimit = MegabytesToBytes (settings.Get (300L, "Cache", "Size limit (MB)"));
 			dispatchLimitPerFrame = (int)settings.Get (90L, "Cache", "Dispatch limit per frame");
 			freeIncrement = (float)settings.Get (0.1d, "Cache", "Free increment (%)");
