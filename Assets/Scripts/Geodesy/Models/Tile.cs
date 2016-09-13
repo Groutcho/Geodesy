@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace OpenTerra.Models
 {
-	public class Tile : IDisposable
+	public class Tile
 	{
 		public readonly Rect Surface;
 		public readonly Location Location;
@@ -81,18 +81,6 @@ namespace OpenTerra.Models
 			lsv.Surface = Surface;
 			#endif
 		}
-
-		#region IDisposable implementation
-
-		public void Dispose ()
-		{
-			if (node != null)
-			{
-				GameObject.Destroy (node);
-			}
-		}
-
-		#endregion
 	}
 }
 
