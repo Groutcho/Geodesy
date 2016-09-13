@@ -11,7 +11,6 @@ namespace OpenTerra.Controllers
 	{
 		private IList<Bookmark> bookmarks;
 
-		private IShell shell;
 		private IGlobe globe;
 		private ICompositer compositer;
 		private IViewpointController viewpointController;
@@ -19,7 +18,6 @@ namespace OpenTerra.Controllers
 		public BookmarkManager (IShell shell, IGlobe globe, ICompositer compositer, IViewpointController viewpointController)
 		{
 			this.globe = globe;
-			this.shell = shell;
 			this.compositer = compositer;
 			this.viewpointController = viewpointController;
 			bookmarks = new List<Bookmark> (64);
@@ -67,7 +65,6 @@ namespace OpenTerra.Controllers
 				using (JsonTextWriter writer = new JsonTextWriter (text))
 				{
 					serializer.Serialize (writer, this);
-					Debug.Log (text.ToString ());
 					json = text.ToString ();
 				}
 			}
