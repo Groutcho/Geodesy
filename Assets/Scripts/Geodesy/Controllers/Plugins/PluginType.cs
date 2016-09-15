@@ -8,7 +8,7 @@ namespace OpenTerra.Controllers.Plugins
 	/// <summary>
 	/// Describe the category the plugin belongs to.
 	/// </summary>
-	enum PluginType
+	public enum PluginType
 	{
 		/// <summary>
 		/// A plugin that extends the importing capabilities of OpenTerra.

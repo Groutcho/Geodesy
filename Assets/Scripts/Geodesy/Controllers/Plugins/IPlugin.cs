@@ -8,9 +8,11 @@ namespace OpenTerra.Controllers.Plugins
 	/// <summary>
 	/// Describe a generic plugin that can be loaded at runtime.
 	/// </summary>
-	interface IPlugin
+	public interface IPlugin
 	{
 		string Name { get; }
+		string Description { get; }
+		Guid Id { get; }
 		Version Version { get; }
 		PluginType PluginType { get; }
 	}
