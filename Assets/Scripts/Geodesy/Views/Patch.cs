@@ -14,7 +14,7 @@ namespace OpenTerra.Views
 	}
 
 	/// <summary>
-	/// Define a rectangular quad mesh projected on a datum.
+	/// Define a rectangular quad mesh projected on a ellipsoid.
 	/// </summary>
 	public class Patch
 	{
