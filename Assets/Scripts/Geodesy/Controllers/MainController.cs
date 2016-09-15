@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using OpenTerra.Controllers.Caching;
 using OpenTerra.Controllers.Commands;
+using OpenTerra.Controllers.Plugins;
 using OpenTerra.Controllers.Settings;
 using OpenTerra.Controllers.Workers;
 using OpenTerra.Models;
@@ -23,6 +24,7 @@ namespace OpenTerra.Controllers
 		private IPatchManager patchManager;
 		private ICompositer compositer;
 		private IViewpointController viewpointController;
+		private PluginManager pluginManager;
 		private QuadTree quadTree;
 
 		private Gradient elevationColorRamp;
@@ -39,6 +41,7 @@ namespace OpenTerra.Controllers
 		public IEnumerator Startup()
 		{
 			shell = new Shell();
+			pluginManager = new PluginManager();
 			settingProvider = new SettingProvider();
 			cache = new Cache(shell, settingProvider);
 			globe = new Globe(new WGS84(), 0.001f, shell);
