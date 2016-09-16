@@ -11,6 +11,11 @@ namespace OpenTerra.Controllers.Commands
 
 		public IList<Token> Tokens { get; set; }
 
+		public bool Matches(params Token[] tokens)
+		{
+			return Command.Matches(this, tokens);
+		}
+
 		/// <summary>
 		/// Check the given command against the specified signature and return true if they match.
 		/// </summary>
