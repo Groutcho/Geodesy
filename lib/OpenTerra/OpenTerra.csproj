@@ -31,9 +31,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\OpenTerra.XML</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Unofficial.Ionic.Zip.1.9.1.8\lib\Ionic.Zip.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\thirdparty\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -42,7 +49,54 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Caching\Cache.cs" />
+    <Compile Include="Caching\CacheItem.cs" />
+    <Compile Include="Caching\HashNode.cs" />
+    <Compile Include="Caching\HashTree.cs" />
+    <Compile Include="Caching\ICache.cs" />
+    <Compile Include="Caching\ICacheRequest.cs" />
+    <Compile Include="Caching\UriRequest.cs" />
+    <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\CommandException.cs" />
+    <Compile Include="Commands\Response.cs" />
+    <Compile Include="Commands\ResponseType.cs" />
+    <Compile Include="Commands\Shell.cs" />
+    <Compile Include="Commands\Token.cs" />
+    <Compile Include="Commands\IShell.cs" />
+    <Compile Include="Commands\IShellListener.cs" />
+    <Compile Include="DataModel\Cartesian3.cs" />
+    <Compile Include="DataModel\Circle.cs" />
+    <Compile Include="DataModel\Datum.cs" />
+    <Compile Include="DataModel\Ellipse.cs" />
+    <Compile Include="DataModel\Feature.cs" />
+    <Compile Include="DataModel\GeoMatrix.cs" />
+    <Compile Include="DataModel\GeoRectangle.cs" />
+    <Compile Include="DataModel\LatLon.cs" />
+    <Compile Include="DataModel\Location.cs" />
+    <Compile Include="DataModel\Shape.cs" />
+    <Compile Include="DataModel\Units.cs" />
+    <Compile Include="DataModel\WGS84.cs" />
+    <Compile Include="ImportExport\ImportException.cs" />
+    <Compile Include="ImportExport\ImportManager.cs" />
+    <Compile Include="Plugins\IImporterPlugin.cs" />
+    <Compile Include="Plugins\IPlugin.cs" />
+    <Compile Include="Plugins\Manifest.cs" />
+    <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\PluginType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings\ISettingProvider.cs" />
+    <Compile Include="Settings\Section.cs" />
+    <Compile Include="Settings\Setting.cs" />
+    <Compile Include="Settings\SettingConverter.cs" />
+    <Compile Include="Settings\SettingElement.cs" />
+    <Compile Include="Settings\SettingProvider.cs" />
+    <Compile Include="Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Ionic.Zip.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
