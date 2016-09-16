@@ -26,6 +26,7 @@ namespace OpenTerra.Controllers
 		private IViewpointController viewpointController;
 		private PluginManager pluginManager;
 		private QuadTree quadTree;
+		private ImportManager importManager;
 
 		private Gradient elevationColorRamp;
 
@@ -42,6 +43,7 @@ namespace OpenTerra.Controllers
 		{
 			shell = new Shell();
 			pluginManager = new PluginManager();
+			importManager = new ImportManager(shell, pluginManager);
 			settingProvider = new SettingProvider();
 			cache = new Cache(shell, settingProvider);
 			globe = new Globe(new WGS84(), 0.001f, shell);
