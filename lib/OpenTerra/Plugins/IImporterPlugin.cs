@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTerra.Controllers.Caching;
 using OpenTerra.DataModel.Features;
 
 namespace OpenTerra.Plugins
@@ -8,8 +9,8 @@ namespace OpenTerra.Plugins
 	/// of OpenTerra. Each plugin should be able to import at
 	/// least one file extension.
 	/// 
-	/// The only method exposed is <see cref="Import(Uri)"/>.
-	/// This method SHOULD return a feature in case of success, or
+	/// The only method exposed is <see cref="Import(Uri, ICache, Action{Feature})"/>
+	/// This method SHOULD execute the callback a feature in case of success, or
 	/// throw an <see cref="System.IO.IOException"/> if the file could not be read.
 	/// No other behaviour is allowed. The ImportManager relies on this exception to select
 	/// the next importer in case this one fails.
@@ -26,9 +27,9 @@ namespace OpenTerra.Plugins
 		/// Try to import the specified file.
 		/// </summary>
 		/// <param name="uri">The file to load.</param>
-		/// <returns>The loaded feature.</returns>
+		/// <param name="cache">The cache service used to download files.</param>
+		/// <param name="ImportCompleted">The callback to be executed when the feature is loaded.</param>
 		/// <exception cref="System.IO.IOException">If the file could not be read.</exception>
-		/// <example>Import(new Uri("file://c:/myfile.kml")</example>
-		Feature Import(Uri uri);
+		void Import(Uri uri, ICache cache, Action<Feature> ImportCompleted);
 	}
 }

@@ -97,35 +97,46 @@ namespace OpenTerra.Plugins
 						manifest = ReadManifest(manifestStream);
 					}
 
+					// Load secondary assemblies
+					foreach (ZipEntry entry in zip.Where(e => e.FileName.EndsWith(".dll") && e.FileName != manifest.mainAssembly))
+					{
+						Assembly loaded = LoadAssembly(entry);
+					}
+
 					ZipEntry mainAssemblyEntry = zip.First(e => e.FileName == manifest.mainAssembly);
 
-					using (MemoryStream assemblyStream = new MemoryStream())
+					mainAssembly = LoadAssembly(mainAssemblyEntry);
+
+					Type pluginInterfaceType;
+					switch (manifest.Type)
 					{
-						mainAssemblyEntry.Extract(assemblyStream);
-						assemblyStream.Seek(0, SeekOrigin.Begin);
-						byte[] assemblyData = assemblyStream.ToArray();
-
-						mainAssembly = Assembly.Load(assemblyData);
-
-						Type pluginInterfaceType;
-						switch (manifest.Type)
-						{
-							case PluginType.Importer:
-								pluginInterfaceType = typeof(IImporterPlugin);
-								break;
-							default:
-								throw new FormatException("Unknown plugin type: " + manifest.Type);
-						}
-
-						Type pluginType = mainAssembly.GetTypes().First(t => pluginInterfaceType.IsAssignableFrom(t));
-
-						loadedPlugins.Add((IPlugin)Activator.CreateInstance(pluginType));
+						case PluginType.Importer:
+							pluginInterfaceType = typeof(IImporterPlugin);
+							break;
+						default:
+							throw new FormatException("Unknown plugin type: " + manifest.Type);
 					}
+
+					Type pluginType = mainAssembly.GetTypes().First(t => pluginInterfaceType.IsAssignableFrom(t));
+
+					loadedPlugins.Add((IPlugin)Activator.CreateInstance(pluginType));
 				}
 			}
 			catch (Exception e)
 			{
 				throw new FormatException(string.Format("Could not load plugin {0}.terra", pluginName), e);
+			}
+		}
+
+		private static Assembly LoadAssembly(ZipEntry mainAssemblyEntry)
+		{
+			using (MemoryStream assemblyStream = new MemoryStream())
+			{
+				mainAssemblyEntry.Extract(assemblyStream);
+				assemblyStream.Seek(0, SeekOrigin.Begin);
+				byte[] assemblyData = assemblyStream.ToArray();
+
+				return Assembly.Load(assemblyData);
 			}
 		}
 

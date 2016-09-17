@@ -3,19 +3,44 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OpenTerra.Commands;
+using OpenTerra.Controllers.Caching;
 using OpenTerra.DataModel.Features;
 using OpenTerra.Plugins;
 
 namespace OpenTerra.Controllers
 {
+	/// <summary>
+	/// Called when a new feature has been imported.
+	/// </summary>
+	public delegate void FeatureImportedEventHandler(object sender, FeatureImportedEventArgs e);
+
+	public class FeatureImportedEventArgs : EventArgs
+	{
+		public Feature Feature { get; private set; }
+
+		public FeatureImportedEventArgs(Feature feature)
+		{
+			this.Feature = feature;
+		}
+	}
+
 	public class ImportManager
 	{
 		private IEnumerable<IImporterPlugin> importers;
 		private IShell shell;
+		private ICache cache;
 
-		public ImportManager(IShell shell, IPluginManager pluginManager)
+		private bool shellWaitingImportResponse;
+
+		/// <summary>
+		/// Occurs when a feature has been imported.
+		/// </summary>
+		public event FeatureImportedEventHandler FeatureImported;
+
+		public ImportManager(IShell shell, IPluginManager pluginManager, ICache cache)
 		{
 			this.shell = shell;
+			this.cache = cache;
 
 			importers = pluginManager.LoadedPlugins.Where(m => m.PluginType == PluginType.Importer).Cast<IImporterPlugin>();
 
@@ -30,7 +55,7 @@ namespace OpenTerra.Controllers
 		/// </summary>
 		/// <param name="uri">The <see cref="System.Uri"/> of the file to import.</param>
 		/// <exception cref="ImportException">If the file could not be imported.</exception>
-		public Feature Import(Uri uri)
+		public void Import(Uri uri)
 		{
 			string extension = Path.GetExtension(uri.AbsolutePath);
 			if (string.IsNullOrEmpty(extension))
@@ -42,13 +67,11 @@ namespace OpenTerra.Controllers
 			// We should then call each of them in cascade until one succeeds to load the file.
 			IEnumerable<IImporterPlugin> supportedImporters = importers.Where(imp => imp.SupportedExtensions.Contains(extension));
 
-			Feature importedFeature = null;
-
 			foreach (IImporterPlugin importer in supportedImporters)
 			{
 				try
 				{
-					importedFeature = importer.Import(uri);
+					importer.Import(uri, cache, OnNewFeatureImported);
 					break;
 				}
 				catch (IOException)
@@ -56,13 +79,18 @@ namespace OpenTerra.Controllers
 					// Try with next plugin.
 				}
 			}
+		}
 
-			if (importedFeature == null)
+		private void OnNewFeatureImported(Feature feature)
+		{
+			if (shellWaitingImportResponse)
 			{
-				throw new ImportException(string.Format("Could not load '{0}'", uri));
+				shell.SubmitResponse(new Response(feature, ResponseType.Success));
+				shellWaitingImportResponse = false;
 			}
 
-			return importedFeature;
+			if (FeatureImported != null)
+				FeatureImported(this, new FeatureImportedEventArgs(feature));
 		}
 
 		#region shell commands
@@ -77,14 +105,14 @@ namespace OpenTerra.Controllers
 			try
 			{
 				Uri uri = new Uri(command.Tokens[0].String);
+				shellWaitingImportResponse = true;
+				Import(uri);
 
-				Feature imported = Import(uri);
-
-				return new Response(imported, ResponseType.Success);
+				return new Response("Importing...", ResponseType.Normal);
 			}
 			catch (Exception ex)
 			{
-				return new Response(ex.Message, ResponseType.Error);
+				return new Response(ex, ResponseType.Error);
 			}
 		}
 
