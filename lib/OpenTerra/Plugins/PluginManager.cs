@@ -9,18 +9,30 @@ using Ionic.Zip;
 
 namespace OpenTerra.Plugins
 {
-	public class PluginManager
+	/// <summary>
+	/// The plugin manager is responsible for the discovery and loading of OpenTerra plugins (*.terra files).
+	/// </summary>
+	public class PluginManager : IPluginManager
 	{
 		private DirectoryInfo pluginDirectory;
 
-		IList<IPlugin> loadedPlugins = new List<IPlugin>();
-		IList<Manifest> manifests = new List<Manifest>();
+		private IList<IPlugin> loadedPlugins = new List<IPlugin>();
 
+		/// <summary>
+		/// The number of discovered plugins.
+		/// </summary>
 		public int PluginCount { get; private set; }
-		public IEnumerable<Manifest> Manifests { get { return manifests; } }
 
+		/// <summary>
+		/// A list of all currently loaded plugins.
+		/// </summary>
 		public IList<IPlugin> LoadedPlugins { get { return loadedPlugins; } }
 
+		/// <summary>
+		/// Initialize a new instance of the <see cref="PluginManager"/> class using the specified plugin
+		/// directory. If no directory is provided, the default plugin directory is used.
+		/// </summary>
+		/// <param name="pluginDir">The directory to search for plugins.</param>
 		public PluginManager(string pluginDir = null)
 		{
 			if (pluginDir == null)
@@ -44,8 +56,9 @@ namespace OpenTerra.Plugins
 		}
 
 		/// <summary>
-		/// Search for plugin packages (*.terra extension) in the plugins/ directory,
-		/// read their manifest to determine their capabilities, then load them.
+		/// Search for plugin packages (*.terra extension) in the curent plugin directory,
+		/// read their manifest to determine their capabilities, then load them. A plugin package
+		/// is a ZIP file containing a plugin manifest (manifest.xml) and one or more assembly files (.dll).
 		/// </summary>
 		private void DiscoverPlugins()
 		{
@@ -94,9 +107,18 @@ namespace OpenTerra.Plugins
 
 						mainAssembly = Assembly.Load(assemblyData);
 
-						Type pluginType = mainAssembly.GetTypes().First(t => typeof(IImporterPlugin).IsAssignableFrom(t));
+						Type pluginInterfaceType;
+						switch (manifest.Type)
+						{
+							case PluginType.Importer:
+								pluginInterfaceType = typeof(IImporterPlugin);
+								break;
+							default:
+								throw new FormatException("Unknown plugin type: " + manifest.Type);
+						}
 
-						manifests.Add(manifest);
+						Type pluginType = mainAssembly.GetTypes().First(t => pluginInterfaceType.IsAssignableFrom(t));
+
 						loadedPlugins.Add((IPlugin)Activator.CreateInstance(pluginType));
 					}
 				}

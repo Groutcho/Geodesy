@@ -13,7 +13,7 @@ namespace OpenTerra.Controllers
 		private IEnumerable<IImporterPlugin> importers;
 		private IShell shell;
 
-		public ImportManager(IShell shell, PluginManager pluginManager)
+		public ImportManager(IShell shell, IPluginManager pluginManager)
 		{
 			this.shell = shell;
 
