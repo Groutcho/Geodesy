@@ -68,7 +68,10 @@
     <Compile Include="DataModel\Datum.cs" />
     <Compile Include="DataModel\Ellipse.cs" />
     <Compile Include="DataModel\Features\Feature.cs" />
+    <Compile Include="DataModel\Features\FeatureImportedEventHandler.cs" />
+    <Compile Include="DataModel\Features\FeatureManager.cs" />
     <Compile Include="DataModel\Features\Geometry.cs" />
+    <Compile Include="DataModel\Features\IFeatureManager.cs" />
     <Compile Include="DataModel\Features\Landmark.cs" />
     <Compile Include="DataModel\Features\Point.cs" />
     <Compile Include="DataModel\GeoMatrix.cs" />
