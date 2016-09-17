@@ -1,0 +1,7 @@
+<plugin>
+	<name>KML-importer</name>
+	<description>OpenTerra importer for OpenGIS KML files</description>
+	<version>0.1.0</version>
+	<type>importer</type>
+	<mainAssembly>KML-importer.dll</mainAssembly>
+</plugin>
