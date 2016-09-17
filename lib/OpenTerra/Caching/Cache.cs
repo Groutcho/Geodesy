@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using OpenTerra.Commands;
+using OpenTerra.DataModel;
 using OpenTerra.Settings;
 
 namespace OpenTerra.Controllers.Caching
@@ -27,11 +28,21 @@ namespace OpenTerra.Controllers.Caching
 		private float freeIncrement;
 		private object syncRoot = new object ();
 
+		/// <summary>
+		/// The size limit, in bytes of the in-memory cache.
+		/// When this limit is reached, the cache will try to free some memory
+		/// by removing less used entries.
+		/// </summary>
 		public long SizeLimit { get; set; }
 
+		/// <summary>
+		/// Create a new instance of the <see cref="Cache"/> class using the specified shell and settings.
+		/// </summary>
+		/// <param name="shell">The shell used to register commands.</param>
+		/// <param name="settings">The settings to use.</param>
 		public Cache (IShell shell, ISettingProvider settings)
 		{
-			SizeLimit = MegabytesToBytes (settings.Get (300L, "Cache", "Size limit (MB)"));
+			SizeLimit = Units.mb_to_b(settings.Get (300L, "Cache", "Size limit (MB)"));
 			dispatchLimitPerFrame = (int)settings.Get (90L, "Cache", "Dispatch limit per frame");
 			freeIncrement = (float)settings.Get (0.1d, "Cache", "Free increment (%)");
 
@@ -61,6 +72,14 @@ namespace OpenTerra.Controllers.Caching
 			toDispatch.Clear ();
 		}
 
+		/// <summary>
+		/// Get the resource associated with the provided URI.
+		/// If this resource is present in the cache, get the cached version. If not,
+		/// try to download the resource. Once the resource is available, execute the
+		/// callback method with the resource data and URI as parameters.
+		/// </summary>
+		/// <param name="uri">The URI to fetch.</param>
+		/// <param name="callback">The method to execute once the data is available.</param>
 		public void Get (Uri uri, Action<Uri, byte[]> callback)
 		{
 			string hash = Hash (uri);
@@ -97,11 +116,6 @@ namespace OpenTerra.Controllers.Caching
 
 			if (!cacheRoot.Exists)
 				cacheRoot.Create();
-		}
-
-		private static long MegabytesToBytes (long megabytes)
-		{
-			return megabytes * 1024 * 1024;
 		}
 
 		/// <summary>
@@ -146,8 +160,8 @@ namespace OpenTerra.Controllers.Caching
 		/// <summary>
 		/// Tries to search the in-memory cache for the specified hash.
 		/// If the hash is not present in the in-memory cache, search the on-disk
-		/// cache. If there is nothing on-disk, perform a download and fill the cache
-		/// with the downloaded URI.
+		/// cache. If there is nothing on-disk, perform a download and fill the
+		/// in-memory and on-disk caches with the downloaded data.
 		/// </summary>
 		/// <param name="hash">The has to search in the in-memory and on-disk caches.</param>
 		/// <param name="uri">The URI to download if the hash is not present in the cache.</param>
@@ -202,7 +216,7 @@ namespace OpenTerra.Controllers.Caching
 		}
 
 		/// <summary>
-		/// Calls the garbage collector to partially free the immediate cache.
+		/// Calls the cache internal garbage collector to partially free the immediate cache.
 		/// </summary>
 		private void GC ()
 		{
@@ -281,7 +295,7 @@ namespace OpenTerra.Controllers.Caching
 
 		private void ConsoleCallback (Uri uri, byte[] data)
 		{
-            // TODO: fix
+			// TODO: fix
 			//Terminal.Instance.Log (string.Format ("{0} ({1} bytes)", uri, data.Length));
 		}
 
