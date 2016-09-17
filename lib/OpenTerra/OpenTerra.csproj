@@ -34,9 +34,8 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
-      <HintPath>..\packages\Unofficial.Ionic.Zip.1.9.1.8\lib\Ionic.Zip.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Ionic.Zip.Reduced">
+      <HintPath>lib\Ionic.Zip.Reduced.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\thirdparty\Newtonsoft.Json.dll</HintPath>
@@ -69,7 +68,9 @@
     <Compile Include="DataModel\Datum.cs" />
     <Compile Include="DataModel\Ellipse.cs" />
     <Compile Include="DataModel\Features\Feature.cs" />
+    <Compile Include="DataModel\Features\Geometry.cs" />
     <Compile Include="DataModel\Features\Landmark.cs" />
+    <Compile Include="DataModel\Features\Point.cs" />
     <Compile Include="DataModel\GeoMatrix.cs" />
     <Compile Include="DataModel\GeoRectangle.cs" />
     <Compile Include="DataModel\LatLon.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="ImportExport\ImportManager.cs" />
     <Compile Include="Plugins\IImporterPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
+    <Compile Include="Plugins\IPluginManager.cs" />
     <Compile Include="Plugins\Manifest.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Plugins\PluginType.cs" />
