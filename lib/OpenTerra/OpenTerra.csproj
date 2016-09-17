@@ -68,7 +68,8 @@
     <Compile Include="DataModel\Circle.cs" />
     <Compile Include="DataModel\Datum.cs" />
     <Compile Include="DataModel\Ellipse.cs" />
-    <Compile Include="DataModel\Feature.cs" />
+    <Compile Include="DataModel\Features\Feature.cs" />
+    <Compile Include="DataModel\Features\Landmark.cs" />
     <Compile Include="DataModel\GeoMatrix.cs" />
     <Compile Include="DataModel\GeoRectangle.cs" />
     <Compile Include="DataModel\LatLon.cs" />

@@ -9,6 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{3E2A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTerra.Unity", "OpenTerra.Unity\OpenTerra.Unity.csproj", "{7EFD13EF-94A9-44D7-824F-8153AAD83F88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTerraTests", "OpenTerraTests\OpenTerraTests.csproj", "{392176E0-D22D-4638-A080-5C14623C735E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KML-import", "Plugins\KML-import\KML-import.csproj", "{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginPackager", "Plugins\PluginPackager\PluginPackager.csproj", "{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,8 +29,24 @@ Global
 		{7EFD13EF-94A9-44D7-824F-8153AAD83F88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EFD13EF-94A9-44D7-824F-8153AAD83F88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EFD13EF-94A9-44D7-824F-8153AAD83F88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{392176E0-D22D-4638-A080-5C14623C735E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{392176E0-D22D-4638-A080-5C14623C735E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{392176E0-D22D-4638-A080-5C14623C735E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{392176E0-D22D-4638-A080-5C14623C735E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C73D88CD-DD46-4EC4-A0DC-B521E950AEE4} = {3E2A9EFA-F6B1-4F48-AA91-E733D02A27EC}
+		{56AEE2C6-A92E-4B20-97BF-0F672F9EE1E6} = {3E2A9EFA-F6B1-4F48-AA91-E733D02A27EC}
 	EndGlobalSection
 EndGlobal
