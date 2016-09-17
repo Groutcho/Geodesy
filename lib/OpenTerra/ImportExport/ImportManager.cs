@@ -7,24 +7,9 @@ using OpenTerra.Controllers.Caching;
 using OpenTerra.DataModel.Features;
 using OpenTerra.Plugins;
 
-namespace OpenTerra.Controllers
+namespace OpenTerra.ImportExport
 {
-	/// <summary>
-	/// Called when a new feature has been imported.
-	/// </summary>
-	public delegate void FeatureImportedEventHandler(object sender, FeatureImportedEventArgs e);
-
-	public class FeatureImportedEventArgs : EventArgs
-	{
-		public Feature Feature { get; private set; }
-
-		public FeatureImportedEventArgs(Feature feature)
-		{
-			this.Feature = feature;
-		}
-	}
-
-	public class ImportManager
+	public class ImportManager : IImportManager
 	{
 		private IEnumerable<IImporterPlugin> importers;
 		private IShell shell;

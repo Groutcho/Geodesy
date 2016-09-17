@@ -78,7 +78,7 @@
     <Compile Include="DataModel\Shape.cs" />
     <Compile Include="DataModel\Units.cs" />
     <Compile Include="DataModel\WGS84.cs" />
-    <Compile Include="ImportExport\ImportException.cs" />
+    <Compile Include="ImportExport\IImportManager.cs" />
     <Compile Include="ImportExport\ImportManager.cs" />
     <Compile Include="Plugins\IImporterPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
