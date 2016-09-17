@@ -2,10 +2,13 @@
 using OpenTerra.Commands;
 using OpenTerra.Controllers.Caching;
 using OpenTerra.DataModel;
+using OpenTerra.DataModel.Features;
+using OpenTerra.ImportExport;
 using OpenTerra.Plugins;
 using OpenTerra.Settings;
 using OpenTerra.Unity;
 using OpenTerra.Unity.Compositing;
+using OpenTerra.Unity.Geometry;
 using OpenTerra.Unity.Patches;
 using OpenTerra.Unity.SpatialStructures;
 using OpenTerra.Unity.Terrain;
@@ -30,7 +33,9 @@ namespace OpenTerra.Controllers
 		private IViewpointController viewpointController;
 		private IPluginManager pluginManager;
 		private QuadTree quadTree;
-		private ImportManager importManager;
+		private IImportManager importManager;
+		private IGeometryManager geometryManager;
+		private IFeatureManager featureManager;
 
 		public Gradient ElevationColorRamp;
 		public int[] ScenesToLoad;
@@ -59,6 +64,8 @@ namespace OpenTerra.Controllers
 			viewpointController = new ViewpointController(shell, globe);
 			terrainManager = new TerrainManager(cache, viewpointController);
 			quadTree = new QuadTree(globe, viewpointController);
+			featureManager = new FeatureManager(importManager);
+			geometryManager = new GeometryManager(featureManager, globe);
 			meshBuilder = new MeshBuilder(settingProvider, globe, quadTree, terrainManager, ElevationColorRamp);
 
 			patchManager = new PatchManager(shell, terrainManager, meshBuilder, quadTree);
