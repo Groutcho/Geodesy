@@ -9,7 +9,7 @@ namespace OpenTerra.Commands
 
 		private List<IShellListener> listeners = new List<IShellListener>();
 
-		private void PublishResponse(Response response)
+		public void SubmitResponse(Response response)
 		{
 			foreach (var item in listeners)
 			{
@@ -64,14 +64,14 @@ namespace OpenTerra.Commands
 
 			if (!handlers.ContainsKey(command.Keyword))
 			{
-				PublishResponse(new Response(string.Format("No handler found for '{0}'", command.Keyword), ResponseType.Error));
+				SubmitResponse(new Response(string.Format("No handler found for '{0}'", command.Keyword), ResponseType.Error));
 			}
 			else
 			{
 				// Execute the command.
 				Response response = handlers[command.Keyword](command);
 
-				PublishResponse(response);
+				SubmitResponse(response);
 			}
 		}
 

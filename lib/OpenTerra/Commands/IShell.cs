@@ -16,6 +16,12 @@ namespace OpenTerra
 		void SubmitInput(string input);
 
 		/// <summary>
+		/// Submit a response asynchronously.
+		/// </summary>
+		/// <param name="response">The response to send to the shell.</param>
+		void SubmitResponse(Response response);
+
+		/// <summary>
 		/// Register a keyword with a command handler that will execute the whole command.
 		/// </summary>
 		/// <param name="keyword">The first word in the command is the keyword. A keyword cannot be shared between handlers.</param>
