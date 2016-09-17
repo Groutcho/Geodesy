@@ -28,7 +28,7 @@ namespace OpenTerra.Controllers
 		private IPatchManager patchManager;
 		private ICompositer compositer;
 		private IViewpointController viewpointController;
-		private PluginManager pluginManager;
+		private IPluginManager pluginManager;
 		private QuadTree quadTree;
 		private ImportManager importManager;
 
@@ -37,7 +37,7 @@ namespace OpenTerra.Controllers
 
 		public void Start()
 		{
-            Debug.Log("Starting bootstrapper...");
+			Debug.Log("Starting bootstrapper...");
 
 			StartCoroutine(Startup());
 		}
@@ -52,9 +52,9 @@ namespace OpenTerra.Controllers
 
 			shell = new Shell();
 			pluginManager = new PluginManager();
-			importManager = new ImportManager(shell, pluginManager);
 			settingProvider = new SettingProvider();
 			cache = new Cache(shell, settingProvider);
+			importManager = new ImportManager(shell, pluginManager, cache);
 			globe = new Globe(new WGS84(), 0.001f, shell);
 			viewpointController = new ViewpointController(shell, globe);
 			terrainManager = new TerrainManager(cache, viewpointController);
