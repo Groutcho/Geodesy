@@ -1,7 +1,7 @@
 ﻿using OpenTerra.DataModel;
 using OpenTerra.Unity.Patches;
 
-namespace OpenTerra
+namespace OpenTerra.Unity
 {
 	public interface IPatchManager
 	{

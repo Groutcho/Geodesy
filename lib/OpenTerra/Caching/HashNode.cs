@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 
-namespace OpenTerra.Controllers.Caching
+namespace OpenTerra.Caching
 {
 	public sealed class HashNode : IEnumerator<KeyValuePair<string, CacheItem>>
 	{

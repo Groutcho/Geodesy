@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenTerra.Controllers.Caching
+namespace OpenTerra.Caching
 {
 	internal interface ICacheRequest
 	{

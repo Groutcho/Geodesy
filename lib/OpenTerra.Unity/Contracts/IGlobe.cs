@@ -1,7 +1,7 @@
 ﻿using OpenTerra.DataModel;
 using UnityEngine;
 
-namespace OpenTerra
+namespace OpenTerra.Unity
 {
 	public interface IGlobe
 	{

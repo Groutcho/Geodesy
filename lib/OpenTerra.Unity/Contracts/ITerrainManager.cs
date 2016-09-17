@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTerra.Unity;
 
-namespace OpenTerra
+namespace OpenTerra.Unity
 {
 	public interface ITerrainManager
 	{

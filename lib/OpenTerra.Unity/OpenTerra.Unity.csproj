@@ -54,8 +54,8 @@
     <Compile Include="Contracts\ITerrainManager.cs" />
     <Compile Include="Contracts\IViewpointController.cs" />
     <Compile Include="Filtering.cs" />
-    <Compile Include="Geometry\GeometryManager.cs" />
-    <Compile Include="Geometry\IGeometryManager.cs" />
+    <Compile Include="Geometries\GeometryManager.cs" />
+    <Compile Include="Geometries\IGeometryManager.cs" />
     <Compile Include="Globe.cs" />
     <Compile Include="Layers\Layer.cs" />
     <Compile Include="Layers\RasterLayer.cs" />

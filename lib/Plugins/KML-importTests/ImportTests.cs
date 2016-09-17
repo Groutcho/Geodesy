@@ -4,7 +4,7 @@ using System.Text;
 using KML_import;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.DataModel;
 using OpenTerra.DataModel.Features;
 using OpenTerra.Plugins;

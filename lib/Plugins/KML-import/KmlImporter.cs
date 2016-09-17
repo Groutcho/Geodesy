@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.Plugins;
 using SharpKml.Dom;
 using KML = SharpKml.Dom;

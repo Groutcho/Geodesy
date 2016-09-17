@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTerra.Commands;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.DataModel;
 using OpenTerra.Settings;
 using OpenTerra.Unity.Patches;

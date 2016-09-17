@@ -1,4 +1,4 @@
-﻿using OpenTerra.Controllers.Caching;
+﻿using OpenTerra.Caching;
 using System;
 using System.Collections.Generic;
 using OpenTerra.DataModel;

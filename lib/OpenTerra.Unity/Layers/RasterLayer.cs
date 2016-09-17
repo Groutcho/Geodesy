@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using UnityEngine;
 using OpenTerra.Unity.Patches;
 
-namespace OpenTerra.DataModel
+namespace OpenTerra.Unity.DataModel
 {
 	public delegate void NewDataAvailableHandler (object sender, Location coord);
 

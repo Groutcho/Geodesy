@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.DataModel.Features;
 using OpenTerra.Plugins;
 

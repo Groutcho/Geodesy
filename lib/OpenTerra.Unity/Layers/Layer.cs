@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace OpenTerra.DataModel
+namespace OpenTerra.Unity.DataModel
 {
 	public class Layer
 	{

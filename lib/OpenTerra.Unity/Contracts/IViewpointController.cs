@@ -1,6 +1,6 @@
 ﻿using OpenTerra.Unity.Views;
 
-namespace OpenTerra
+namespace OpenTerra.Unity
 {
 	public interface IViewpointController
 	{

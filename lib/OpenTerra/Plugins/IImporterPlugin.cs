@@ -1,5 +1,5 @@
 ﻿using System;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.DataModel.Features;
 
 namespace OpenTerra.Plugins

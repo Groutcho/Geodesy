@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OpenTerra.Controllers.Caching
+namespace OpenTerra.Caching
 {
 	public class HashTree : IDictionary<string, CacheItem>
 	{

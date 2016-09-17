@@ -1,4 +1,4 @@
-﻿namespace OpenTerra
+﻿namespace OpenTerra.Unity
 {
 	public interface ICompositer
 	{

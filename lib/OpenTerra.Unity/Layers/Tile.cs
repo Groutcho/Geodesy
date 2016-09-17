@@ -2,7 +2,7 @@
 using OpenTerra.Unity.Workers;
 using UnityEngine;
 
-namespace OpenTerra.DataModel
+namespace OpenTerra.Unity.DataModel
 {
 	public class Tile
 	{

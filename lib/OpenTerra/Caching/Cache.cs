@@ -9,7 +9,7 @@ using OpenTerra.Commands;
 using OpenTerra.DataModel;
 using OpenTerra.Settings;
 
-namespace OpenTerra.Controllers.Caching
+namespace OpenTerra.Caching
 {
 	/// <summary>
 	/// Performs downloading and caching of requested URIs. All downloaded files are

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OpenTerra.Commands;
-using OpenTerra.Controllers.Caching;
+using OpenTerra.Caching;
 using OpenTerra.DataModel.Features;
 using OpenTerra.Plugins;
 
