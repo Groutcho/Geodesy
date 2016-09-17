@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTerra.DataModel.Features;
 
 namespace OpenTerra.Plugins
 {
@@ -27,6 +28,7 @@ namespace OpenTerra.Plugins
 		/// <param name="uri">The file to load.</param>
 		/// <returns>The loaded feature.</returns>
 		/// <exception cref="System.IO.IOException">If the file could not be read.</exception>
-		object Import(Uri uri);
+		/// <example>Import(new Uri("file://c:/myfile.kml")</example>
+		Feature Import(Uri uri);
 	}
 }

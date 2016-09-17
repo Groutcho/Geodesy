@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
 using System.Xml.Linq;
 using Ionic.Zip;
 
@@ -29,7 +30,7 @@ namespace OpenTerra.Plugins
 			}
 			else
 			{
-				if (!Directory.Exists(pluginDir))
+				if (Directory.Exists(pluginDir))
 				{
 					pluginDirectory = new DirectoryInfo(pluginDir);
 				}
@@ -66,7 +67,7 @@ namespace OpenTerra.Plugins
 		private void LoadPlugin(string path)
 		{
 			string pluginName = Path.GetFileNameWithoutExtension(path);
-			string manifestFilename = pluginName + ".xml";
+			string manifestFilename = "manifest.xml";
 			Manifest manifest;
 			Assembly mainAssembly;
 
@@ -74,9 +75,7 @@ namespace OpenTerra.Plugins
 			{
 				using (ZipFile zip = ZipFile.Read(path))
 				{
-					// TODO: use 'manifest.xml' as manifest name instead of <pluginName>.xml,
-					// since there is already enough information about the plugin name
-					// (inside the manifest, and the name of the plugin file).
+					// Search manifest
 					ZipEntry manifestEntry = zip.First(e => e.FileName == manifestFilename);
 
 					using (MemoryStream manifestStream = new MemoryStream())
@@ -95,7 +94,7 @@ namespace OpenTerra.Plugins
 
 						mainAssembly = Assembly.Load(assemblyData);
 
-						Type pluginType = mainAssembly.GetTypes().First(t => t.IsAssignableFrom(typeof(IPlugin)));
+						Type pluginType = mainAssembly.GetTypes().First(t => typeof(IImporterPlugin).IsAssignableFrom(t));
 
 						manifests.Add(manifest);
 						loadedPlugins.Add((IPlugin)Activator.CreateInstance(pluginType));
@@ -117,58 +116,62 @@ namespace OpenTerra.Plugins
 		private Manifest ReadManifest(Stream stream)
 		{
 			stream.Seek(0, SeekOrigin.Begin);
-			XDocument document = XDocument.Load(stream);
-			XElement root = document.Root;
 
-			string missingParameterError = "missing plugin {0}. Expected '{0}' element.";
-
-			Action<string> RaiseError = (string s) => Console.WriteLine(s);
-
-			if (root.Name != "plugin")
+			using (XmlReader reader = new XmlTextReader(stream))
 			{
-				throw new FormatException("Bad manifest format, expected root element 'plugin', got: " + document.Root.Name);
+				XDocument document = XDocument.Load(reader);
+				XElement root = document.Root;
+
+				string missingParameterError = "missing plugin {0}. Expected '{0}' element.";
+
+				Action<string> RaiseError = (string s) => Console.WriteLine(s);
+
+				if (root.Name != "plugin")
+				{
+					throw new FormatException("Bad manifest format, expected root element 'plugin', got: " + document.Root.Name);
+				}
+
+				if (root.Element("type") == null)
+					throw new FormatException(string.Format(missingParameterError, "type"));
+
+				if (root.Element("name") == null)
+					throw new FormatException(string.Format(missingParameterError, "name"));
+
+				if (root.Element("description") == null)
+					throw new FormatException(string.Format(missingParameterError, "description"));
+
+				if (root.Element("version") == null)
+					throw new FormatException(string.Format(missingParameterError, "version"));
+
+				if (root.Element("mainAssembly") == null)
+					throw new FormatException(string.Format(missingParameterError, "mainAssembly"));
+
+				string name = root.Element("name").Value;
+				string description = root.Element("description").Value;
+				Version version = new Version(root.Element("version").Value);
+				string type = root.Element("type").Value;
+				PluginType pluginType;
+
+				switch (type)
+				{
+					case "importer":
+						pluginType = PluginType.Importer;
+						break;
+					default:
+						throw new FormatException("Invalid plugin type: " + type);
+				}
+
+				string mainAssembly = root.Element("mainAssembly").Value;
+
+				return new Manifest
+				{
+					Name = name,
+					Description = description,
+					Version = version,
+					Type = pluginType,
+					mainAssembly = mainAssembly
+				};
 			}
-
-			if (root.Element("type") == null)
-				throw new FormatException(string.Format(missingParameterError, "type"));
-
-			if (root.Element("name") == null)
-				throw new FormatException(string.Format(missingParameterError, "name"));
-
-			if (root.Element("description") == null)
-				throw new FormatException(string.Format(missingParameterError, "description"));
-
-			if (root.Element("version") == null)
-				throw new FormatException(string.Format(missingParameterError, "version"));
-
-			if (root.Element("mainAssembly") == null)
-				throw new FormatException(string.Format(missingParameterError, "mainAssembly"));
-
-			string name = root.Element("name").Value;
-			string description = root.Element("description").Value;
-			Version version = new Version(root.Element("version").Value);
-			string type = root.Element("type").Value;
-			PluginType pluginType;
-
-			switch (type)
-			{
-				case "importer":
-					pluginType = PluginType.Importer;
-					break;
-				default:
-					throw new FormatException("Invalid plugin type: " + type);
-			}
-
-			string mainAssembly = root.Element("mainAssembly").Value;
-
-			return new Manifest
-			{
-				Name = name,
-				Description = description,
-				Version = version,
-				Type = pluginType,
-				mainAssembly = mainAssembly
-			};
 		}
 	}
 }
