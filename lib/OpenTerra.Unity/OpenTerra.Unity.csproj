@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7EFD13EF-94A9-44D7-824F-8153AAD83F88}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OpenTerra.Unity</RootNamespace>
+    <AssemblyName>OpenTerra.Unity</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Unity\Editor\Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Unity\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Colors.cs" />
+    <Compile Include="Compositing\Compositer.cs" />
+    <Compile Include="Compositing\Grid.cs" />
+    <Compile Include="Contracts\ICompositer.cs" />
+    <Compile Include="Contracts\IGlobe.cs" />
+    <Compile Include="Contracts\IPatchManager.cs" />
+    <Compile Include="Contracts\ITerrainManager.cs" />
+    <Compile Include="Contracts\IViewpointController.cs" />
+    <Compile Include="Filtering.cs" />
+    <Compile Include="Geometries\GeometryManager.cs" />
+    <Compile Include="Geometries\IGeometryManager.cs" />
+    <Compile Include="Globe.cs" />
+    <Compile Include="Layers\Layer.cs" />
+    <Compile Include="Layers\RasterLayer.cs" />
+    <Compile Include="Layers\Tile.cs" />
+    <Compile Include="Patches\Patch.cs" />
+    <Compile Include="Patches\PatchManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SpatialStructures\Node.cs" />
+    <Compile Include="SpatialStructures\QuadTree.cs" />
+    <Compile Include="Terrain\SrtmTile.cs" />
+    <Compile Include="Terrain\TerrainManager.cs" />
+    <Compile Include="ThirdParty\MouseOrbitImproved.cs" />
+    <Compile Include="Converter.cs" />
+    <Compile Include="Views\Viewpoint.cs" />
+    <Compile Include="Views\ViewpointController.cs" />
+    <Compile Include="Workers\IMeshBuilder.cs" />
+    <Compile Include="Workers\MeshBuilder.cs" />
+    <Compile Include="Workers\MeshGeneratedEventHandler.cs" />
+    <Compile Include="Workers\MeshObject.cs" />
+    <Compile Include="Workers\PatchRequest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenTerra\OpenTerra.csproj">
+      <Project>{AA60D8B6-5E71-4050-A125-AD0F04D0C2E0}</Project>
+      <Name>OpenTerra</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetDir)* $(SolutionDir)..\unity\Assets\lib\
+del $(SolutionDir)..\unity\Assets\lib\Unity*.dll</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
